@@ -22,7 +22,9 @@ namespace KLTN.Controllers
         // GET: ThongBaos
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.ThongBaos.Include(t => t.ThanhVien);
+            var applicationDbContext = _context.ThongBaos
+                .Include(t => t.TaiKhoan)
+                .ThenInclude(t => t.ThanhVien);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -35,7 +37,8 @@ namespace KLTN.Controllers
             }
 
             var thongBao = await _context.ThongBaos
-                .Include(t => t.ThanhVien)
+                .Include(t => t.TaiKhoan)
+                .ThenInclude(t => t.ThanhVien)
                 .FirstOrDefaultAsync(m => m.MaThongBao == id);
             if (thongBao == null)
             {
@@ -48,7 +51,7 @@ namespace KLTN.Controllers
         // GET: ThongBaos/Create
         public IActionResult Create()
         {
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV");
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans.Include(t => t.ThanhVien), "MaTK", "TenDangNhap");
             return View();
         }
 
@@ -57,7 +60,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaThongBao,TieuDe,NoiDung,NgayGui,MaTV,DaDoc")] ThongBao thongBao)
+        public async Task<IActionResult> Create([Bind("MaThongBao,TieuDe,NoiDung,NgayGui,MaTK,DaDoc")] ThongBao thongBao)
         {
             if (ModelState.IsValid)
             {
@@ -65,7 +68,7 @@ namespace KLTN.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", thongBao.MaTV);
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans.Include(t => t.ThanhVien), "MaTK", "TenDangNhap", thongBao.MaTK);
             return View(thongBao);
         }
 
@@ -82,7 +85,7 @@ namespace KLTN.Controllers
             {
                 return NotFound();
             }
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", thongBao.MaTV);
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans.Include(t => t.ThanhVien), "MaTK", "TenDangNhap", thongBao.MaTK);
             return View(thongBao);
         }
 
@@ -91,7 +94,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaThongBao,TieuDe,NoiDung,NgayGui,MaTV,DaDoc")] ThongBao thongBao)
+        public async Task<IActionResult> Edit(int id, [Bind("MaThongBao,TieuDe,NoiDung,NgayGui,MaTK,DaDoc")] ThongBao thongBao)
         {
             if (id != thongBao.MaThongBao)
             {
@@ -118,7 +121,7 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", thongBao.MaTV);
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans.Include(t => t.ThanhVien), "MaTK", "TenDangNhap", thongBao.MaTK);
             return View(thongBao);
         }
 
@@ -131,7 +134,8 @@ namespace KLTN.Controllers
             }
 
             var thongBao = await _context.ThongBaos
-                .Include(t => t.ThanhVien)
+                .Include(t => t.TaiKhoan)
+                .ThenInclude(t => t.ThanhVien)
                 .FirstOrDefaultAsync(m => m.MaThongBao == id);
             if (thongBao == null)
             {

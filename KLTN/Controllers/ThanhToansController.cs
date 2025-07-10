@@ -61,7 +61,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaThanhToan,LoaiThanhToan,MaDangKy,MaGiaHan,SoTien,PhuongThucThanhToan,NgayThanhToan,MaTKNguoiThu,TrangThai,GhiChu,MaGiaoDich,DonViThanhToan,TaiKhoanThanhToan,HoaDonDienTuUrl,DaXuatHoaDon")] ThanhToan thanhToan)
+        public async Task<IActionResult> Create([Bind("MaThanhToan,LoaiThanhToan,MaDangKy,MaGiaHan,MaTK_NguoiDung,MaKVL_NguoiDung,SoTien,PhuongThucThanhToan,NgayThanhToan,MaTKNguoiThu,TrangThai,GhiChu,MaGiaoDich,DonViThanhToan,TaiKhoanThanhToan,HoaDonDienTuUrl,DaXuatHoaDon")] ThanhToan thanhToan)
         {
             if (ModelState.IsValid)
             {
@@ -99,7 +99,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaThanhToan,LoaiThanhToan,MaDangKy,MaGiaHan,SoTien,PhuongThucThanhToan,NgayThanhToan,MaTKNguoiThu,TrangThai,GhiChu,MaGiaoDich,DonViThanhToan,TaiKhoanThanhToan,HoaDonDienTuUrl,DaXuatHoaDon")] ThanhToan thanhToan)
+        public async Task<IActionResult> Edit(int id, [Bind("MaThanhToan,LoaiThanhToan,MaDangKy,MaGiaHan,MaTK_NguoiDung,MaKVL_NguoiDung,SoTien,PhuongThucThanhToan,NgayThanhToan,MaTKNguoiThu,TrangThai,GhiChu,MaGiaoDich,DonViThanhToan,TaiKhoanThanhToan,HoaDonDienTuUrl,DaXuatHoaDon")] ThanhToan thanhToan)
         {
             if (id != thanhToan.MaThanhToan)
             {

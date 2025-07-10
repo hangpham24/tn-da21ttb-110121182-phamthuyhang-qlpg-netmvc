@@ -1,92 +1,119 @@
 ﻿@model KLTN.Models.Database.TinTuc
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Chỉnh sửa tin tức";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Edit</h1>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Chỉnh sửa tin tức</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Cập nhật thông tin bài viết</p>
+    </div>
 
-<h4>TinTuc</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="max-w-4xl">
+        <form asp-action="Edit" class="space-y-4">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm mb-4"></div>
             <input type="hidden" asp-for="MaTinTuc" />
-            <div class="form-group">
-                <label asp-for="TieuDe" class="control-label"></label>
-                <input asp-for="TieuDe" class="form-control" />
-                <span asp-validation-for="TieuDe" class="text-danger"></span>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label asp-for="TieuDe" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <input asp-for="TieuDe" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập tiêu đề bài viết" />
+                    <span asp-validation-for="TieuDe" class="text-red-500 text-xs"></span>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label asp-for="MoTaNgan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <textarea asp-for="MoTaNgan" rows="2" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập mô tả ngắn về bài viết"></textarea>
+                    <span asp-validation-for="MoTaNgan" class="text-red-500 text-xs"></span>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label asp-for="NoiDung" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <textarea asp-for="NoiDung" rows="6" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập nội dung chi tiết bài viết"></textarea>
+                    <span asp-validation-for="NoiDung" class="text-red-500 text-xs"></span>
+                </div>
+
+                <div>
+                    <label asp-for="HinhAnhURL" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <input asp-for="HinhAnhURL" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập URL hình ảnh" />
+                    <span asp-validation-for="HinhAnhURL" class="text-red-500 text-xs"></span>
+                    @if (!string.IsNullOrEmpty(Model.HinhAnhURL))
+                    {
+                        <div class="mt-2">
+                            <img src="@Model.HinhAnhURL" alt="@Model.TieuDe" class="h-24 w-auto object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                        </div>
+                    }
+                </div>
+
+                <div class="hidden">
+                    <label asp-for="TacGiaDisplay" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <input asp-for="TacGiaDisplay" value="@(string.IsNullOrEmpty(Model.TacGiaDisplay) ? "Admin" : Model.TacGiaDisplay)" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+                    <span asp-validation-for="TacGiaDisplay" class="text-red-500 text-xs"></span>
+                </div>
+
+                <div>
+                    <label asp-for="NguoiDang" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <select asp-for="NguoiDang" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" asp-items="ViewBag.NguoiDang"></select>
+                    <span asp-validation-for="NguoiDang" class="text-red-500 text-xs"></span>
+                </div>
+
+                <div>
+                    <label asp-for="NgayDang" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
+                            </svg>
+                        </div>
+                        <input asp-for="NgayDang" type="datetime-local" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Chọn ngày đăng" />
+                    </div>
+                    <span asp-validation-for="NgayDang" class="text-red-500 text-xs"></span>
+                </div>
+
+                <div>
+                    <label asp-for="DanhMuc" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                    <select asp-for="DanhMuc" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <option value="TinTuc">Tin tức</option>
+                        <option value="SuKien">Sự kiện</option>
+                        <option value="KhuyenMai">Khuyến mãi</option>
+                        <option value="Blog">Blog</option>
+                    </select>
+                    <span asp-validation-for="DanhMuc" class="text-red-500 text-xs"></span>
+                </div>
+
+                
+
+                <div class="flex items-center space-x-6">
+                    <div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input asp-for="HienThi" type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">@Html.DisplayNameFor(model => model.HienThi)</span>
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input asp-for="NoiBat" type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                            <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">@Html.DisplayNameFor(model => model.NoiBat)</span>
+                        </label>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label asp-for="MoTaNgan" class="control-label"></label>
-                <input asp-for="MoTaNgan" class="form-control" />
-                <span asp-validation-for="MoTaNgan" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NoiDung" class="control-label"></label>
-                <input asp-for="NoiDung" class="form-control" />
-                <span asp-validation-for="NoiDung" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HinhAnhURL" class="control-label"></label>
-                <input asp-for="HinhAnhURL" class="form-control" />
-                <span asp-validation-for="HinhAnhURL" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DanhMuc" class="control-label"></label>
-                <input asp-for="DanhMuc" class="form-control" />
-                <span asp-validation-for="DanhMuc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TacGiaDisplay" class="control-label"></label>
-                <input asp-for="TacGiaDisplay" class="form-control" />
-                <span asp-validation-for="TacGiaDisplay" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NguoiDang" class="control-label"></label>
-                <select asp-for="NguoiDang" class="form-control" asp-items="ViewBag.NguoiDang"></select>
-                <span asp-validation-for="NguoiDang" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NgayDang" class="control-label"></label>
-                <input asp-for="NgayDang" class="form-control" />
-                <span asp-validation-for="NgayDang" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ThoiGianDoc" class="control-label"></label>
-                <input asp-for="ThoiGianDoc" class="form-control" />
-                <span asp-validation-for="ThoiGianDoc" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LuotXem" class="control-label"></label>
-                <input asp-for="LuotXem" class="form-control" />
-                <span asp-validation-for="LuotXem" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="HienThi" /> @Html.DisplayNameFor(model => model.HienThi)
-                </label>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="NoiBat" /> @Html.DisplayNameFor(model => model.NoiBat)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="TrangThai" class="control-label"></label>
-                <input asp-for="TrangThai" class="form-control" />
-                <span asp-validation-for="TrangThai" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+
+            <div class="flex items-center space-x-4 mt-8">
+                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <i class="bi bi-save mr-2"></i>Lưu thay đổi
+                </button>
+                <a asp-action="Index" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+                    <i class="bi bi-arrow-left mr-2"></i>Quay lại
+                </a>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

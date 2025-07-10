@@ -1,97 +1,107 @@
 ﻿@model KLTN.Models.ViewModels.LopHocViewModel
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Chỉnh sửa lớp học";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mx-auto my-6 max-w-4xl">
-    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white mb-6">Chỉnh sửa lớp học</h1>
-    
-    <form asp-action="Edit" method="post">
-        <div asp-validation-summary="ModelOnly" class="text-red-500 dark:text-red-400 mb-4"></div>
-        <input type="hidden" asp-for="MaLop" />
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-4">
-                <div>
-                    <label asp-for="TenLop" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <input asp-for="TenLop" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                    <span asp-validation-for="TenLop" class="text-sm text-red-600 dark:text-red-400"></span>
-                </div>
-                
-                <div>
-                    <label asp-for="MaPT" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <select asp-for="MaPT" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" asp-items="ViewBag.MaPT">
-                        <option value="">-- Chọn huấn luyện viên --</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <label asp-for="ThoiGianBatDau" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <input asp-for="ThoiGianBatDau" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                    <span asp-validation-for="ThoiGianBatDau" class="text-sm text-red-600 dark:text-red-400"></span>
-                </div>
-                
-                <div>
-                    <label asp-for="ThoiGianKetThuc" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <input asp-for="ThoiGianKetThuc" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                    <span asp-validation-for="ThoiGianKetThuc" class="text-sm text-red-600 dark:text-red-400"></span>
-                </div>
-                
-                <div>
-                    <label asp-for="SelectedDays" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        @foreach (var day in KLTN.Models.ViewModels.LopHocViewModel.DaysOfWeek)
-                        {
-                            <div class="flex items-center">
-                                <input type="checkbox" name="SelectedDays" value="@day" id="day-@day.Replace(" ", "-")" 
-                                       class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600" 
-                                       @(Model.SelectedDays.Contains(day) ? "checked" : "") />
-                                <label for="day-@day.Replace(" ", "-")" class="ml-2 text-sm font-medium text-gray-900 dark:text-white">@day</label>
-                            </div>
-                        }
+<div class="p-4">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Chỉnh sửa lớp học</h1>
+        <p class="text-gray-600">Cập nhật thông tin lớp học</p>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg p-6 max-w-4xl">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 mb-4"></div>
+            <input type="hidden" asp-for="MaLop" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <label asp-for="TenLop" class="block text-sm font-medium text-gray-700">Tên lớp</label>
+                        <input asp-for="TenLop" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        <span asp-validation-for="TenLop" class="text-red-500 text-sm"></span>
                     </div>
-                    <span asp-validation-for="SelectedDays" class="text-sm text-red-600 dark:text-red-400"></span>
+
+                    <div>
+                        <label asp-for="MaPT" class="block text-sm font-medium text-gray-700">Huấn luyện viên</label>
+                        <select asp-for="MaPT" asp-items="ViewBag.MaPT" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="">-- Chọn huấn luyện viên --</option>
+                        </select>
+                        <span asp-validation-for="MaPT" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="ThoiGianBatDau" class="block text-sm font-medium text-gray-700">Thời gian bắt đầu</label>
+                        <input asp-for="ThoiGianBatDau" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        <span asp-validation-for="ThoiGianBatDau" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="ThoiGianKetThuc" class="block text-sm font-medium text-gray-700">Thời gian kết thúc</label>
+                        <input asp-for="ThoiGianKetThuc" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        <span asp-validation-for="ThoiGianKetThuc" class="text-red-500 text-sm"></span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label asp-for="SelectedDays" class="block text-sm font-medium text-gray-700">Chọn ngày trong tuần</label>
+                        <div class="mt-2 space-y-2">
+                            @foreach (var day in LopHocViewModel.DaysOfWeek)
+                            {
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="day_@day.Replace(" ", "_")" name="SelectedDays" value="@day" 
+                                           class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                           @(Model.SelectedDays.Contains(day) ? "checked" : "") />
+                                    <label for="day_@day.Replace(" ", "_")" class="ml-2 block text-sm text-gray-700">@day</label>
+                                </div>
+                            }
+                        </div>
+                        <span asp-validation-for="SelectedDays" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="SoLuongToiDa" class="block text-sm font-medium text-gray-700">Số lượng tối đa</label>
+                        <input asp-for="SoLuongToiDa" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        <span asp-validation-for="SoLuongToiDa" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="SoLuongHienTai" class="block text-sm font-medium text-gray-700">Số lượng hiện tại</label>
+                        <input asp-for="SoLuongHienTai" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" />
+                        <span asp-validation-for="SoLuongHienTai" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="TrangThai" class="block text-sm font-medium text-gray-700">Trạng thái</label>
+                        <select asp-for="TrangThai" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="DangMo">Đang mở</option>
+                            <option value="DaDay">Đã đầy</option>
+                            <option value="DaKhoa">Đã khóa</option>
+                        </select>
+                        <span asp-validation-for="TrangThai" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="GhiChu" class="block text-sm font-medium text-gray-700">Ghi chú</label>
+                        <textarea asp-for="GhiChu" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                        <span asp-validation-for="GhiChu" class="text-red-500 text-sm"></span>
+                    </div>
                 </div>
             </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label asp-for="SoLuongToiDa" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <input asp-for="SoLuongToiDa" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                    <span asp-validation-for="SoLuongToiDa" class="text-sm text-red-600 dark:text-red-400"></span>
-                </div>
-                
-                <div>
-                    <label asp-for="SoLuongHienTai" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <input asp-for="SoLuongHienTai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-                    <span asp-validation-for="SoLuongHienTai" class="text-sm text-red-600 dark:text-red-400"></span>
-                </div>
-                
-                <div>
-                    <label asp-for="TrangThai" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <select asp-for="TrangThai" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                        <option value="DangMo">Đang mở</option>
-                        <option value="DaDay">Đã đầy</option>
-                        <option value="DaKhoa">Đã khóa</option>
-                    </select>
-                    <span asp-validation-for="TrangThai" class="text-sm text-red-600 dark:text-red-400"></span>
-                </div>
-                
-                <div>
-                    <label asp-for="GhiChu" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
-                    <textarea asp-for="GhiChu" rows="4" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"></textarea>
-                    <span asp-validation-for="GhiChu" class="text-sm text-red-600 dark:text-red-400"></span>
-                </div>
+
+            <div class="mt-6 flex items-center justify-end space-x-4">
+                <a asp-action="Index" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                </a>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition flex items-center">
+                    <i class="fas fa-save mr-2"></i>Lưu thay đổi
+                </button>
             </div>
-        </div>
-        
-        <div class="flex items-center justify-between mt-6">
-            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Lưu</button>
-            <a asp-action="Index" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">Quay lại danh sách</a>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
 
 @section Scripts {

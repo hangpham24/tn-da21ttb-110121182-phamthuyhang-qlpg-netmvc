@@ -1,69 +1,88 @@
 ﻿@model KLTN.Models.Database.GiaHanDangKy
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Xóa gia hạn đăng ký";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Delete</h1>
+<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+    <div class="mb-1 w-full">
+        <div class="mb-4">
+            <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Xóa gia hạn đăng ký</h1>
+        </div>
+    </div>
+</div>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>GiaHanDangKy</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayKetThucMoi)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayKetThucMoi)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SoBuoiThem)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SoBuoiThem)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SoTien)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SoTien)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayGiaHan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayGiaHan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TrangThai)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TrangThai)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GhiChu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GhiChu)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DangKy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DangKy.LoaiDangKy)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NguoiThu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NguoiThu.MatKhauHash)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="MaGiaHan" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+<div class="flex flex-col">
+    <div class="overflow-x-auto">
+        <div class="inline-block min-w-full align-middle">
+            <div class="overflow-hidden shadow">
+                <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+                    <div class="mb-6">
+                        <h3 class="mb-4 text-lg font-medium text-red-600 dark:text-red-500">
+                            Bạn có chắc chắn muốn xóa gia hạn đăng ký này?
+                        </h3>
+                    </div>
+
+                    <dl class="grid max-w-screen-xl grid-cols-2 gap-6 mx-auto">
+                        <div class="col-span-2 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.NgayKetThucMoi)</dt>
+                            <dd class="text-lg font-semibold text-gray-900 dark:text-white">@Html.DisplayFor(model => model.NgayKetThucMoi)</dd>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.SoBuoiThem)</dt>
+                            <dd class="text-lg font-semibold text-gray-900 dark:text-white">@Html.DisplayFor(model => model.SoBuoiThem)</dd>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.SoTien)</dt>
+                            <dd class="text-lg font-semibold text-gray-900 dark:text-white">@Html.DisplayFor(model => model.SoTien)</dd>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.NgayGiaHan)</dt>
+                            <dd class="text-lg font-semibold text-gray-900 dark:text-white">@Html.DisplayFor(model => model.NgayGiaHan)</dd>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.TrangThai)</dt>
+                            <dd class="text-lg font-semibold">
+                                @{
+                                    var statusClass = Model.TrangThai switch
+                                    {
+                                        "DaDong" => "text-green-700 dark:text-green-300",
+                                        "ChuaDong" => "text-red-700 dark:text-red-300",
+                                        "DaHuy" => "text-gray-700 dark:text-gray-300",
+                                        _ => "text-blue-700 dark:text-blue-300"
+                                    };
+                                }
+                                <span class="@statusClass">@Html.DisplayFor(model => model.TrangThai)</span>
+                            </dd>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.DangKy)</dt>
+                            <dd class="text-lg font-semibold text-gray-900 dark:text-white">@Html.DisplayFor(model => model.DangKy.LoaiDangKy)</dd>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.NguoiThu)</dt>
+                            <dd class="text-lg font-semibold text-gray-900 dark:text-white">@Html.DisplayFor(model => model.NguoiThu.TenDangNhap)</dd>
+                        </div>
+                        <div class="col-span-2">
+                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.GhiChu)</dt>
+                            <dd class="text-lg font-semibold text-gray-900 dark:text-white">@Html.DisplayFor(model => model.GhiChu)</dd>
+                        </div>
+                    </dl>
+
+                    <form asp-action="Delete" class="mt-6">
+                        <input type="hidden" asp-for="MaGiaHan" />
+                        <div class="flex items-center space-x-4">
+                            <button type="submit" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                                Xác nhận xóa
+                            </button>
+                            <a asp-action="Index" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-700 dark:focus:ring-gray-700">
+                                Quay lại danh sách
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

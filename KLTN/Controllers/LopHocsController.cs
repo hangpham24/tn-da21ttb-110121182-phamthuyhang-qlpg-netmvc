@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
 using KLTN.Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class LopHocsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,10 +23,62 @@ namespace KLTN.Controllers
         }
 
         // GET: LopHocs
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string search, int? pageNumber)
         {
-            var applicationDbContext = _context.LopHoc.Include(l => l.HuanLuyenVien);
-            return View(await applicationDbContext.ToListAsync());
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["PtSortParm"] = sortOrder == "pt" ? "pt_desc" : "pt";
+            ViewData["StatusSortParm"] = sortOrder == "status" ? "status_desc" : "status";
+            ViewData["CurrentFilter"] = search;
+
+            if (search != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                search = currentFilter;
+            }
+
+            var lopHocs = _context.LopHoc.Include(l => l.HuanLuyenVien).AsQueryable();
+
+            if (!String.IsNullOrEmpty(search))
+            {
+                lopHocs = lopHocs.Where(l => 
+                    l.TenLop.Contains(search) ||
+                    (l.HuanLuyenVien != null && l.HuanLuyenVien.HoTen.Contains(search)) ||
+                    l.NgayTrongTuan.Contains(search) ||
+                    l.TrangThai.Contains(search)
+                );
+            }
+
+            lopHocs = sortOrder switch
+            {
+                "name_desc" => lopHocs.OrderByDescending(l => l.TenLop),
+                "pt" => lopHocs.OrderBy(l => l.HuanLuyenVien.HoTen),
+                "pt_desc" => lopHocs.OrderByDescending(l => l.HuanLuyenVien.HoTen),
+                "status" => lopHocs.OrderBy(l => l.TrangThai),
+                "status_desc" => lopHocs.OrderByDescending(l => l.TrangThai),
+                _ => lopHocs.OrderBy(l => l.TenLop),
+            };
+
+            const int pageSize = 5;
+            var totalItems = await lopHocs.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            pageNumber = pageNumber ?? 1;
+            pageNumber = Math.Max(1, Math.Min(pageNumber.Value, Math.Max(1, totalPages)));
+
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+
+            var items = await lopHocs
+                .Skip((pageNumber.Value - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return View(items);
         }
 
         // GET: LopHocs/Details/5

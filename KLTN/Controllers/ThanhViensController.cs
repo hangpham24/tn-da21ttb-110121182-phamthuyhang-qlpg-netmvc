@@ -11,9 +11,11 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class ThanhViensController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -26,10 +28,63 @@ namespace KLTN.Controllers
         }
 
         // GET: ThanhViens
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
         {
-            var applicationDbContext = _context.ThanhViens.Include(t => t.TaiKhoan);
-            return View(await applicationDbContext.ToListAsync());
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["DateSortParm"] = sortOrder == "date" ? "date_desc" : "date";
+            ViewData["EmailSortParm"] = sortOrder == "email" ? "email_desc" : "email";
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+
+            var thanhViens = _context.ThanhViens.Include(t => t.TaiKhoan).AsQueryable();
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                thanhViens = thanhViens.Where(tv =>
+                    tv.HoTen.Contains(searchString) ||
+                    tv.Email.Contains(searchString) ||
+                    tv.SoDienThoai.Contains(searchString) ||
+                    tv.DiaChi.Contains(searchString)
+                );
+            }
+
+            thanhViens = sortOrder switch
+            {
+                "name_desc" => thanhViens.OrderByDescending(tv => tv.HoTen),
+                "date" => thanhViens.OrderBy(tv => tv.NgaySinh),
+                "date_desc" => thanhViens.OrderByDescending(tv => tv.NgaySinh),
+                "email" => thanhViens.OrderBy(tv => tv.Email),
+                "email_desc" => thanhViens.OrderByDescending(tv => tv.Email),
+                _ => thanhViens.OrderBy(tv => tv.HoTen),
+            };
+
+            const int pageSize = 5;
+            var totalItems = await thanhViens.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            pageNumber = pageNumber ?? 1;
+            pageNumber = Math.Max(1, Math.Min(pageNumber.Value, totalPages));
+
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+
+            var items = await thanhViens
+                .Skip((pageNumber.Value - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return View(items);
         }
 
         // GET: ThanhViens/Details/5

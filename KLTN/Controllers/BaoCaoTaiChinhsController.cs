@@ -48,7 +48,7 @@ namespace KLTN.Controllers
         // GET: BaoCaoTaiChinhs/Create
         public IActionResult Create()
         {
-            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash");
+            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap");
             return View();
         }
 
@@ -65,7 +65,7 @@ namespace KLTN.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", baoCaoTaiChinh.NguoiLap);
+            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", baoCaoTaiChinh.NguoiLap);
             return View(baoCaoTaiChinh);
         }
 
@@ -82,7 +82,7 @@ namespace KLTN.Controllers
             {
                 return NotFound();
             }
-            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", baoCaoTaiChinh.NguoiLap);
+            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", baoCaoTaiChinh.NguoiLap);
             return View(baoCaoTaiChinh);
         }
 
@@ -118,7 +118,7 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", baoCaoTaiChinh.NguoiLap);
+            ViewData["NguoiLap"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", baoCaoTaiChinh.NguoiLap);
             return View(baoCaoTaiChinh);
         }
 

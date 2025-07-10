@@ -43,9 +43,12 @@ namespace KLTN.Models.Database
         public virtual ICollection<GiaHanDangKy>? GiaHanDangKysLap { get; set; }
         public virtual ICollection<TinTuc>? TinTucsDang { get; set; }
         public virtual ICollection<ThongBao>? ThongBaosGui { get; set; }
-        public virtual ICollection<DoanhThu>? DoanhThusLap { get; set; }
         
         // Thêm các collection mới cho ThanhToan
         public virtual ICollection<ThanhToan>? ThanhToansLap { get; set; }
+
+        // Navigation properties for CapNhatAnhNhanDien
+        public virtual ICollection<CapNhatAnhNhanDien>? CapNhatAnhNhanDienThucHien { get; set; }
+        public virtual ICollection<CapNhatAnhNhanDien>? AnhNhanDienDuocCapNhat { get; set; }
     }
 }

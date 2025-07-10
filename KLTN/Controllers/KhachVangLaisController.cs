@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class KhachVangLaisController : Controller
     {
         private readonly ApplicationDbContext _context;

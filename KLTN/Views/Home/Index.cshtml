@@ -1,143 +1,248 @@
-﻿@{
+﻿@model KLTN.Models.ViewModels.HomeViewModel
+
+@{
     ViewData["Title"] = "Trang chủ";
 }
 
 <!-- Hero Section -->
-<section class="bg-gradient-to-r from-blue-500 to-indigo-600 py-16 text-white">
+<section class="bg-gradient-to-r from-blue-600 to-indigo-700 py-16 md:py-24 text-white rounded-xl overflow-hidden">
     <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row items-center">
             <div class="md:w-1/2 mb-8 md:mb-0">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">Chào mừng đến với Phòng Gym KLTN</h1>
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Chào mừng đến với Gym FitNest</h1>
                 <p class="text-lg mb-6">Nơi bạn có thể rèn luyện sức khỏe, cải thiện thể chất và đạt được mục tiêu của mình với sự hỗ trợ từ các huấn luyện viên chuyên nghiệp.</p>
                 <div class="flex flex-wrap gap-4">
-                    <a href="#" class="bg-white text-blue-600 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Khám phá dịch vụ</a>
-                    <a href="#" class="bg-transparent hover:bg-blue-700 border border-white text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center">Liên hệ ngay</a>
+                    <a href="#dichvu" class="bg-white text-blue-600 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-300 ease-in-out transform hover:-translate-y-1">Khám phá dịch vụ</a>
+                    <a href="#huanluyenvien" class="bg-transparent hover:bg-blue-700 border border-white text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-300 ease-in-out transform hover:-translate-y-1">Huấn luyện viên</a>
                 </div>
             </div>
             <div class="md:w-1/2">
-                <img src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/hero/gym-trainer.png" alt="Gym" class="rounded-lg shadow-lg">
+                <img src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/hero/gym-trainer.png" alt="Phòng Gym KLTN" class="rounded-lg shadow-xl hover:shadow-2xl transition duration-300">
             </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
-<section class="py-12 bg-gray-50 dark:bg-gray-800">
+<!-- Thống kê nhanh -->
+<section class="py-12 bg-white">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Tại sao chọn chúng tôi?</h2>
-        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="bg-blue-50 p-6 rounded-xl text-center shadow-sm hover:shadow-md transition duration-300">
+                <h3 class="text-3xl font-bold text-blue-600 mb-2">@Model.SoLopHoc+</h3>
+                <p class="text-gray-700">Lớp học</p>
+            </div>
+            <div class="bg-green-50 p-6 rounded-xl text-center shadow-sm hover:shadow-md transition duration-300">
+                <h3 class="text-3xl font-bold text-green-600 mb-2">@Model.SoGoiTap+</h3>
+                <p class="text-gray-700">Gói tập</p>
+            </div>
+            <div class="bg-purple-50 p-6 rounded-xl text-center shadow-sm hover:shadow-md transition duration-300">
+                <h3 class="text-3xl font-bold text-purple-600 mb-2">@Model.SoHuanLuyenVien+</h3>
+                <p class="text-gray-700">Huấn luyện viên</p>
+            </div>
+            <div class="bg-amber-50 p-6 rounded-xl text-center shadow-sm hover:shadow-md transition duration-300">
+                <h3 class="text-3xl font-bold text-amber-600 mb-2">@Model.SoThanhVien+</h3>
+                <p class="text-gray-700">Thành viên</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Dịch vụ nổi bật -->
+<section id="dichvu" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold mb-3 text-gray-800">Dịch vụ nổi bật</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Khám phá các dịch vụ đa dạng và các gói tập chất lượng cao của chúng tôi</p>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
-                <div class="bg-blue-100 dark:bg-blue-900 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm.524 5.61a.5.5 0 0 1 .4-.4l1.793-.359a.5.5 0 0 1 .579.59l-.359 1.793a.5.5 0 0 1-.4.4 21.91 21.91 0 0 1-1.793.359.5.5 0 0 1-.579-.59l.359-1.793Zm4.142 5.349a.5.5 0 0 1-.4.4l-1.793.359a.5.5 0 0 1-.579-.59l.359-1.793a.5.5 0 0 1 .4-.4l1.793-.359a.5.5 0 0 1 .579.59l-.359 1.793ZM9.4 6.073a.5.5 0 0 1 .147-.35l1.436-1.435a.5.5 0 1 1 .707.707L10.254 6.43a.5.5 0 0 1-.853-.357Zm4.497 4.497a.5.5 0 0 1 .147-.35l1.436-1.435a.5.5 0 0 1 .707.707l-1.436 1.436a.5.5 0 0 1-.854-.358ZM5.876 9.4a.5.5 0 0 1-.4-.4l-.359-1.793a.5.5 0 0 1 .59-.579l1.793.359a.5.5 0 0 1 .4.4l.359 1.793a.5.5 0 0 1-.59.579l-1.793-.359Zm5.348 4.143a.5.5 0 0 1-.4-.4l-.359-1.793a.5.5 0 0 1 .59-.579l1.793.359a.5.5 0 0 1 .4.4l.359 1.793a.5.5 0 0 1-.59.579l-1.793-.359ZM6.11 10.254 4.673 11.69a.5.5 0 0 1-.707-.707l1.436-1.436a.5.5 0 1 1 .707.707Zm4.497 4.497L9.17 16.188a.5.5 0 0 1-.707-.707l1.436-1.436a.5.5 0 1 1 .707.707Z"/>
-                    </svg>
+            @foreach (var dichVu in Model.DichVuNoiBat)
+            {
+                <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1">
+                    <img src="@(string.IsNullOrEmpty(dichVu.HinhAnhURL) ? "/img/placeholder.jpg" : dichVu.HinhAnhURL)" 
+                         alt="@dichVu.TenDichVu" 
+                         class="w-full h-56 object-cover"
+                         onerror="this.onerror=null; this.src='/img/placeholder.jpg'; this.alt='Hình ảnh không khả dụng';">
+                    <div class="p-6">
+                        @{ 
+                            var typeClass = dichVu.LoaiDichVu == "GoiTap" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800";
+                            var typeText = dichVu.LoaiDichVu == "GoiTap" ? "Gói tập" : "Lớp học";
+                        }
+                        <span class="@typeClass text-xs font-medium px-2.5 py-0.5 rounded-full">
+                            @typeText
+                        </span>
+                        <h3 class="text-xl font-bold text-gray-800 mt-2">@dichVu.TenDichVu</h3>
+                        <p class="text-gray-600 mt-2 mb-4 line-clamp-2">@(dichVu.MoTa ?? "Không có mô tả")</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-lg font-bold text-blue-600">@string.Format("{0:N0} VNĐ", dichVu.GiaBatDau)</span>
+                            @{
+                                string detailsUrl = "#";
+                                if (dichVu.LoaiDichVu == "GoiTap" && dichVu.MaGoiTap.HasValue)
+                                {
+                                    detailsUrl = $"/GoiTaps/Details/{dichVu.MaGoiTap}";
+                                }
+                                else if (dichVu.LoaiDichVu == "LopHoc" && dichVu.MaLopHoc.HasValue)
+                                {
+                                    detailsUrl = $"/LopHocs/Details/{dichVu.MaLopHoc}";
+                                }
+                                else
+                                {
+                                    detailsUrl = $"/DichVus/Details/{dichVu.MaDichVu}";
+                                }
+                            }
+                            <a href="@detailsUrl" 
+                               class="text-blue-600 hover:text-blue-800 font-medium">
+                                Chi tiết <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Thiết bị hiện đại</h3>
-                <p class="text-gray-600 dark:text-gray-300">Trang bị đầy đủ các thiết bị tập luyện hiện đại, đáp ứng mọi nhu cầu rèn luyện thể chất.</p>
-            </div>
-            
-            <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
-                <div class="bg-green-100 dark:bg-green-900 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Huấn luyện viên chuyên nghiệp</h3>
-                <p class="text-gray-600 dark:text-gray-300">Đội ngũ huấn luyện viên giàu kinh nghiệm, tận tâm hỗ trợ bạn đạt được mục tiêu tập luyện.</p>
-            </div>
-            
-            <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-md">
-                <div class="bg-purple-100 dark:bg-purple-900 w-12 h-12 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm14-7.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm-5-4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm-5-4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm0 4a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1ZM20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4Z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-white">Lịch trình linh hoạt</h3>
-                <p class="text-gray-600 dark:text-gray-300">Đa dạng các lớp học và thời gian tập luyện, phù hợp với lịch trình bận rộn của bạn.</p>
-            </div>
+            }
+        </div>
+
+        <div class="text-center mt-10">
+            <a href="/DichVus" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-5 py-2.5 transition duration-300">Xem tất cả dịch vụ</a>
         </div>
     </div>
 </section>
 
-<!-- Services Preview -->
-<section class="py-12">
+@* Comment out the entire Featured Trainers section
+<!-- Huấn luyện viên nổi bật -->
+<section id="huanluyenvien" class="py-16 bg-white">
     <div class="container mx-auto px-4">
-        <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">Dịch vụ của chúng tôi</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Service Card 1 -->
-            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <a href="#">
-                    <img class="rounded-t-lg w-full h-48 object-cover" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/content/office-content-1.png" alt="Fitness" />
-                </a>
-                <div class="p-5">
-                    <a href="#">
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Gói tập Fitness</h5>
-                    </a>
-                    <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Tập luyện với các thiết bị hiện đại, phù hợp cho người mới bắt đầu và cả những người đã có kinh nghiệm.</p>
-                    <a href="#" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        Xem chi tiết
-                        <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-                        </svg>
-                    </a>
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold mb-3 text-gray-800">Huấn luyện viên nổi bật</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Đội ngũ huấn luyện viên chuyên nghiệp, giàu kinh nghiệm và tận tâm</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            @foreach (var pt in Model.HuanLuyenVienNoiBat)
+            {
+                <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 border border-gray-100">
+                    <img src="@(string.IsNullOrEmpty(pt.AnhDaiDien) ? "/img/placeholder.jpg" : pt.AnhDaiDien)" 
+                         alt="@pt.HoTen" 
+                         class="w-full h-64 object-cover"
+                         onerror="this.onerror=null; this.src='/img/placeholder.jpg'; this.alt='Hình ảnh không khả dụng';">
+                    <div class="p-6 text-center">
+                        <h3 class="text-xl font-bold text-gray-800">@pt.HoTen</h3>
+                        <p class="text-blue-600 font-medium mt-1">@pt.ChuyenMon</p>
+                        <div class="mt-3 space-x-2">
+                            <span class="text-sm text-gray-600">@pt.KinhNghiem</span>
+                        </div>
+                        <a href="/HuanLuyenViens/Details/@pt.MaPT" class="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium">
+                            Xem thông tin <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            
-            <!-- Service Card 2 -->
-            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <a href="#">
-                    <img class="rounded-t-lg w-full h-48 object-cover" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/content/office-content-2.png" alt="Yoga" />
-                </a>
-                <div class="p-5">
-                    <a href="#">
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Lớp học Yoga</h5>
-                    </a>
-                    <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Rèn luyện sự dẻo dai, cân bằng và thư giãn tinh thần với các lớp học yoga chuyên nghiệp.</p>
-                    <a href="#" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        Xem chi tiết
-                        <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-                        </svg>
-                    </a>
+            }
+        </div>
+
+        <div class="text-center mt-10">
+            <a href="/HuanLuyenViens" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-5 py-2.5 transition duration-300">Xem tất cả huấn luyện viên</a>
+        </div>
+    </div>
+</section>
+*@
+
+<!-- Tính năng nổi bật -->
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold mb-3 text-gray-800">Tại sao chọn chúng tôi?</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Chúng tôi cam kết mang đến trải nghiệm tập luyện tốt nhất cho bạn</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <i class="bi bi-gear-wide-connected text-2xl text-blue-600"></i>
                 </div>
+                <h3 class="text-xl font-bold mb-3 text-center text-gray-800">Thiết bị hiện đại</h3>
+                <p class="text-gray-600 text-center">Trang bị đầy đủ các thiết bị tập luyện hiện đại, đáp ứng mọi nhu cầu rèn luyện thể chất.</p>
             </div>
-            
-            <!-- Service Card 3 -->
-            <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                <a href="#">
-                    <img class="rounded-t-lg w-full h-48 object-cover" src="https://flowbite.s3.amazonaws.com/blocks/marketing-ui/content/office-content-3.png" alt="Personal Training" />
-                </a>
-                <div class="p-5">
-                    <a href="#">
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Huấn luyện cá nhân</h5>
-                    </a>
-                    <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">Chương trình tập luyện được cá nhân hóa với sự hướng dẫn trực tiếp từ huấn luyện viên chuyên nghiệp.</p>
-                    <a href="#" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        Xem chi tiết
-                        <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
-                        </svg>
-                    </a>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <i class="bi bi-person-check text-2xl text-green-600"></i>
                 </div>
+                <h3 class="text-xl font-bold mb-3 text-center text-gray-800">Huấn luyện viên chuyên nghiệp</h3>
+                <p class="text-gray-600 text-center">Đội ngũ huấn luyện viên giàu kinh nghiệm, tận tâm hỗ trợ bạn đạt được mục tiêu tập luyện.</p>
             </div>
-</div>
-        
-        <div class="text-center mt-8">
-            <a href="#" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Xem tất cả dịch vụ</a>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mb-4 mx-auto">
+                    <i class="bi bi-calendar-check text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3 text-center text-gray-800">Lịch trình linh hoạt</h3>
+                <p class="text-gray-600 text-center">Đa dạng các lớp học và thời gian tập luyện, phù hợp với lịch trình bận rộn của bạn.</p>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="py-12 bg-blue-600 text-white">
-    <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-4">Sẵn sàng để bắt đầu hành trình của bạn?</h2>
-        <p class="text-lg mb-8 max-w-2xl mx-auto">Đăng ký ngay hôm nay để nhận ưu đãi đặc biệt dành cho thành viên mới và bắt đầu hành trình rèn luyện sức khỏe của bạn.</p>
-        <div class="flex flex-wrap justify-center gap-4">
-            <a href="#" class="bg-white text-blue-600 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Đăng ký ngay</a>
-            <a href="#" class="bg-transparent hover:bg-blue-700 border border-white text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center">Tìm hiểu thêm</a>
+<!-- Tin tức nổi bật -->
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold mb-3 text-gray-800">Tin tức mới nhất</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">Cập nhật những thông tin mới nhất về phòng tập và các hoạt động</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            @foreach (var tinTuc in Model.TinTucMoiNhat)
+            {
+                <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 border border-gray-100">
+                    <img src="@(string.IsNullOrEmpty(tinTuc.HinhAnhURL) ? "/img/placeholder.jpg" : tinTuc.HinhAnhURL)" 
+                         alt="@tinTuc.TieuDe" 
+                         class="w-full h-48 object-cover"
+                         onerror="this.onerror=null; this.src='/img/placeholder.jpg'; this.alt='Hình ảnh không khả dụng';">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                                @tinTuc.DanhMuc
+                            </span>
+                            <span class="text-xs text-gray-500">@tinTuc.NgayDang.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 line-clamp-2">@tinTuc.TieuDe</h3>
+                        <p class="text-gray-600 mt-2 mb-4 line-clamp-3">@tinTuc.MoTaNgan</p>
+                        <a asp-controller="TinTucs" asp-action="PublicDetails" asp-route-id="@tinTuc.MaTinTuc" class="text-blue-600 hover:text-blue-800 font-medium">
+                            Đọc tiếp <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="text-center mt-10">
+            <a asp-controller="TinTucs" asp-action="PublicList" class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-5 py-2.5 transition duration-300">Xem tất cả tin tức</a>
         </div>
     </div>
 </section>
+
+<!-- Đăng ký ngay -->
+<section class="py-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl mt-6 mb-6">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold text-white mb-4">Bắt đầu hành trình rèn luyện ngay hôm nay</h2>
+        <p class="text-lg text-white mb-8 max-w-2xl mx-auto">Đăng ký thành viên để nhận nhiều ưu đãi đặc biệt và bắt đầu hành trình tập luyện cùng chúng tôi.</p>
+        <div class="flex flex-wrap justify-center gap-4">
+            <a href="/Identity/Account/Register" class="bg-white text-blue-600 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-300 ease-in-out transform hover:-translate-y-1">Đăng ký ngay</a>
+            <a href="/LienHe" class="bg-transparent hover:bg-blue-700 border border-white text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center transition duration-300 ease-in-out transform hover:-translate-y-1">Liên hệ tư vấn</a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Xử lý fallback cho hình ảnh
+        document.addEventListener('DOMContentLoaded', function() {
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    this.onerror = null;
+                    this.src = '/img/placeholder.jpg';
+                    this.alt = 'Hình ảnh không khả dụng';
+                });
+            });
+        });
+    </script>
+}

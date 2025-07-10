@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class HuanLuyenViensController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,10 +22,32 @@ namespace KLTN.Controllers
         }
 
         // GET: HuanLuyenViens
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search, int page = 1)
         {
-            var applicationDbContext = _context.HuanLuyenViens.Include(h => h.TaiKhoan);
-            return View(await applicationDbContext.ToListAsync());
+            int pageSize = 5;
+            var query = _context.HuanLuyenViens.Include(h => h.TaiKhoan).AsQueryable();
+
+            // Lọc theo từ khóa tìm kiếm nếu có
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(h => h.HoTen != null && h.HoTen.Contains(search));
+            }
+
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            var items = await query
+                .OrderBy(h => h.MaPT)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Search = search;
+
+            return View(items);
         }
 
         // GET: HuanLuyenViens/Details/5

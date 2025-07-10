@@ -8,3 +8,6 @@ alwaysApply: true
 
 
 - Đối với giao diện thì hãy sử dụng tailwind css của flowbite thông qua CDN
+- Luôn giao tiếp với tôi bằng tiếng việt
+- Sau khi fix bất kì lỗi nào hãy tự động dotnet build
+- Khi chạy nhiều command cùng lúc thì phần cách nhau bằng ; chứ không được dùng && 

@@ -1,0 +1,204 @@
+@model KLTN.Models.Database.TinTuc
+
+@{
+    ViewData["Title"] = Model.TieuDe;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mx-auto py-8">
+    <!-- Breadcrumbs -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+                <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                    <i class="bi bi-house-door me-2"></i>
+                    Trang chủ
+                </a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="bi bi-chevron-right text-gray-400 mx-1"></i>
+                    <a href="@Url.Action("PublicList")" class="ms-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ms-2 dark:text-gray-400 dark:hover:text-white">Tin tức</a>
+                </div>
+            </li>
+            <li aria-current="page">
+                <div class="flex items-center">
+                    <i class="bi bi-chevron-right text-gray-400 mx-1"></i>
+                    <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2 dark:text-gray-400 truncate max-w-xs">@Model.TieuDe</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Main Content -->
+        <article class="lg:col-span-8 bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <!-- Article Header -->
+            <header class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div class="mb-2 flex flex-wrap gap-2">
+                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                        @(Model.DanhMuc == "TinTuc" ? "Tin tức" : 
+                          Model.DanhMuc == "SuKien" ? "Sự kiện" : 
+                          Model.DanhMuc == "KhuyenMai" ? "Khuyến mãi" : 
+                          Model.DanhMuc == "Blog" ? "Blog" : Model.DanhMuc)
+                    </span>
+                    @if (Model.NoiBat)
+                    {
+                        <span class="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-purple-900 dark:text-purple-300">
+                            <i class="bi bi-star-fill me-1"></i>Nổi bật
+                        </span>
+                    }
+                </div>
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">@Model.TieuDe</h1>
+                <div class="flex flex-wrap items-center text-sm text-gray-600 dark:text-gray-400 mb-4 gap-4">
+                    <span class="flex items-center">
+                        <i class="bi bi-person me-2"></i>
+                        @(string.IsNullOrEmpty(Model.TacGiaDisplay) ? "Admin" : Model.TacGiaDisplay)
+                    </span>
+                    <span class="flex items-center">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        @Model.NgayDang.ToString("dd/MM/yyyy HH:mm")
+                    </span>
+                    @if (Model.TaiKhoan != null)
+                    {
+                        <span class="flex items-center">
+                            <i class="bi bi-person-badge me-2"></i>
+                            @Model.TaiKhoan.TenDangNhap
+                        </span>
+                    }
+                </div>
+            </header>
+
+            <!-- Featured Image -->
+            @if (!string.IsNullOrEmpty(Model.HinhAnhURL))
+            {
+                <div class="w-full">
+                    <img src="@Model.HinhAnhURL" alt="@Model.TieuDe" class="w-full max-h-96 object-cover" onerror="this.src='/images/news-placeholder.jpg'; this.onerror='';">
+                </div>
+            }
+
+            <!-- Article Content -->
+            <div class="p-6">
+                <div class="bg-blue-50 dark:bg-gray-700 p-4 mb-6 rounded-lg border-l-4 border-blue-500 dark:border-blue-400">
+                    <p class="text-gray-700 dark:text-gray-300 font-medium">@Model.MoTaNgan</p>
+                </div>
+                
+                <div class="prose max-w-none prose-blue dark:prose-invert prose-img:rounded-lg prose-img:mx-auto prose-headings:text-gray-900 dark:prose-headings:text-white prose-p:text-gray-700 dark:prose-p:text-gray-300">
+                    @Html.Raw(Model.NoiDung)
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+                    <div class="flex flex-wrap gap-2">
+                        <a href="@Url.Action("PublicList")" class="text-sm px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <i class="bi bi-arrow-left me-1"></i> Quay lại tin tức
+                        </a>
+                        <a href="/" class="text-sm px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            <i class="bi bi-house-door me-1"></i> Trang chủ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <!-- Sidebar -->
+        <aside class="lg:col-span-4 space-y-6">
+            <!-- Author Info (if available) -->
+            @*
+            @if (!string.IsNullOrEmpty(Model.TacGiaDisplay))
+            {
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tác giả</h3>
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="bi bi-person text-2xl text-gray-500 dark:text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <h4 class="text-base font-medium text-gray-900 dark:text-white">@Model.TacGiaDisplay</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Tác giả</p>
+                        </div>
+                    </div>
+                </div>
+            }
+            *@
+
+            <!-- Categories -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Danh mục</h3>
+                <div class="space-y-2">
+                    <a href="@Url.Action("PublicList", new { category = "TinTuc" })" class="block p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-800 dark:text-gray-200">Tin tức</span>
+                            <i class="bi bi-chevron-right text-gray-400"></i>
+                        </div>
+                    </a>
+                    <a href="@Url.Action("PublicList", new { category = "SuKien" })" class="block p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-800 dark:text-gray-200">Sự kiện</span>
+                            <i class="bi bi-chevron-right text-gray-400"></i>
+                        </div>
+                    </a>
+                    <a href="@Url.Action("PublicList", new { category = "KhuyenMai" })" class="block p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-800 dark:text-gray-200">Khuyến mãi</span>
+                            <i class="bi bi-chevron-right text-gray-400"></i>
+                        </div>
+                    </a>
+                    <a href="@Url.Action("PublicList", new { category = "Blog" })" class="block p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-800 dark:text-gray-200">Blog</span>
+                            <i class="bi bi-chevron-right text-gray-400"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Share Buttons -->
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Chia sẻ bài viết</h3>
+                <div class="flex space-x-3">
+                    <button type="button" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                        <i class="bi bi-facebook me-1"></i> Facebook
+                    </button>
+                    <button type="button" class="text-white bg-cyan-500 hover:bg-cyan-600 focus:ring-4 focus:ring-cyan-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-cyan-600 dark:hover:bg-cyan-700 focus:outline-none dark:focus:ring-cyan-800">
+                        <i class="bi bi-twitter-x me-1"></i> Twitter
+                    </button>
+                    <button id="copyLinkBtn" type="button" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-4 py-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+                        <i class="bi bi-link-45deg me-1"></i> Copy
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle image loading errors
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    this.src = '/images/news-placeholder.jpg';
+                });
+            });
+
+            // Copy link functionality
+            const copyLinkBtn = document.getElementById('copyLinkBtn');
+            if (copyLinkBtn) {
+                copyLinkBtn.addEventListener('click', function() {
+                    const url = window.location.href;
+                    navigator.clipboard.writeText(url).then(function() {
+                        // Change button text temporarily
+                        const originalText = copyLinkBtn.innerHTML;
+                        copyLinkBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Copied!';
+                        setTimeout(function() {
+                            copyLinkBtn.innerHTML = originalText;
+                        }, 2000);
+                    });
+                });
+            }
+        });
+    </script>
+} 

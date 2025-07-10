@@ -1,0 +1,147 @@
+@model IEnumerable<KLTN.Models.Database.DangKy>
+
+@{
+    ViewData["Title"] = "Lịch Sử Đăng Ký";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-8">
+            <h1 class="text-2xl font-bold mb-6 text-gray-900">Lịch sử đăng ký dịch vụ</h1>
+            
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="p-4 mb-6 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                    <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+            
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="p-4 mb-6 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                    <i class="bi bi-exclamation-circle me-2"></i> @TempData["ErrorMessage"]
+                </div>
+            }
+            
+            @if (!Model.Any())
+            {
+                <div class="text-center py-12">
+                    <i class="bi bi-clipboard-x text-gray-300 text-5xl mb-3"></i>
+                    <p class="text-gray-500">Bạn chưa đăng ký dịch vụ nào.</p>
+                    <a href="@Url.Action("PublicIndex", "DichVus")" class="inline-block mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                        <i class="bi bi-search me-2"></i> Xem các dịch vụ
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <span class="text-gray-500">Hiển thị @Model.Count() đăng ký</span>
+                        </div>
+                        <a href="@Url.Action("PublicIndex", "DichVus")" class="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition">
+                            <i class="bi bi-plus-lg me-2"></i> Đăng ký dịch vụ mới
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100">
+                            <tr>
+                                <th scope="col" class="px-4 py-3">Mã ĐK</th>
+                                <th scope="col" class="px-4 py-3">Dịch vụ</th>
+                                <th scope="col" class="px-4 py-3">Loại</th>
+                                <th scope="col" class="px-4 py-3">Ngày đăng ký</th>
+                                <th scope="col" class="px-4 py-3">Thời hạn</th>
+                                <th scope="col" class="px-4 py-3">Trạng thái</th>
+                                <th scope="col" class="px-4 py-3 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr class="bg-white border-b hover:bg-gray-50">
+                                    <td class="px-4 py-4 font-medium text-gray-900">
+                                        #@item.MaDangKy
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        @if (item.LoaiDangKy == "GoiTap" && item.GoiTap != null)
+                                        {
+                                            <span>@item.GoiTap.TenGoi</span>
+                                        }
+                                        else if (item.LoaiDangKy == "LopHoc" && item.LopHoc != null)
+                                        {
+                                            <span>@item.LopHoc.TenLop</span>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        @if (item.LoaiDangKy == "GoiTap")
+                                        {
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Gói tập</span>
+                                        }
+                                        else if (item.LoaiDangKy == "LopHoc")
+                                        {
+                                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Lớp học</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">@item.LoaiDangKy</span>
+                                        }
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        @item.NgayDangKy.ToString("dd/MM/yyyy")
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        @item.NgayBatDau.ToString("dd/MM/yyyy") - @item.NgayKetThuc.ToString("dd/MM/yyyy")
+                                    </td>
+                                    <td class="px-4 py-4">
+                                        @switch (item.TrangThai)
+                                        {
+                                            case "ConHieuLuc":
+                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Còn hiệu lực</span>
+                                                break;
+                                            case "ChoThanhToan":
+                                                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Chờ thanh toán</span>
+                                                break;
+                                            case "HetHan":
+                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Hết hạn</span>
+                                                break;
+                                            case "DaHuy":
+                                                <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Đã hủy</span>
+                                                break;
+                                            default:
+                                                <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">@item.TrangThai</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="px-4 py-4 text-right">
+                                        <a href="@Url.Action("DangKyThanhCong", new { id = item.MaDangKy })" class="font-medium text-blue-600 hover:underline">Chi tiết</a>
+                                        
+                                        @if (item.TrangThai == "ChoThanhToan")
+                                        {
+                                            <span class="mx-2 text-gray-300">|</span>
+                                            <a href="@Url.Action("Index", "ThanhToans")" class="font-medium text-green-600 hover:underline">Thanh toán</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            
+            <div class="mt-8 text-center">
+                <a href="@Url.Action("Index", "Home")" class="text-blue-600 hover:underline">
+                    <i class="bi bi-arrow-left me-1"></i> Trở về trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -38,7 +38,7 @@ namespace KLTN.Models.Database
         public virtual KhuyenMai? KhuyenMai { get; set; }
         public virtual ICollection<DangKy>? DangKys { get; set; }
         public virtual ICollection<LichSuDangKy>? LichSuDangKys { get; set; }
-        public virtual ICollection<PT_GoiTap>? PT_GoiTaps { get; set; }
+        public virtual ICollection<PT_PhanCongHoaHong>? PT_PhanCongHoaHongs { get; set; }
         public virtual ICollection<PhienDay>? PhienDays { get; set; }
         public virtual DichVu? DichVu { get; set; }
     }

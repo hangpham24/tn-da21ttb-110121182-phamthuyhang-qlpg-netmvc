@@ -1,0 +1,190 @@
+@model IEnumerable<KLTN.Models.Database.TinTuc>
+
+@{
+    ViewData["Title"] = "Tin tức";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!-- Banner Section -->
+<div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-16 px-4 mb-8 rounded-lg shadow-md">
+    <div class="container mx-auto text-center">
+        <h1 class="text-4xl font-bold mb-4">Tin Tức & Sự Kiện</h1>
+        <p class="text-xl">Cập nhật thông tin mới nhất về các hoạt động và sự kiện tại phòng gym</p>
+    </div>
+</div>
+
+<!-- Search and Category Section -->
+<div class="container mx-auto mb-8">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <form method="get" action="@Url.Action("PublicList")" class="w-full md:w-1/2">
+                <div class="relative">
+                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+                        <i class="bi bi-search text-gray-400"></i>
+                    </div>
+                    <input type="text" name="search" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Tìm kiếm tin tức..." value="@Context.Request.Query["search"]">
+                    <button type="submit" class="absolute inset-y-0 end-0 flex items-center pe-3">
+                        <i class="bi bi-arrow-right text-blue-600 dark:text-blue-500"></i>
+                    </button>
+                </div>
+            </form>
+            
+            <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
+                <a href="@Url.Action("PublicList", new { category = "" })" class="px-4 py-2 text-sm font-medium @(string.IsNullOrEmpty(Context.Request.Query["category"]) ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300") rounded-full hover:bg-blue-700 hover:text-white transition-colors">
+                    Tất cả
+                </a>
+                <a href="@Url.Action("PublicList", new { category = "TinTuc" })" class="px-4 py-2 text-sm font-medium @(Context.Request.Query["category"] == "TinTuc" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300") rounded-full hover:bg-blue-700 hover:text-white transition-colors">
+                    Tin tức
+                </a>
+                <a href="@Url.Action("PublicList", new { category = "SuKien" })" class="px-4 py-2 text-sm font-medium @(Context.Request.Query["category"] == "SuKien" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300") rounded-full hover:bg-blue-700 hover:text-white transition-colors">
+                    Sự kiện
+                </a>
+                <a href="@Url.Action("PublicList", new { category = "KhuyenMai" })" class="px-4 py-2 text-sm font-medium @(Context.Request.Query["category"] == "KhuyenMai" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300") rounded-full hover:bg-blue-700 hover:text-white transition-colors">
+                    Khuyến mãi
+                </a>
+                <a href="@Url.Action("PublicList", new { category = "Blog" })" class="px-4 py-2 text-sm font-medium @(Context.Request.Query["category"] == "Blog" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300") rounded-full hover:bg-blue-700 hover:text-white transition-colors">
+                    Blog
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+    // Get featured news
+    var featuredNews = Model.Where(t => t.NoiBat).Take(3).ToList();
+    // Get remaining news
+    var regularNews = Model.Where(t => !t.NoiBat).ToList();
+}
+
+<!-- Featured News Section -->
+@if (featuredNews.Any())
+{
+    <div class="container mx-auto mb-12">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Tin Nổi Bật</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            @foreach (var item in featuredNews)
+            {
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                    <a href="@Url.Action("PublicDetails", new { id = item.MaTinTuc })">
+                        @if (!string.IsNullOrEmpty(item.HinhAnhURL))
+                        {
+                            <img class="w-full h-48 object-cover" src="@item.HinhAnhURL" alt="@item.TieuDe" onerror="this.src='/images/news-placeholder.jpg'; this.onerror='';">
+                        }
+                        else
+                        {
+                            <div class="w-full h-48 bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="bi bi-newspaper text-4xl text-gray-500 dark:text-gray-400"></i>
+                            </div>
+                        }
+                    </a>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                                @(item.DanhMuc == "TinTuc" ? "Tin tức" : 
+                                  item.DanhMuc == "SuKien" ? "Sự kiện" : 
+                                  item.DanhMuc == "KhuyenMai" ? "Khuyến mãi" : 
+                                  item.DanhMuc == "Blog" ? "Blog" : item.DanhMuc)
+                            </span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                @item.NgayDang.ToString("dd/MM/yyyy")
+                            </span>
+                        </div>
+                        <a href="@Url.Action("PublicDetails", new { id = item.MaTinTuc })">
+                            <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-500">@item.TieuDe</h5>
+                        </a>
+                        <p class="mb-3 text-sm text-gray-700 dark:text-gray-400 line-clamp-3">@item.MoTaNgan</p>
+                        <div class="flex justify-between items-center">
+                            <div class="text-sm text-gray-600 dark:text-gray-400">
+                                <!-- <i class="bi bi-person me-1"></i>@(string.IsNullOrEmpty(item.TacGiaDisplay) ? "Admin" : item.TacGiaDisplay) -->
+                                <i class="bi bi-calendar me-1"></i>@item.NgayDang.ToString("dd/MM/yyyy")
+                            </div>
+                            <a href="@Url.Action("PublicDetails", new { id = item.MaTinTuc })" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800">
+                                Xem thêm
+                                <i class="bi bi-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- All News Section -->
+<div class="container mx-auto mb-8">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Tất Cả Tin Tức</h2>
+    
+    @if (!Model.Any())
+    {
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md text-center">
+            <i class="bi bi-info-circle text-4xl text-blue-500 mb-4"></i>
+            <h3 class="text-xl font-semibold mb-2 text-gray-800 dark:text-white">Không có tin tức</h3>
+            <p class="text-gray-600 dark:text-gray-400">Hiện tại chưa có tin tức nào trong mục này.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var item in regularNews)
+            {
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow overflow-hidden hover:shadow-md transition-shadow">
+                    <a href="@Url.Action("PublicDetails", new { id = item.MaTinTuc })">
+                        @if (!string.IsNullOrEmpty(item.HinhAnhURL))
+                        {
+                            <img class="w-full h-40 object-cover" src="@item.HinhAnhURL" alt="@item.TieuDe" onerror="this.src='/images/news-placeholder.jpg'; this.onerror='';">
+                        }
+                        else
+                        {
+                            <div class="w-full h-40 bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
+                                <i class="bi bi-newspaper text-3xl text-gray-500 dark:text-gray-400"></i>
+                            </div>
+                        }
+                    </a>
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                                @(item.DanhMuc == "TinTuc" ? "Tin tức" : 
+                                  item.DanhMuc == "SuKien" ? "Sự kiện" : 
+                                  item.DanhMuc == "KhuyenMai" ? "Khuyến mãi" : 
+                                  item.DanhMuc == "Blog" ? "Blog" : item.DanhMuc)
+                            </span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                @item.NgayDang.ToString("dd/MM/yyyy")
+                            </span>
+                        </div>
+                        <a href="@Url.Action("PublicDetails", new { id = item.MaTinTuc })">
+                            <h5 class="mb-2 text-lg font-bold tracking-tight text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-500">@item.TieuDe</h5>
+                        </a>
+                        <p class="mb-3 text-sm text-gray-700 dark:text-gray-400 line-clamp-2">@item.MoTaNgan</p>
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-600 dark:text-gray-400">
+                                <!-- <i class="bi bi-person me-1"></i>@(string.IsNullOrEmpty(item.TacGiaDisplay) ? "Admin" : item.TacGiaDisplay) -->
+                                <i class="bi bi-calendar me-1"></i>@item.NgayDang.ToString("dd/MM/yyyy")
+                            </div>
+                            <a href="@Url.Action("PublicDetails", new { id = item.MaTinTuc })" class="inline-flex items-center px-2 py-1 text-xs font-medium text-center text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-blue-800">
+                                Xem thêm
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle image loading errors
+            const images = document.querySelectorAll('img');
+            images.forEach(img => {
+                img.addEventListener('error', function() {
+                    this.src = '/images/news-placeholder.jpg';
+                });
+            });
+        });
+    </script>
+} 

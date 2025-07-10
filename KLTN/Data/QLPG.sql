@@ -106,13 +106,18 @@ CREATE TABLE DangKy (
     CHECK ((MaThanhVien IS NULL AND MaKhachVangLai IS NOT NULL) OR (MaThanhVien IS NOT NULL AND MaKhachVangLai IS NULL))
 );
 
--- Tạo bảng lịch sử đăng ký
+-- Tạo bảng lịch sử đăng ký (phiên bản mới, liên kết với DangKy)
+DROP TABLE IF EXISTS LichSuDangKy;
 CREATE TABLE LichSuDangKy (
     MaLichSu INT PRIMARY KEY IDENTITY,
-    MaTV INT FOREIGN KEY REFERENCES ThanhVien(MaTV),
-    MaGoi INT FOREIGN KEY REFERENCES GoiTap(MaGoi),
-    NgayDangKy DATE,
-    TrangThai NVARCHAR(50)
+    MaDangKy INT NOT NULL FOREIGN KEY REFERENCES DangKy(MaDangKy), -- Liên kết chính đến bảng Đăng Ký
+    ThoiGianSuKien DATETIME DEFAULT GETDATE(), -- Thời điểm xảy ra sự kiện lịch sử
+    LoaiSuKien NVARCHAR(100) NOT NULL, -- Ví dụ: 'Tạo mới', 'Gia hạn', 'Hủy', 'Thay đổi trạng thái', 'Cập nhật thông tin'
+    MoTaSuKien NVARCHAR(500) NULL, -- Mô tả chi tiết hơn về sự kiện nếu cần
+    DuLieuTruoc NVARCHAR(MAX) NULL, -- Lưu trữ dữ liệu (ví dụ: dạng JSON) của bản ghi Đăng Ký TRƯỚC khi thay đổi
+    DuLieuSau NVARCHAR(MAX) NULL,   -- Lưu trữ dữ liệu (ví dụ: dạng JSON) của bản ghi Đăng Ký SAU khi thay đổi
+    MaTKNguoiThucHien INT FOREIGN KEY REFERENCES TaiKhoan(MaTK) NULL, -- Tài khoản người thực hiện hành động
+    GhiChu NVARCHAR(500) -- Ghi chú thêm nếu có
 );
 
 -- Tạo bảng huấn luyện viên
@@ -124,21 +129,23 @@ CREATE TABLE HuanLuyenVien (
     SDT NVARCHAR(15),
     Email NVARCHAR(100),
     ChuyenMon NVARCHAR(200),
-    TrangThai NVARCHAR(20)
+    AnhDaiDien VARBINARY(MAX),
+    TrangThai NVARCHAR(20),
+    MaTK INT FOREIGN KEY REFERENCES TaiKhoan(MaTK)
 );
 
 -- Tạo bảng lịch sử check-in
 CREATE TABLE LichSuCheckIn (
     MaCheckIn INT PRIMARY KEY IDENTITY,
-    MaTV INT NULL,
+    MaTK INT NULL,
     MaKVL INT NULL,
     ThoiGian DATETIME,
     KetQuaNhanDien BIT,
     AnhNhanDien VARBINARY(MAX),
-    FOREIGN KEY (MaTV) REFERENCES ThanhVien(MaTV),
+    FOREIGN KEY (MaTK) REFERENCES TaiKhoan(MaTK),
     FOREIGN KEY (MaKVL) REFERENCES KhachVangLai(MaKVL),
     -- Đảm bảo hoặc là thành viên hoặc là khách vãng lai
-    CHECK ((MaTV IS NULL AND MaKVL IS NOT NULL) OR (MaTV IS NOT NULL AND MaKVL IS NULL))
+    CHECK ((MaThanhVien IS NULL AND MaKhachVangLai IS NOT NULL) OR (MaThanhVien IS NOT NULL AND MaKhachVangLai IS NULL))
 );
 
 -- Tạo bảng thông báo
@@ -147,20 +154,8 @@ CREATE TABLE ThongBao (
     TieuDe NVARCHAR(100),
     NoiDung NVARCHAR(MAX),
     NgayGui DATETIME,
-    MaTV INT FOREIGN KEY REFERENCES ThanhVien(MaTV),
+    MaTK INT FOREIGN KEY REFERENCES TaiKhoan(MaTK),
     DaDoc BIT DEFAULT 0
-);
-
--- Tạo bảng doanh thu
-CREATE TABLE DoanhThu (
-    MaThu INT PRIMARY KEY IDENTITY,
-    MaTV INT NULL,
-    MaKVL INT NULL,
-    SoTien DECIMAL(18,2),
-    NoiDung NVARCHAR(200),
-    NgayThu DATETIME,
-    FOREIGN KEY (MaTV) REFERENCES ThanhVien(MaTV),
-    FOREIGN KEY (MaKVL) REFERENCES KhachVangLai(MaKVL)
 );
 
 -- Tạo bảng báo cáo tài chính
@@ -183,24 +178,28 @@ CREATE TABLE GiaHanDangKy (
     SoBuoiThem INT NULL,
     SoTien DECIMAL(18,2) NOT NULL,
     NgayGiaHan DATETIME NOT NULL DEFAULT GETDATE(),
-    MaTKNguoiThu INT NULL,
+    MaTK INT NULL,
     TrangThai NVARCHAR(20) NOT NULL DEFAULT N'DaDong',
     GhiChu NVARCHAR(500),
     FOREIGN KEY (MaDangKy) REFERENCES DangKy(MaDangKy),
-    FOREIGN KEY (MaTKNguoiThu) REFERENCES TaiKhoan(MaTK)
+    FOREIGN KEY (MaTK) REFERENCES TaiKhoan(MaTK)
 );
 
--- Tạo bảng thanh toán
+-- Tạo bảng thanh toán (ĐÃ CẬP NHẬT ĐỂ GOM BẢNG DOANHTHU VÀ LÀM RÕ NGƯỜI MUA)
+DROP TABLE IF EXISTS ThanhToan;
+
 CREATE TABLE ThanhToan (
     MaThanhToan INT PRIMARY KEY IDENTITY,
-    LoaiThanhToan NVARCHAR(50) NOT NULL, -- DangKy, GiaHan, DichVu, KhachVangLai
-    MaDangKy INT NULL,
-    MaGiaHan INT NULL,
+    LoaiThanhToan NVARCHAR(50) NOT NULL, -- Đăng ký, Gia hạn, Dịch vụ, Khách vãng lai, v.v.
+    MaDangKy INT NULL, -- FK đến DangKy
+    MaGiaHan INT NULL, -- FK đến GiaHanDangKy
+    MaTK_NguoiDung INT NULL, -- FK đến TaiKhoan (người nộp tiền)
+    MaKVL_NguoiDung INT NULL, -- FK đến KhachVangLai (nếu là khách vãng lai)
     SoTien DECIMAL(18,2) NOT NULL,
-    PhuongThucThanhToan NVARCHAR(50) NOT NULL DEFAULT N'TienMat', -- TienMat, ChuyenKhoan, TheNganHang, ViDienTu, QRCode
+    PhuongThucThanhToan NVARCHAR(50) NOT NULL DEFAULT N'TienMat',
     NgayThanhToan DATETIME DEFAULT GETDATE(),
-    MaTKNguoiThu INT NULL,
-    TrangThai NVARCHAR(20) DEFAULT N'ThanhCong', -- ThanhCong, ThatBai, ChoPheChuan, DaHuy
+    MaTKNguoiThu INT NULL, -- FK đến TaiKhoan (nhân viên thu)
+    TrangThai NVARCHAR(20) DEFAULT N'ThanhCong',
     GhiChu NVARCHAR(500),
     MaGiaoDich NVARCHAR(100),
     DonViThanhToan NVARCHAR(100),
@@ -209,7 +208,15 @@ CREATE TABLE ThanhToan (
     DaXuatHoaDon BIT DEFAULT 0,
     FOREIGN KEY (MaDangKy) REFERENCES DangKy(MaDangKy),
     FOREIGN KEY (MaGiaHan) REFERENCES GiaHanDangKy(MaGiaHan),
-    FOREIGN KEY (MaTKNguoiThu) REFERENCES TaiKhoan(MaTK)
+    FOREIGN KEY (MaTK_NguoiDung) REFERENCES TaiKhoan(MaTK),
+    FOREIGN KEY (MaKVL_NguoiDung) REFERENCES KhachVangLai(MaKVL),
+    FOREIGN KEY (MaTKNguoiThu) REFERENCES TaiKhoan(MaTK),
+    CONSTRAINT CK_ThanhToan_XacDinhNguoiMua CHECK (
+        (CASE WHEN MaDangKy IS NOT NULL THEN 1 ELSE 0 END +
+         CASE WHEN MaGiaHan IS NOT NULL THEN 1 ELSE 0 END +
+         CASE WHEN MaTK_NguoiDung IS NOT NULL THEN 1 ELSE 0 END +
+         CASE WHEN MaKVL_NguoiDung IS NOT NULL THEN 1 ELSE 0 END) <= 1
+    )
 );
 
 -- Tạo bảng dịch vụ
@@ -224,21 +231,25 @@ CREATE TABLE DichVu (
     MaLopHoc INT FOREIGN KEY REFERENCES LopHoc(MaLop)
 );
 
--- Tạo bảng PT_GoiTap
-CREATE TABLE PT_GoiTap (
-    MaPT INT FOREIGN KEY REFERENCES HuanLuyenVien(MaPT),
-    MaGoiTap INT FOREIGN KEY REFERENCES GoiTap(MaGoi),
+-- Xóa bảng PT_GoiTap và PT_LopHoc để thay thế bằng PT_PhanCongHoaHong
+DROP TABLE IF EXISTS PT_GoiTap;
+DROP TABLE IF EXISTS PT_LopHoc;
+
+-- Tạo bảng PT_PhanCongHoaHong (Hợp nhất từ PT_GoiTap và PT_LopHoc)
+CREATE TABLE PT_PhanCongHoaHong (
+    MaPhanCong INT PRIMARY KEY IDENTITY,
+    MaPT INT NOT NULL FOREIGN KEY REFERENCES HuanLuyenVien(MaPT),
+    MaGoiTap INT NULL FOREIGN KEY REFERENCES GoiTap(MaGoi),
+    MaLopHoc INT NULL FOREIGN KEY REFERENCES LopHoc(MaLop),
     PhanTramHoaHong DECIMAL(5,2) NOT NULL,
-    PRIMARY KEY (MaPT, MaGoiTap)
+    CONSTRAINT CK_PT_PhanCong_Loai CHECK ((MaGoiTap IS NOT NULL AND MaLopHoc IS NULL) OR (MaGoiTap IS NULL AND MaLopHoc IS NOT NULL))
 );
 
--- Tạo bảng PT_LopHoc
-CREATE TABLE PT_LopHoc (
-    MaPT INT FOREIGN KEY REFERENCES HuanLuyenVien(MaPT),
-    MaLopHoc INT FOREIGN KEY REFERENCES LopHoc(MaLop),
-    PhanTramHoaHong DECIMAL(5,2) NOT NULL,
-    PRIMARY KEY (MaPT, MaLopHoc)
-);
+-- Tạo các chỉ mục duy nhất có điều kiện để đảm bảo tính duy nhất như khóa chính ban đầu
+-- Điều này đảm bảo một PT chỉ có một mức hoa hồng cho một gói tập cụ thể (nếu MaGoiTap không NULL)
+CREATE UNIQUE NONCLUSTERED INDEX UQ_PT_GoiTap_HoaHong ON PT_PhanCongHoaHong(MaPT, MaGoiTap) WHERE MaGoiTap IS NOT NULL;
+-- Và một PT chỉ có một mức hoa hồng cho một lớp học cụ thể (nếu MaLopHoc không NULL)
+CREATE UNIQUE NONCLUSTERED INDEX UQ_PT_LopHoc_HoaHong ON PT_PhanCongHoaHong(MaPT, MaLopHoc) WHERE MaLopHoc IS NOT NULL;
 
 -- Tạo bảng phiên dạy
 CREATE TABLE PhienDay (
@@ -271,7 +282,7 @@ CREATE TABLE TinTuc (
     HinhAnhURL NVARCHAR(255),
     NgayDang DATETIME DEFAULT GETDATE(),
     NguoiDang INT FOREIGN KEY REFERENCES TaiKhoan(MaTK),
-    TrangThai NVARCHAR(20) DEFAULT 'HoatDong' -- HoatDong, KhongHoatDong
+    
 );
 
 -- Tạo bảng phiên tập
@@ -287,5 +298,28 @@ CREATE TABLE PhienTap (
     FOREIGN KEY (MaKhachVangLai) REFERENCES KhachVangLai(MaKVL),
     -- Đảm bảo hoặc là thành viên hoặc là khách vãng lai
     CHECK ((MaThanhVien IS NULL AND MaKhachVangLai IS NOT NULL) OR (MaThanhVien IS NOT NULL AND MaKhachVangLai IS NULL))
+);
+
+CREATE TABLE CapNhatAnhNhanDien (
+    MaCapNhat INT PRIMARY KEY IDENTITY,
+    MaTK INT NOT NULL,
+    AnhCu VARBINARY(MAX) NULL,
+    AnhMoi VARBINARY(MAX) NOT NULL,
+    ThoiGianCapNhat DATETIME DEFAULT GETDATE(),
+    NguoiCapNhat INT NULL,
+    LyDo NVARCHAR(255),
+    FOREIGN KEY (MaTK) REFERENCES TaiKhoan(MaTK),
+    FOREIGN KEY (NguoiCapNhat) REFERENCES TaiKhoan(MaTK)
+);
+
+-- Tạo bảng DoanhThu chi tiết theo từng giao dịch
+CREATE TABLE DoanhThu (
+    MaDoanhThu INT PRIMARY KEY IDENTITY,
+    MaThanhToan INT FOREIGN KEY REFERENCES ThanhToan(MaThanhToan),
+    SoTien DECIMAL(18,2) NOT NULL,
+    Ngay DATE NOT NULL,
+    GhiChu NVARCHAR(500),
+    NgayTao DATETIME DEFAULT GETDATE(),
+    NguoiTao INT FOREIGN KEY REFERENCES TaiKhoan(MaTK)
 );
 

@@ -1,60 +1,95 @@
 ﻿@model KLTN.Models.Database.DichVu
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi tiết dịch vụ";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Details</h1>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    <div class="mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Chi tiết dịch vụ</h1>
+            <div class="flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model?.MaDichVu" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium text-sm">
+                    <i class="bi bi-pencil-square mr-1"></i> Chỉnh sửa
+                </a>
+                <a asp-action="Index" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 font-medium text-sm">
+                    <i class="bi bi-arrow-left mr-1"></i> Quay lại
+                </a>
+            </div>
+        </div>
+        <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700">
+    </div>
 
-<div>
-    <h4>DichVu</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TenDichVu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TenDichVu)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MoTa)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MoTa)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LoaiDichVu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LoaiDichVu)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GiaBatDau)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GiaBatDau)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HinhAnhURL)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HinhAnhURL)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GoiTap)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GoiTap.TenGoi)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LopHoc)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LopHoc.NgayTrongTuan)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaDichVu">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Hình ảnh -->
+        <div class="md:col-span-1">
+            @if (!string.IsNullOrEmpty(Model.HinhAnhURL))
+            {
+                <img src="@Model.HinhAnhURL" alt="@Model.TenDichVu" class="w-full h-auto rounded-lg shadow-md">
+            }
+            else
+            {
+                <div class="w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                    <span class="text-gray-500 dark:text-gray-400"><i class="bi bi-image text-4xl"></i><br>Không có hình ảnh</span>
+                </div>
+            }
+        </div>
+
+        <!-- Thông tin -->
+        <div class="md:col-span-2">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">@Model.TenDichVu</h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Loại dịch vụ</h3>
+                        @{
+                            var serviceTypeClass = Model.LoaiDichVu switch {
+                                "GoiTap" => "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+                                "LopHoc" => "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+                                _ => "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                            };
+                            var serviceTypeText = Model.LoaiDichVu switch {
+                                "GoiTap" => "Gói tập",
+                                "LopHoc" => "Lớp học",
+                                _ => Model.LoaiDichVu
+                            };
+                        }
+                        <p>
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium @serviceTypeClass">
+                                @serviceTypeText
+                            </span>
+                        </p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Giá bắt đầu</h3>
+                        <p class="text-xl font-bold text-blue-600 dark:text-blue-400">@string.Format("{0:N0} VNĐ", Model.GiaBatDau)</p>
+                    </div>
+
+                    <div>
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Mô tả</h3>
+                        <p class="text-gray-700 dark:text-gray-300">@(string.IsNullOrEmpty(Model.MoTa) ? "Không có mô tả" : Model.MoTa)</p>
+                    </div>
+
+                    @if (Model.GoiTap != null)
+                    {
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Gói tập</h3>
+                            <p class="text-gray-700 dark:text-gray-300">@Model.GoiTap.TenGoi</p>
+                        </div>
+                    }
+
+                    @if (Model.LopHoc != null)
+                    {
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Lớp học</h3>
+                            <p class="text-gray-700 dark:text-gray-300">@Model.LopHoc.NgayTrongTuan</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

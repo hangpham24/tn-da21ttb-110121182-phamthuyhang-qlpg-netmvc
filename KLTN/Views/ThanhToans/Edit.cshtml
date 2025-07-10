@@ -1,99 +1,117 @@
 ﻿@model KLTN.Models.Database.ThanhToan
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Chỉnh sửa thanh toán";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Edit</h1>
-
-<h4>ThanhToan</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="MaThanhToan" />
-            <div class="form-group">
-                <label asp-for="LoaiThanhToan" class="control-label"></label>
-                <input asp-for="LoaiThanhToan" class="form-control" />
-                <span asp-validation-for="LoaiThanhToan" class="text-danger"></span>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 max-w-2xl mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Chỉnh sửa thanh toán</h1>
+    <form asp-action="Edit" class="space-y-4">
+        <div asp-validation-summary="ModelOnly" class="text-red-500 text-sm"></div>
+        <input type="hidden" asp-for="MaThanhToan" />
+        <div class="grid md:grid-cols-2 gap-4">
+            <div>
+                <label asp-for="LoaiThanhToan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="LoaiThanhToan" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="LoaiThanhToan" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="MaDangKy" class="control-label"></label>
-                <select asp-for="MaDangKy" class="form-control" asp-items="ViewBag.MaDangKy"></select>
-                <span asp-validation-for="MaDangKy" class="text-danger"></span>
+            <div>
+                <label asp-for="MaDangKy" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <select asp-for="MaDangKy" asp-items="ViewBag.MaDangKy" class="form-select block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                    <option value="">-- Chọn đăng ký --</option>
+                </select>
+                <span asp-validation-for="MaDangKy" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="MaGiaHan" class="control-label"></label>
-                <select asp-for="MaGiaHan" class="form-control" asp-items="ViewBag.MaGiaHan"></select>
-                <span asp-validation-for="MaGiaHan" class="text-danger"></span>
+            <div>
+                <label asp-for="MaGiaHan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <select asp-for="MaGiaHan" asp-items="ViewBag.MaGiaHan" class="form-select block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                    <option value="">-- Chọn gia hạn --</option>
+                </select>
+                <span asp-validation-for="MaGiaHan" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="SoTien" class="control-label"></label>
-                <input asp-for="SoTien" class="form-control" />
-                <span asp-validation-for="SoTien" class="text-danger"></span>
+            <div>
+                <label asp-for="MaTK_NguoiDung" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="MaTK_NguoiDung" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="MaTK_NguoiDung" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="PhuongThucThanhToan" class="control-label"></label>
-                <input asp-for="PhuongThucThanhToan" class="form-control" />
-                <span asp-validation-for="PhuongThucThanhToan" class="text-danger"></span>
+            <div>
+                <label asp-for="MaKVL_NguoiDung" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="MaKVL_NguoiDung" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="MaKVL_NguoiDung" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="NgayThanhToan" class="control-label"></label>
-                <input asp-for="NgayThanhToan" class="form-control" />
-                <span asp-validation-for="NgayThanhToan" class="text-danger"></span>
+            <div>
+                <label asp-for="SoTien" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="SoTien" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="SoTien" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="MaTKNguoiThu" class="control-label"></label>
-                <select asp-for="MaTKNguoiThu" class="form-control" asp-items="ViewBag.MaTKNguoiThu"></select>
-                <span asp-validation-for="MaTKNguoiThu" class="text-danger"></span>
+            <div>
+                <label asp-for="PhuongThucThanhToan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="PhuongThucThanhToan" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="PhuongThucThanhToan" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="TrangThai" class="control-label"></label>
-                <input asp-for="TrangThai" class="form-control" />
-                <span asp-validation-for="TrangThai" class="text-danger"></span>
+            <div>
+                <label asp-for="NgayThanhToan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="NgayThanhToan" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="NgayThanhToan" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="GhiChu" class="control-label"></label>
-                <input asp-for="GhiChu" class="form-control" />
-                <span asp-validation-for="GhiChu" class="text-danger"></span>
+            <div>
+                <label asp-for="MaTKNguoiThu" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <select asp-for="MaTKNguoiThu" asp-items="ViewBag.MaTKNguoiThu" class="form-select block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                    <option value="">-- Chọn người thu --</option>
+                </select>
+                <span asp-validation-for="MaTKNguoiThu" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="MaGiaoDich" class="control-label"></label>
-                <input asp-for="MaGiaoDich" class="form-control" />
-                <span asp-validation-for="MaGiaoDich" class="text-danger"></span>
+            <div>
+                <label asp-for="TrangThai" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <select asp-for="TrangThai" class="form-select block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                    <option value="">-- Chọn trạng thái --</option>
+                    <option value="ThanhCong">Thành công</option>
+                    <option value="DangXuLy">Đang xử lý</option>
+                    <option value="ThatBai">Thất bại</option>
+                </select>
+                <span asp-validation-for="TrangThai" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="DonViThanhToan" class="control-label"></label>
-                <input asp-for="DonViThanhToan" class="form-control" />
-                <span asp-validation-for="DonViThanhToan" class="text-danger"></span>
+            <div>
+                <label asp-for="GhiChu" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="GhiChu" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="GhiChu" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="TaiKhoanThanhToan" class="control-label"></label>
-                <input asp-for="TaiKhoanThanhToan" class="form-control" />
-                <span asp-validation-for="TaiKhoanThanhToan" class="text-danger"></span>
+            <div>
+                <label asp-for="MaGiaoDich" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="MaGiaoDich" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="MaGiaoDich" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="HoaDonDienTuUrl" class="control-label"></label>
-                <input asp-for="HoaDonDienTuUrl" class="form-control" />
-                <span asp-validation-for="HoaDonDienTuUrl" class="text-danger"></span>
+            <div>
+                <label asp-for="DonViThanhToan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="DonViThanhToan" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="DonViThanhToan" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="DaXuatHoaDon" /> @Html.DisplayNameFor(model => model.DaXuatHoaDon)
-                </label>
+            <div>
+                <label asp-for="TaiKhoanThanhToan" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="TaiKhoanThanhToan" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="TaiKhoanThanhToan" class="text-red-500 text-xs"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div>
+                <label asp-for="HoaDonDienTuUrl" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"></label>
+                <input asp-for="HoaDonDienTuUrl" class="form-input block w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                <span asp-validation-for="HoaDonDienTuUrl" class="text-red-500 text-xs"></span>
             </div>
-        </form>
-    </div>
+            <div class="flex items-center mt-2">
+                <input id="DaXuatHoaDon" asp-for="DaXuatHoaDon" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                <label for="DaXuatHoaDon" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">@Html.DisplayNameFor(model => model.DaXuatHoaDon)</label>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4 mt-6">
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                <i class="bi bi-check-circle me-1"></i> Lưu thay đổi
+            </button>
+            <a asp-action="Index" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+    </form>
 </div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

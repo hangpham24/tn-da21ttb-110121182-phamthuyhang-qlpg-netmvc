@@ -22,7 +22,7 @@ namespace KLTN.Controllers
         // GET: DoanhThus
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.DoanhThus.Include(d => d.KhachVangLai).Include(d => d.NguoiThu).Include(d => d.ThanhToan).Include(d => d.ThanhVien);
+            var applicationDbContext = _context.DoanhThu.Include(d => d.TaiKhoan).Include(d => d.ThanhToan);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -34,12 +34,10 @@ namespace KLTN.Controllers
                 return NotFound();
             }
 
-            var doanhThu = await _context.DoanhThus
-                .Include(d => d.KhachVangLai)
-                .Include(d => d.NguoiThu)
+            var doanhThu = await _context.DoanhThu
+                .Include(d => d.TaiKhoan)
                 .Include(d => d.ThanhToan)
-                .Include(d => d.ThanhVien)
-                .FirstOrDefaultAsync(m => m.MaThu == id);
+                .FirstOrDefaultAsync(m => m.MaDoanhThu == id);
             if (doanhThu == null)
             {
                 return NotFound();
@@ -51,10 +49,8 @@ namespace KLTN.Controllers
         // GET: DoanhThus/Create
         public IActionResult Create()
         {
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL");
-            ViewData["MaNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash");
+            ViewData["NguoiTao"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash");
             ViewData["MaThanhToan"] = new SelectList(_context.ThanhToans, "MaThanhToan", "LoaiThanhToan");
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV");
             return View();
         }
 
@@ -63,7 +59,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaThu,MaThanhToan,MaTV,MaKVL,SoTien,NoiDung,NgayThu,LoaiThu,TrangThai,GhiChu,MaNguoiThu")] DoanhThu doanhThu)
+        public async Task<IActionResult> Create([Bind("MaDoanhThu,MaThanhToan,SoTien,Ngay,GhiChu,NgayTao,NguoiTao")] DoanhThu doanhThu)
         {
             if (ModelState.IsValid)
             {
@@ -71,10 +67,8 @@ namespace KLTN.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", doanhThu.MaKVL);
-            ViewData["MaNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", doanhThu.MaNguoiThu);
+            ViewData["NguoiTao"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", doanhThu.NguoiTao);
             ViewData["MaThanhToan"] = new SelectList(_context.ThanhToans, "MaThanhToan", "LoaiThanhToan", doanhThu.MaThanhToan);
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", doanhThu.MaTV);
             return View(doanhThu);
         }
 
@@ -86,15 +80,13 @@ namespace KLTN.Controllers
                 return NotFound();
             }
 
-            var doanhThu = await _context.DoanhThus.FindAsync(id);
+            var doanhThu = await _context.DoanhThu.FindAsync(id);
             if (doanhThu == null)
             {
                 return NotFound();
             }
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", doanhThu.MaKVL);
-            ViewData["MaNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", doanhThu.MaNguoiThu);
+            ViewData["NguoiTao"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", doanhThu.NguoiTao);
             ViewData["MaThanhToan"] = new SelectList(_context.ThanhToans, "MaThanhToan", "LoaiThanhToan", doanhThu.MaThanhToan);
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", doanhThu.MaTV);
             return View(doanhThu);
         }
 
@@ -103,9 +95,9 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaThu,MaThanhToan,MaTV,MaKVL,SoTien,NoiDung,NgayThu,LoaiThu,TrangThai,GhiChu,MaNguoiThu")] DoanhThu doanhThu)
+        public async Task<IActionResult> Edit(int id, [Bind("MaDoanhThu,MaThanhToan,SoTien,Ngay,GhiChu,NgayTao,NguoiTao")] DoanhThu doanhThu)
         {
-            if (id != doanhThu.MaThu)
+            if (id != doanhThu.MaDoanhThu)
             {
                 return NotFound();
             }
@@ -119,7 +111,7 @@ namespace KLTN.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DoanhThuExists(doanhThu.MaThu))
+                    if (!DoanhThuExists(doanhThu.MaDoanhThu))
                     {
                         return NotFound();
                     }
@@ -130,10 +122,8 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", doanhThu.MaKVL);
-            ViewData["MaNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", doanhThu.MaNguoiThu);
+            ViewData["NguoiTao"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", doanhThu.NguoiTao);
             ViewData["MaThanhToan"] = new SelectList(_context.ThanhToans, "MaThanhToan", "LoaiThanhToan", doanhThu.MaThanhToan);
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", doanhThu.MaTV);
             return View(doanhThu);
         }
 
@@ -145,12 +135,10 @@ namespace KLTN.Controllers
                 return NotFound();
             }
 
-            var doanhThu = await _context.DoanhThus
-                .Include(d => d.KhachVangLai)
-                .Include(d => d.NguoiThu)
+            var doanhThu = await _context.DoanhThu
+                .Include(d => d.TaiKhoan)
                 .Include(d => d.ThanhToan)
-                .Include(d => d.ThanhVien)
-                .FirstOrDefaultAsync(m => m.MaThu == id);
+                .FirstOrDefaultAsync(m => m.MaDoanhThu == id);
             if (doanhThu == null)
             {
                 return NotFound();
@@ -164,10 +152,10 @@ namespace KLTN.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var doanhThu = await _context.DoanhThus.FindAsync(id);
+            var doanhThu = await _context.DoanhThu.FindAsync(id);
             if (doanhThu != null)
             {
-                _context.DoanhThus.Remove(doanhThu);
+                _context.DoanhThu.Remove(doanhThu);
             }
 
             await _context.SaveChangesAsync();
@@ -176,7 +164,7 @@ namespace KLTN.Controllers
 
         private bool DoanhThuExists(int id)
         {
-            return _context.DoanhThus.Any(e => e.MaThu == id);
+            return _context.DoanhThu.Any(e => e.MaDoanhThu == id);
         }
     }
 }

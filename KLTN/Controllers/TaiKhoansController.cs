@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class TaiKhoansController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,10 +22,67 @@ namespace KLTN.Controllers
         }
 
         // GET: TaiKhoans
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
         {
-            var applicationDbContext = _context.TaiKhoans.Include(t => t.Quyen);
-            return View(await applicationDbContext.ToListAsync());
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["StatusSortParm"] = sortOrder == "status" ? "status_desc" : "status";
+            ViewData["DateSortParm"] = sortOrder == "date" ? "date_desc" : "date";
+            ViewData["LastLoginSortParm"] = sortOrder == "lastlogin" ? "lastlogin_desc" : "lastlogin";
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+
+            var taiKhoans = _context.TaiKhoans
+                .Include(t => t.Quyen)
+                .AsQueryable();
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                taiKhoans = taiKhoans.Where(t => t.TenDangNhap.Contains(searchString)
+                || t.Quyen.TenQuyen.Contains(searchString)
+                || t.NgayTao.ToString().Contains(searchString)
+                || t.LanDangNhapCuoi.ToString().Contains(searchString)
+                );
+            }
+
+            taiKhoans = sortOrder switch
+            {
+                "name_desc" => taiKhoans.OrderByDescending(t => t.TenDangNhap),
+                "status" => taiKhoans.OrderBy(t => t.TrangThai),
+                "status_desc" => taiKhoans.OrderByDescending(t => t.TrangThai),
+                "date" => taiKhoans.OrderBy(t => t.NgayTao),
+                "date_desc" => taiKhoans.OrderByDescending(t => t.NgayTao),
+                "lastlogin" => taiKhoans.OrderBy(t => t.LanDangNhapCuoi),
+                "lastlogin_desc" => taiKhoans.OrderByDescending(t => t.LanDangNhapCuoi),
+                _ => taiKhoans.OrderBy(t => t.TenDangNhap),
+            };
+
+            const int pageSize = 5;
+            var totalItems = await taiKhoans.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            pageNumber = pageNumber ?? 1;
+            pageNumber = Math.Max(1, Math.Min(pageNumber.Value, totalPages));
+
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+
+            var items = await taiKhoans
+                .Skip((pageNumber.Value - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return View(items);
         }
 
         // GET: TaiKhoans/Details/5

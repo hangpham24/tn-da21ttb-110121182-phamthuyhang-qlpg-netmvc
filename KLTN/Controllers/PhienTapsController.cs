@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class PhienTapsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -50,9 +52,9 @@ namespace KLTN.Controllers
         // GET: PhienTaps/Create
         public IActionResult Create()
         {
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT");
-            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL");
-            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV");
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen");
+            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen");
+            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "HoTen");
             return View();
         }
 
@@ -69,9 +71,9 @@ namespace KLTN.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT", phienTap.MaPT);
-            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", phienTap.MaKhachVangLai);
-            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", phienTap.MaThanhVien);
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen", phienTap.MaPT);
+            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen", phienTap.MaKhachVangLai);
+            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "HoTen", phienTap.MaThanhVien);
             return View(phienTap);
         }
 
@@ -88,9 +90,9 @@ namespace KLTN.Controllers
             {
                 return NotFound();
             }
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT", phienTap.MaPT);
-            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", phienTap.MaKhachVangLai);
-            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", phienTap.MaThanhVien);
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen", phienTap.MaPT);
+            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen", phienTap.MaKhachVangLai);
+            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "HoTen", phienTap.MaThanhVien);
             return View(phienTap);
         }
 
@@ -126,9 +128,9 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT", phienTap.MaPT);
-            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", phienTap.MaKhachVangLai);
-            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", phienTap.MaThanhVien);
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen", phienTap.MaPT);
+            ViewData["MaKhachVangLai"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen", phienTap.MaKhachVangLai);
+            ViewData["MaThanhVien"] = new SelectList(_context.ThanhViens, "MaTV", "HoTen", phienTap.MaThanhVien);
             return View(phienTap);
         }
 

@@ -336,9 +336,37 @@ namespace KLTN.Controllers
         }
 
         [HttpGet]
-        [Authorize]
-        public IActionResult AccessDenied()
+        public IActionResult AccessDenied(string returnUrl = null)
         {
+            // Kiểm tra nếu người dùng đã đăng nhập
+            if (User.Identity.IsAuthenticated)
+            {
+                // Lấy thông tin về URL bị từ chối
+                ViewBag.ReturnUrl = returnUrl;
+                
+                // Kiểm tra nếu URL chứa DangKyOnline và LopHoc
+                if (!string.IsNullOrEmpty(returnUrl) && 
+                    returnUrl.Contains("DangKies/DangKyOnline") && 
+                    returnUrl.Contains("loaiDichVu=LopHoc"))
+                {
+                    // Lấy dichVuId từ returnUrl
+                    string dichVuIdStr = returnUrl.Split(new[] { "dichVuId=" }, StringSplitOptions.None)[1];
+                    if (dichVuIdStr.Contains("&"))
+                    {
+                        dichVuIdStr = dichVuIdStr.Split('&')[0];
+                    }
+                    
+                    // Thêm thông báo hướng dẫn
+                    TempData["ErrorMessage"] = "Bạn cần có quyền Thành viên để đăng ký lớp học. Vui lòng liên hệ quản trị viên để được cấp quyền.";
+                    
+                    // Chuyển hướng về trang chi tiết dịch vụ
+                    if (int.TryParse(dichVuIdStr, out int dichVuId))
+                    {
+                        return RedirectToAction("PublicDetails", "DichVus", new { id = dichVuId });
+                    }
+                }
+            }
+            
             return View();
         }
 
@@ -394,17 +422,17 @@ namespace KLTN.Controllers
 
             if (thanhVien != null)
             {
-                // Lấy danh sách đăng ký của thành viên
-                var dangKys = await _context.DangKys
-                    .Include(dk => dk.GoiTap)
-                    .Include(dk => dk.LopHoc)
-                    .Include(dk => dk.ThanhToans)
-                    .Include(dk => dk.GiaHanDangKys)
-                    .Where(dk => dk.MaTV == thanhVien.MaTV)
-                    .OrderByDescending(dk => dk.NgayDangKy)
-                    .ToListAsync();
+            // Lấy danh sách đăng ký của thành viên
+            var dangKys = await _context.DangKys
+                .Include(dk => dk.GoiTap)
+                .Include(dk => dk.LopHoc)
+                .Include(dk => dk.ThanhToans)
+                .Include(dk => dk.GiaHanDangKys)
+                .Where(dk => dk.MaTV == thanhVien.MaTV)
+                .OrderByDescending(dk => dk.NgayDangKy)
+                .ToListAsync();
 
-                return View(dangKys);
+            return View(dangKys);
             }
             
             // Kiểm tra nếu là huấn luyện viên
@@ -499,8 +527,8 @@ namespace KLTN.Controllers
         public async Task<IActionResult> EditProfile(EditProfileModel model)
         {
             try
-            {
-                if (!ModelState.IsValid)
+        {
+            if (!ModelState.IsValid)
             {
                 return View(model);
             }
@@ -716,6 +744,109 @@ namespace KLTN.Controllers
             ViewData["HashedPassword"] = hashedPassword;
             
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> UpdateToMemberRole()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login");
+            }
+            
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+            {
+                return RedirectToAction("Login");
+            }
+            
+            // Kiểm tra xem người dùng đã có vai trò Thành viên chưa
+            if (User.IsInRole("Thành viên") || User.IsInRole("ThanhVien"))
+            {
+                TempData["InfoMessage"] = "Bạn đã có quyền Thành viên.";
+                return RedirectToAction("Index", "Home");
+            }
+            
+            // Lấy thông tin tài khoản
+            var taiKhoan = await _context.TaiKhoans
+                .Include(t => t.Quyen)
+                .FirstOrDefaultAsync(t => t.MaTK == userIdInt);
+            
+            if (taiKhoan == null)
+            {
+                return NotFound("Không tìm thấy thông tin tài khoản.");
+            }
+            
+            // Lấy quyền Thành viên
+            var quyenThanhVien = await _context.Quyens
+                .FirstOrDefaultAsync(q => q.TenQuyen == "Thành viên" || q.TenQuyen == "ThanhVien");
+            
+            if (quyenThanhVien == null)
+            {
+                // Tạo quyền Thành viên nếu chưa có
+                quyenThanhVien = new Models.Database.Quyen
+                {
+                    TenQuyen = "Thành viên",
+                    MoTa = "Thành viên của phòng gym"
+                };
+                _context.Quyens.Add(quyenThanhVien);
+                await _context.SaveChangesAsync();
+            }
+            
+            // Cập nhật quyền cho tài khoản
+            taiKhoan.MaQuyen = quyenThanhVien.MaQuyen;
+            taiKhoan.Quyen = quyenThanhVien;
+            
+            await _context.SaveChangesAsync();
+            
+            // Kiểm tra xem đã có thông tin thành viên chưa
+            var thanhVien = await _context.ThanhViens.FirstOrDefaultAsync(tv => tv.MaTK == userIdInt);
+            
+            if (thanhVien == null)
+            {
+                // Tạo thông tin thành viên mới
+                thanhVien = new Models.Database.ThanhVien
+                {
+                    MaTK = userIdInt,
+                    HoTen = taiKhoan.TenDangNhap
+                };
+                
+                _context.ThanhViens.Add(thanhVien);
+                await _context.SaveChangesAsync();
+                
+                // Chuyển hướng đến trang cập nhật hồ sơ
+                TempData["SuccessMessage"] = "Bạn đã được cấp quyền Thành viên. Vui lòng cập nhật thông tin cá nhân.";
+                return RedirectToAction("EditProfile");
+            }
+            
+            // Cập nhật lại thông tin đăng nhập (claims)
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, taiKhoan.MaTK.ToString()),
+                new Claim(ClaimTypes.Name, taiKhoan.TenDangNhap),
+                new Claim(ClaimTypes.Role, quyenThanhVien.TenQuyen)
+            };
+            
+            if (!string.IsNullOrEmpty(thanhVien.Email))
+            {
+                claims.Add(new Claim(ClaimTypes.Email, thanhVien.Email));
+            }
+            
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+            };
+            
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+            
+            TempData["SuccessMessage"] = "Bạn đã được cấp quyền Thành viên thành công.";
+            return RedirectToAction("Index", "Home");
         }
     }
 } 

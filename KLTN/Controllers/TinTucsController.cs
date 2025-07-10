@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class TinTucsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,6 +26,57 @@ namespace KLTN.Controllers
         {
             var applicationDbContext = _context.TinTucs.Include(t => t.TaiKhoan);
             return View(await applicationDbContext.ToListAsync());
+        }
+
+        // GET: /TinTucs/Public
+        [AllowAnonymous]
+        public async Task<IActionResult> PublicList(string category = null, string search = null)
+        {
+            // Get news that are visible (HienThi = true)
+            var query = _context.TinTucs
+                .Include(t => t.TaiKhoan)
+                .Where(t => t.HienThi == true);
+
+            // Filter by category if provided
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(t => t.DanhMuc == category);
+            }
+
+            // Filter by search term if provided
+            if (!string.IsNullOrEmpty(search))
+            {
+                query = query.Where(t => t.TieuDe.Contains(search) || t.MoTaNgan.Contains(search) || t.NoiDung.Contains(search));
+            }
+
+            // Order by date (newest first) and whether they are featured
+            var tinTucs = await query
+                .OrderByDescending(t => t.NoiBat)
+                .ThenByDescending(t => t.NgayDang)
+                .ToListAsync();
+
+            return View(tinTucs);
+        }
+
+        // GET: /TinTucs/PublicDetails/5
+        [AllowAnonymous]
+        public async Task<IActionResult> PublicDetails(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var tinTuc = await _context.TinTucs
+                .Include(t => t.TaiKhoan)
+                .FirstOrDefaultAsync(m => m.MaTinTuc == id && m.HienThi == true);
+                
+            if (tinTuc == null)
+            {
+                return NotFound();
+            }
+
+            return View(tinTuc);
         }
 
         // GET: TinTucs/Details/5
@@ -48,7 +101,16 @@ namespace KLTN.Controllers
         // GET: TinTucs/Create
         public IActionResult Create()
         {
-            ViewData["NguoiDang"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash");
+            // Get a list of accounts to populate the dropdown
+            var taiKhoans = _context.TaiKhoans.ToList();
+            if (taiKhoans != null && taiKhoans.Any())
+            {
+                ViewBag.NguoiDang = new SelectList(taiKhoans, "MaTK", "TenDangNhap");
+            }
+            else
+            {
+                ViewBag.NguoiDang = new SelectList(new List<SelectListItem>());
+            }
             return View();
         }
 
@@ -57,7 +119,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaTinTuc,TieuDe,MoTaNgan,NoiDung,HinhAnhURL,DanhMuc,TacGiaDisplay,NguoiDang,NgayDang,ThoiGianDoc,LuotXem,HienThi,NoiBat,TrangThai")] TinTuc tinTuc)
+        public async Task<IActionResult> Create([Bind("Id,TieuDe,MoTaNgan,NoiDung,HinhAnhURL,NgayDang,TacGiaDisplay,NguoiDang,DanhMuc,HienThi,NoiBat")] TinTuc tinTuc)
         {
             if (ModelState.IsValid)
             {
@@ -65,7 +127,17 @@ namespace KLTN.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["NguoiDang"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", tinTuc.NguoiDang);
+            
+            // Get a list of accounts to populate the dropdown
+            var taiKhoans = _context.TaiKhoans.ToList();
+            if (taiKhoans != null && taiKhoans.Any())
+            {
+                ViewBag.NguoiDang = new SelectList(taiKhoans, "MaTK", "TenDangNhap", tinTuc.NguoiDang);
+            }
+            else
+            {
+                ViewBag.NguoiDang = new SelectList(new List<SelectListItem>());
+            }
             return View(tinTuc);
         }
 
@@ -82,7 +154,17 @@ namespace KLTN.Controllers
             {
                 return NotFound();
             }
-            ViewData["NguoiDang"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", tinTuc.NguoiDang);
+            
+            // Get a list of accounts to populate the dropdown
+            var taiKhoans = _context.TaiKhoans.ToList();
+            if (taiKhoans != null && taiKhoans.Any())
+            {
+                ViewBag.NguoiDang = new SelectList(taiKhoans, "MaTK", "TenDangNhap", tinTuc.NguoiDang);
+            }
+            else
+            {
+                ViewBag.NguoiDang = new SelectList(new List<SelectListItem>());
+            }
             return View(tinTuc);
         }
 
@@ -91,7 +173,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaTinTuc,TieuDe,MoTaNgan,NoiDung,HinhAnhURL,DanhMuc,TacGiaDisplay,NguoiDang,NgayDang,ThoiGianDoc,LuotXem,HienThi,NoiBat,TrangThai")] TinTuc tinTuc)
+        public async Task<IActionResult> Edit(int id, [Bind("MaTinTuc,TieuDe,MoTaNgan,NoiDung,HinhAnhURL,TacGiaDisplay,NguoiDang,NgayDang,DanhMuc,HienThi,NoiBat")] TinTuc tinTuc)
         {
             if (id != tinTuc.MaTinTuc)
             {
@@ -118,7 +200,17 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["NguoiDang"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", tinTuc.NguoiDang);
+            
+            // Get a list of accounts to populate the dropdown
+            var taiKhoans = _context.TaiKhoans.ToList();
+            if (taiKhoans != null && taiKhoans.Any())
+            {
+                ViewBag.NguoiDang = new SelectList(taiKhoans, "MaTK", "TenDangNhap", tinTuc.NguoiDang);
+            }
+            else
+            {
+                ViewBag.NguoiDang = new SelectList(new List<SelectListItem>());
+            }
             return View(tinTuc);
         }
 
@@ -153,6 +245,31 @@ namespace KLTN.Controllers
             }
 
             await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        // GET: TinTucs/ToggleVisibility/5
+        public async Task<IActionResult> ToggleVisibility(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var tinTuc = await _context.TinTucs.FindAsync(id);
+            if (tinTuc == null)
+            {
+                return NotFound();
+            }
+
+            // Toggle the visibility
+            tinTuc.HienThi = !tinTuc.HienThi;
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = tinTuc.HienThi ? 
+                $"Tin tức \"{tinTuc.TieuDe}\" đã được hiển thị trên trang công khai" : 
+                $"Tin tức \"{tinTuc.TieuDe}\" đã bị ẩn khỏi trang công khai";
+
             return RedirectToAction(nameof(Index));
         }
 

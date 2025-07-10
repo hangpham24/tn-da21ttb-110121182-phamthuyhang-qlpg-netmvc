@@ -5,143 +5,132 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mx-auto my-6 max-w-4xl">
+<div class="p-4">
     <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Xóa lớp học</h2>
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Bạn có chắc chắn muốn xóa lớp học này?</p>
+        <h1 class="text-2xl font-bold text-gray-800">Xóa lớp học</h1>
+        <p class="text-gray-600">Bạn có chắc chắn muốn xóa lớp học này?</p>
     </div>
 
-    <div class="p-4 mb-6 text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800">
-        <div class="flex items-center">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
-            <span class="font-medium">Cảnh báo!</span>
-        </div>
-        <div class="mt-2">
-            Hành động này không thể hoàn tác. Việc xóa lớp học sẽ ảnh hưởng đến các đăng ký và dữ liệu liên quan.
-        </div>
-    </div>
+    <div class="bg-white shadow-md rounded-lg p-6 max-w-4xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.TenLop)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @Html.DisplayFor(model => model.TenLop)
+                    </p>
+                </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="space-y-4">
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.TenLop)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.TenLop)
-                </p>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.HuanLuyenVien)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @Html.DisplayFor(model => model.HuanLuyenVien.HoTen)
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.ThoiGianBatDau)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @Html.DisplayFor(model => model.ThoiGianBatDau)
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.ThoiGianKetThuc)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @Html.DisplayFor(model => model.ThoiGianKetThuc)
+                    </p>
+                </div>
             </div>
 
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.HuanLuyenVien)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.HuanLuyenVien.HoTen)
-                </p>
-            </div>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.NgayTrongTuan)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @Html.DisplayFor(model => model.NgayTrongTuan)
+                    </p>
+                </div>
 
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.ThoiGianBatDau)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.ThoiGianBatDau)
-                </p>
-            </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.SoLuongToiDa)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @Html.DisplayFor(model => model.SoLuongToiDa)
+                    </p>
+                </div>
 
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.ThoiGianKetThuc)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.ThoiGianKetThuc)
-                </p>
-            </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.SoLuongHienTai)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @Html.DisplayFor(model => model.SoLuongHienTai)
+                    </p>
+                </div>
 
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.NgayTrongTuan)
-                </h3>
-                <div class="mt-1 flex flex-wrap gap-2">
-                    @foreach (var day in Model.NgayTrongTuan.Split(", "))
-                    {
-                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                            @day
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.TrangThai)
+                    </h3>
+                    <p class="mt-1">
+                        @{
+                            var statusClass = "";
+                            var statusText = "";
+                            
+                            if (Model.TrangThai == "DangMo")
+                            {
+                                statusClass = "bg-green-100 text-green-800";
+                                statusText = "Đang mở";
+                            }
+                            else if (Model.TrangThai == "DaDay")
+                            {
+                                statusClass = "bg-yellow-100 text-yellow-800";
+                                statusText = "Đã đầy";
+                            }
+                            else
+                            {
+                                statusClass = "bg-red-100 text-red-800";
+                                statusText = "Đã khóa";
+                            }
+                        }
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @statusClass">
+                            @statusText
                         </span>
-                    }
+                    </p>
+                </div>
+
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500">
+                        @Html.DisplayNameFor(model => model.GhiChu)
+                    </h3>
+                    <p class="mt-1 text-base text-gray-900">
+                        @(string.IsNullOrEmpty(Model.GhiChu) ? "Không có ghi chú" : Model.GhiChu)
+                    </p>
                 </div>
             </div>
         </div>
 
-        <div class="space-y-4">
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.SoLuongToiDa)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.SoLuongToiDa) học viên
-                </p>
+        <form asp-action="Delete" class="mt-6">
+            <input type="hidden" asp-for="MaLop" />
+            <div class="flex items-center justify-end space-x-4">
+                <a asp-action="Index" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                </a>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition flex items-center">
+                    <i class="fas fa-trash-alt mr-2"></i>Xóa
+                </button>
             </div>
-
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.SoLuongHienTai)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.SoLuongHienTai) học viên
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.TrangThai)
-                </h3>
-                <p class="mt-1">
-                    @{
-                        var statusClass = "";
-                        var statusText = "";
-                        
-                        if (Model.TrangThai == "DangMo")
-                        {
-                            statusClass = "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
-                            statusText = "Đang mở";
-                        }
-                        else if (Model.TrangThai == "DaDay")
-                        {
-                            statusClass = "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
-                            statusText = "Đã đầy";
-                        }
-                        else
-                        {
-                            statusClass = "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-                            statusText = "Đã khóa";
-                        }
-                    }
-                    <span class="@statusClass text-sm font-medium px-2.5 py-0.5 rounded">
-                        @statusText
-                    </span>
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    @Html.DisplayNameFor(model => model.GhiChu)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @(string.IsNullOrEmpty(Model.GhiChu) ? "Không có ghi chú" : Model.GhiChu)
-                </p>
-            </div>
-        </div>
+        </form>
     </div>
-
-    <form asp-action="Delete" class="flex items-center space-x-4">
-        <input type="hidden" asp-for="MaLop" />
-        <button type="submit" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
-            <i class="fas fa-trash-alt mr-2"></i>Xác nhận xóa
-        </button>
-        <a asp-action="Index" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700">
-            <i class="fas fa-arrow-left mr-2"></i>Quay lại danh sách
-        </a>
-    </form>
 </div>

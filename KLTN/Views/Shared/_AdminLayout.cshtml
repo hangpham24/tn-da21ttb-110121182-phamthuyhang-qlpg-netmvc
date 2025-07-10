@@ -3,10 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Quản trị Phòng Gym</title>
+    <title>@ViewData["Title"] - Quản trị Gym FitNest</title>
     
     <!-- Flowbite CSS (Tailwind CSS) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Bootstrap Icons -->
@@ -28,7 +29,7 @@
                             </svg>
                         </button>
                         <a href="/" class="flex ml-2 md:mr-24">
-                            <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Phòng Gym KLTN</span>
+                            <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Gym FitNest</span>
                         </a>
                     </div>
                     <div class="flex items-center">
@@ -73,16 +74,22 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/GoiTaps" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <i class="bi bi-box2 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-                        <span class="ms-3">Gói tập</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/LopHocs" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <i class="bi bi-calendar2-week w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-                        <span class="ms-3">Lớp học</span>
-                    </a>
+                    <button type="button" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-services" data-collapse-toggle="dropdown-services">
+                        <i class="bi bi-grid-3x3-gap w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
+                        <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Dịch vụ</span>
+                        <i class="bi bi-chevron-down w-3 h-3"></i>
+                    </button>
+                    <ul id="dropdown-services" class="hidden py-2 space-y-2">
+                        <li>
+                            <a asp-controller="DichVus" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Dịch vụ</a>
+                        </li>
+                        <li>
+                            <a asp-controller="GoiTaps" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Gói tập</a>
+                        </li>
+                        <li>
+                            <a asp-controller="LopHocs" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Lớp học</a>
+                        </li>
+                    </ul>
                 </li>
                 <li>
                     <a href="/DangKies" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
@@ -91,21 +98,72 @@
                     </a>
                 </li>
                 <li>
-                    <a href="/Admin/Finance" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
-                        <i class="bi bi-cash-coin w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-                        <span class="ms-3">Tài chính</span>
-                    </a>
+                    <button type="button" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-extension" data-collapse-toggle="dropdown-extension">
+                        <i class="bi bi-calendar-plus w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
+                        <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Gia hạn đăng ký</span>
+                        <i class="bi bi-chevron-down w-3 h-3"></i>
+                    </button>
+                    <ul id="dropdown-extension" class="hidden py-2 space-y-2">
+                        <li>
+                            <a asp-controller="GiaHanDangKies" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Danh sách gia hạn</a>
+                        </li>
+                        <li>
+                            <a asp-controller="GiaHanDangKies" asp-action="Create" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Tạo gia hạn mới</a>
+                        </li>
+                    </ul>
                 </li>
                 <li>
-                    <a href="/Admin/News" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <button type="button" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-finance" data-collapse-toggle="dropdown-finance">
+                        <i class="bi bi-cash-coin w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
+                        <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Tài chính</span>
+                        <i class="bi bi-chevron-down w-3 h-3"></i>
+                    </button>
+                    <ul id="dropdown-finance" class="hidden py-2 space-y-2">
+                        <li>
+                            <a asp-controller="ThanhToans" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Thanh Toán</a>
+                        </li>
+                        <li>
+                            <a asp-controller="DoanhThus" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Doanh thu</a>
+                        </li>
+                        <li>
+                            <a asp-controller="BaoCaoTaiChinhs" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Báo cáo tài chính</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="/TinTucs" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <i class="bi bi-newspaper w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
                         <span class="ms-3">Tin tức</span>
                     </a>
                 </li>
                 <li>
-                    <a href="/Admin/Settings" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                    <button type="button" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700" aria-controls="dropdown-salary" data-collapse-toggle="dropdown-salary">
+                        <i class="bi bi-cash-coin w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
+                        <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Bảng lương</span>
+                        <i class="bi bi-chevron-down w-3 h-3"></i>
+                    </button>
+                    <ul id="dropdown-salary" class="hidden py-2 space-y-2">
+                        <li>
+                            <a asp-controller="BangLuongPTs" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Bảng lương huấn luyện viên</a>
+                        </li>
+                        <li>
+                            <a asp-controller="PT_GoiTap" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Phần trăm hoa hồng gói tập</a>
+                        </li>
+                        <li>
+                            <a asp-controller="PT_LopHoc" asp-action="Index" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Phần trăm hoa hồng lớp học</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="/PhienDays" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
                         <i class="bi bi-gear w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
-                        <span class="ms-3">Cài đặt</span>
+                        <span class="ms-3">Phiên dạy</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/PhienTaps" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">
+                        <i class="bi bi-calendar-check w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"></i>
+                        <span class="ms-3">Phiên tập</span>
                     </a>
                 </li>
                 <li>
@@ -127,7 +185,7 @@
     </div>
 
     <!-- Flowbite JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
     
     <!-- Custom JS -->
     <script src="~/js/site.js" asp-append-version="true"></script>

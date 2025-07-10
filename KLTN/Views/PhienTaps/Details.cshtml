@@ -1,54 +1,144 @@
 ﻿@model KLTN.Models.Database.PhienTap
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi tiết phiên tập";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Details</h1>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Chi tiết phiên tập</h2>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Xem thông tin chi tiết về phiên tập</p>
+        </div>
+        <div class="flex space-x-3">
+            <a asp-action="Edit" asp-route-id="@Model?.MaPhien" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                <i class="bi bi-pencil-square mr-2"></i>
+                Chỉnh sửa
+            </a>
+            <a asp-action="Index" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-700 dark:focus:ring-gray-700">
+                <i class="bi bi-arrow-left mr-2"></i>
+                Quay lại
+            </a>
+        </div>
+    </div>
 
-<div>
-    <h4>PhienTap</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayTap)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayTap)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GhiChu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GhiChu)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TinhTrang)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TinhTrang)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.ThanhVien)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.ThanhVien.MaTV)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.KhachVangLai)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.KhachVangLai.MaKVL)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HuanLuyenVien)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HuanLuyenVien.MaPT)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaPhien">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-5">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Thông tin phiên tập</h3>
+            
+            <div class="space-y-3">
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.NgayTap)</p>
+                    <p class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.NgayTap)</p>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.TinhTrang)</p>
+                    @if (Model.TinhTrang == "DaHoanThanh")
+                    {
+                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                            Đã hoàn thành
+                        </span>
+                    }
+                    else if (Model.TinhTrang == "DangThucHien")
+                    {
+                        <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-yellow-900 dark:text-yellow-300">
+                            Đang thực hiện
+                        </span>
+                    }
+                    else if (Model.TinhTrang == "DaHuy")
+                    {
+                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                            Đã huỷ
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                            @Html.DisplayFor(model => model.TinhTrang)
+                        </span>
+                    }
+                </div>
+                
+                @if (!string.IsNullOrEmpty(Model.GhiChu))
+                {
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.GhiChu)</p>
+                        <p class="text-base text-gray-900 dark:text-white p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg mt-1">
+                            @Html.DisplayFor(model => model.GhiChu)
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+        
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-5">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Thông tin người tham gia</h3>
+            
+            <div class="space-y-3">
+                @if (Model.ThanhVien != null)
+                {
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.ThanhVien)</p>
+                        <div class="flex items-center mt-1">
+                            @if (!string.IsNullOrEmpty(Model.ThanhVien.AnhDaiDien))
+                            {
+                                <img src="@Model.ThanhVien.AnhDaiDien" class="w-10 h-10 rounded-full mr-3" alt="@Model.ThanhVien.HoTen">
+                            }
+                            else
+                            {
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 mr-3">
+                                    <i class="bi bi-person text-blue-600 dark:text-blue-300"></i>
+                                </div>
+                            }
+                            <div>
+                                <p class="text-base font-medium text-gray-900 dark:text-white">@(Model.ThanhVien.HoTen ?? "N/A")</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Mã TV: @Model.ThanhVien.MaTV</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+                @if (Model.KhachVangLai != null)
+                {
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.KhachVangLai)</p>
+                        <div class="flex items-center mt-1">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900 mr-3">
+                                <i class="bi bi-person text-purple-600 dark:text-purple-300"></i>
+                            </div>
+                            <div>
+                                <p class="text-base font-medium text-gray-900 dark:text-white">@(Model.KhachVangLai.HoTen ?? "N/A")</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Mã KVL: @Model.KhachVangLai.MaKVL</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                
+                @if (Model.HuanLuyenVien != null)
+                {
+                    <div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.HuanLuyenVien)</p>
+                        <div class="flex items-center mt-1">
+                            @if (!string.IsNullOrEmpty(Model.HuanLuyenVien.AnhDaiDien))
+                            {
+                                <img src="@Model.HuanLuyenVien.AnhDaiDien" class="w-10 h-10 rounded-full mr-3" alt="@Model.HuanLuyenVien.HoTen">
+                            }
+                            else
+                            {
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 mr-3">
+                                    <i class="bi bi-person text-green-600 dark:text-green-300"></i>
+                                </div>
+                            }
+                            <div>
+                                <p class="text-base font-medium text-gray-900 dark:text-white">@(Model.HuanLuyenVien.HoTen ?? "N/A")</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Mã PT: @Model.HuanLuyenVien.MaPT</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>

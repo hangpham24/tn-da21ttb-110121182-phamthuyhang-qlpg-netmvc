@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class PhienDaysController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -51,10 +53,20 @@ namespace KLTN.Controllers
         // GET: PhienDays/Create
         public IActionResult Create()
         {
-            ViewData["MaBangLuong"] = new SelectList(_context.BangLuongPTs, "MaLuong", "MaLuong");
+            // Get BangLuongPTs and include the HuanLuyenVien navigation property
+            var bangLuongs = _context.BangLuongPTs
+                .Include(b => b.HuanLuyenVien)
+                .Select(b => new
+                {
+                    MaLuong = b.MaLuong,
+                    ThongTin = $"Bảng lương {b.ThangNam.ToString("MM/yyyy")} - {(b.HuanLuyenVien != null ? b.HuanLuyenVien.HoTen : "")}"
+                })
+                .ToList();
+
+            ViewData["MaBangLuong"] = new SelectList(bangLuongs, "MaLuong", "ThongTin");
             ViewData["MaGoiTap"] = new SelectList(_context.GoiTap, "MaGoi", "TenGoi");
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT");
-            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "NgayTrongTuan");
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen");
+            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "TenLop");
             return View();
         }
 
@@ -71,10 +83,21 @@ namespace KLTN.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaBangLuong"] = new SelectList(_context.BangLuongPTs, "MaLuong", "MaLuong", phienDay.MaBangLuong);
+
+            // Get BangLuongPTs and include the HuanLuyenVien navigation property
+            var bangLuongs = _context.BangLuongPTs
+                .Include(b => b.HuanLuyenVien)
+                .Select(b => new
+                {
+                    MaLuong = b.MaLuong,
+                    ThongTin = $"Bảng lương {b.ThangNam.ToString("MM/yyyy")} - {(b.HuanLuyenVien != null ? b.HuanLuyenVien.HoTen : "")}"
+                })
+                .ToList();
+
+            ViewData["MaBangLuong"] = new SelectList(bangLuongs, "MaLuong", "ThongTin", phienDay.MaBangLuong);
             ViewData["MaGoiTap"] = new SelectList(_context.GoiTap, "MaGoi", "TenGoi", phienDay.MaGoiTap);
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT", phienDay.MaPT);
-            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "NgayTrongTuan", phienDay.MaLopHoc);
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen", phienDay.MaPT);
+            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "TenLop", phienDay.MaLopHoc);
             return View(phienDay);
         }
 
@@ -91,10 +114,21 @@ namespace KLTN.Controllers
             {
                 return NotFound();
             }
-            ViewData["MaBangLuong"] = new SelectList(_context.BangLuongPTs, "MaLuong", "MaLuong", phienDay.MaBangLuong);
+
+            // Get BangLuongPTs and include the HuanLuyenVien navigation property
+            var bangLuongs = _context.BangLuongPTs
+                .Include(b => b.HuanLuyenVien)
+                .Select(b => new
+                {
+                    MaLuong = b.MaLuong,
+                    ThongTin = $"Bảng lương {b.ThangNam.ToString("MM/yyyy")} - {(b.HuanLuyenVien != null ? b.HuanLuyenVien.HoTen : "")}"
+                })
+                .ToList();
+
+            ViewData["MaBangLuong"] = new SelectList(bangLuongs, "MaLuong", "ThongTin", phienDay.MaBangLuong);
             ViewData["MaGoiTap"] = new SelectList(_context.GoiTap, "MaGoi", "TenGoi", phienDay.MaGoiTap);
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT", phienDay.MaPT);
-            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "NgayTrongTuan", phienDay.MaLopHoc);
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen", phienDay.MaPT);
+            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "TenLop", phienDay.MaLopHoc);
             return View(phienDay);
         }
 
@@ -130,10 +164,21 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaBangLuong"] = new SelectList(_context.BangLuongPTs, "MaLuong", "MaLuong", phienDay.MaBangLuong);
+
+            // Get BangLuongPTs and include the HuanLuyenVien navigation property
+            var bangLuongs = _context.BangLuongPTs
+                .Include(b => b.HuanLuyenVien)
+                .Select(b => new
+                {
+                    MaLuong = b.MaLuong,
+                    ThongTin = $"Bảng lương {b.ThangNam.ToString("MM/yyyy")} - {(b.HuanLuyenVien != null ? b.HuanLuyenVien.HoTen : "")}"
+                })
+                .ToList();
+
+            ViewData["MaBangLuong"] = new SelectList(bangLuongs, "MaLuong", "ThongTin", phienDay.MaBangLuong);
             ViewData["MaGoiTap"] = new SelectList(_context.GoiTap, "MaGoi", "TenGoi", phienDay.MaGoiTap);
-            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "MaPT", phienDay.MaPT);
-            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "NgayTrongTuan", phienDay.MaLopHoc);
+            ViewData["MaPT"] = new SelectList(_context.HuanLuyenViens, "MaPT", "HoTen", phienDay.MaPT);
+            ViewData["MaLopHoc"] = new SelectList(_context.LopHoc, "MaLop", "TenLop", phienDay.MaLopHoc);
             return View(phienDay);
         }
 

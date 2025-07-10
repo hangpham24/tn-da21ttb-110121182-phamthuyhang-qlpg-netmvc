@@ -1,102 +1,76 @@
 ﻿@model KLTN.Models.Database.ThanhToan
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi tiết thanh toán";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>ThanhToan</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.LoaiThanhToan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.LoaiThanhToan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SoTien)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SoTien)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PhuongThucThanhToan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PhuongThucThanhToan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayThanhToan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayThanhToan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TrangThai)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TrangThai)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GhiChu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GhiChu)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaGiaoDich)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaGiaoDich)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DonViThanhToan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DonViThanhToan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.TaiKhoanThanhToan)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TaiKhoanThanhToan)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HoaDonDienTuUrl)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HoaDonDienTuUrl)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DaXuatHoaDon)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DaXuatHoaDon)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NguoiThu)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NguoiThu.MatKhauHash)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DangKy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DangKy.LoaiDangKy)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GiaHanDangKy)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GiaHanDangKy.TrangThai)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaThanhToan">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 max-w-3xl mx-auto mt-8">
+    <h1 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Chi tiết thanh toán</h1>
+    <div class="grid md:grid-cols-2 gap-6">
+        <div>
+            <dl class="divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.LoaiThanhToan)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.LoaiThanhToan)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.SoTien)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.SoTien)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.PhuongThucThanhToan)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.PhuongThucThanhToan)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.NgayThanhToan)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.NgayThanhToan)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.TrangThai)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.TrangThai)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.GhiChu)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.GhiChu)</dd>
+                </div>
+            </dl>
+        </div>
+        <div>
+            <dl class="divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.MaTK_NguoiDung)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.MaTK_NguoiDung)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.MaKVL_NguoiDung)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.MaKVL_NguoiDung)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.MaGiaoDich)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.MaGiaoDich)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.DonViThanhToan)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.DonViThanhToan)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.TaiKhoanThanhToan)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.TaiKhoanThanhToan)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.HoaDonDienTuUrl)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.HoaDonDienTuUrl)</dd>
+                </div>
+                <div class="py-2">
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">@Html.DisplayNameFor(model => model.DaXuatHoaDon)</dt>
+                    <dd class="text-base font-medium text-gray-900 dark:text-white">@Html.DisplayFor(model => model.DaXuatHoaDon)</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+    <div class="flex items-center space-x-4 mt-8">
+        <a asp-action="Edit" asp-route-id="@Model?.MaThanhToan" class="text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:outline-none focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Chỉnh sửa</a>
+        <a asp-action="Index" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200">Quay lại</a>
+    </div>
 </div>

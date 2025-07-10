@@ -3,92 +3,117 @@
 @{
     ViewData["Title"] = "Danh sách gói tập";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var goiTap = ViewBag.GoiTap;
 }
 
-<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Danh sách gói tập</h2>
-        <a asp-action="Create" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-            <i class="fas fa-plus mr-2"></i>Thêm gói tập mới
-        </a>
-    </div>
-
-    <div class="relative overflow-x-auto">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                    <th scope="col" class="px-6 py-3">
-                        @Html.DisplayNameFor(model => model.TenGoi)
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        @Html.DisplayNameFor(model => model.MoTa)
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        @Html.DisplayNameFor(model => model.ThoiHanThang)
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        @Html.DisplayNameFor(model => model.GiaTien)
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        @Html.DisplayNameFor(model => model.SoLanTapToiDa)
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        @Html.DisplayNameFor(model => model.KhuyenMai)
-                    </th>
-                    <th scope="col" class="px-6 py-3">
-                        <span class="sr-only">Thao tác</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                            @Html.DisplayFor(modelItem => item.TenGoi)
-                        </td>
-                        <td class="px-6 py-4">
-                            @Html.DisplayFor(modelItem => item.MoTa)
-                        </td>
-                        <td class="px-6 py-4">
-                            @Html.DisplayFor(modelItem => item.ThoiHanThang) tháng
-                        </td>
-                        <td class="px-6 py-4">
-                            @Html.DisplayFor(modelItem => item.GiaTien) VNĐ
-                        </td>
-                        <td class="px-6 py-4">
-                            @Html.DisplayFor(modelItem => item.SoLanTapToiDa) buổi
-                        </td>
-                        <td class="px-6 py-4">
-                            @if (item.KhuyenMai != null)
-                            {
-                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
-                                    @Html.DisplayFor(modelItem => item.KhuyenMai.TenKM)
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
-                                    Không có
-                                </span>
-                            }
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-3">
-                                <a asp-action="Edit" asp-route-id="@item.MaGoi" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                                    <i class="fas fa-edit mr-1"></i>Sửa
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.MaGoi" class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
-                                    <i class="fas fa-info-circle mr-1"></i>Chi tiết
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.MaGoi" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
-                                    <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                </a>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-tools">
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm...">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-default">
+                                    <i class="fas fa-search"></i>
+                                </button>
                             </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1>Danh sách gói tập</h1>
+                        </div>
+                        <div class="col-sm-6" style="text-align:right">
+                            <a asp-action="Create" class="btn bg-gradient-success">
+                                <i class="fas fa-plus">
+                                </i>
+                                Thêm mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body table-responsive p-0">
+                    <table class="table table-hover text-nowrap">
+                        <thead>
+                            <tr>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.TenGoi)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.GiaTien)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.ThoiHanThang)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.MoTa)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.SoLanTapToiDa)
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.TenGoi)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.GiaTien)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.ThoiHanThang)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.MoTa)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.SoLanTapToiDa)
+                                    </td>
+                                    <td>
+                                        <a asp-action="Edit" asp-route-id="@item.MaGoi" class="btn btn-info btn-sm">
+                                            <i class="fas fa-pencil-alt">
+                                            </i>
+                                            Sửa
+                                        </a>
+                                        <a asp-action="Details" asp-route-id="@item.MaGoi" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-folder">
+                                            </i>
+                                            Chi tiết
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.MaGoi" class="btn btn-danger btn-sm">
+                                            <i class="fas fa-trash">
+                                            </i>
+                                            Xóa
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $("#searchInput").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $("table tbody tr").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+    </script>
+}

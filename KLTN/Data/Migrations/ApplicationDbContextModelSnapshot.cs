@@ -106,6 +106,43 @@ namespace KLTN.Data.Migrations
                     b.ToTable("BaoCaoTaiChinhs");
                 });
 
+            modelBuilder.Entity("KLTN.Models.Database.CapNhatAnhNhanDien", b =>
+                {
+                    b.Property<int>("MaCapNhat")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaCapNhat"));
+
+                    b.Property<byte[]>("AnhCu")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("AnhMoi")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("LyDo")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("MaTK")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("NguoiCapNhat")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ThoiGianCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("MaCapNhat");
+
+                    b.HasIndex("MaTK");
+
+                    b.HasIndex("NguoiCapNhat");
+
+                    b.ToTable("CapNhatAnhNhanDiens");
+                });
+
             modelBuilder.Entity("KLTN.Models.Database.DangKy", b =>
                 {
                     b.Property<int>("MaDangKy")
@@ -214,60 +251,38 @@ namespace KLTN.Data.Migrations
 
             modelBuilder.Entity("KLTN.Models.Database.DoanhThu", b =>
                 {
-                    b.Property<int>("MaThu")
+                    b.Property<int>("MaDoanhThu")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaThu"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaDoanhThu"));
 
                     b.Property<string>("GhiChu")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("LoaiThu")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("MaKVL")
+                    b.Property<int>("MaThanhToan")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MaNguoiThu")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MaTV")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("MaThanhToan")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("NgayThu")
+                    b.Property<DateTime>("Ngay")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("NoiDung")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NguoiTao")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("SoTien")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("TrangThai")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("MaThu");
-
-                    b.HasIndex("MaKVL");
-
-                    b.HasIndex("MaNguoiThu");
-
-                    b.HasIndex("MaTV");
+                    b.HasKey("MaDoanhThu");
 
                     b.HasIndex("MaThanhToan");
 
-                    b.ToTable("DoanhThus");
+                    b.HasIndex("NguoiTao");
+
+                    b.ToTable("DoanhThu");
                 });
 
             modelBuilder.Entity("KLTN.Models.Database.GiaHanDangKy", b =>
@@ -523,7 +538,10 @@ namespace KLTN.Data.Migrations
                     b.Property<int?>("MaKVL")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MaTV")
+                    b.Property<int?>("MaTK")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ThanhVienMaTV")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("ThoiGian")
@@ -533,7 +551,9 @@ namespace KLTN.Data.Migrations
 
                     b.HasIndex("MaKVL");
 
-                    b.HasIndex("MaTV");
+                    b.HasIndex("MaTK");
+
+                    b.HasIndex("ThanhVienMaTV");
 
                     b.ToTable("LichSuCheckIns");
                 });
@@ -618,56 +638,41 @@ namespace KLTN.Data.Migrations
                     b.ToTable("LopHoc");
                 });
 
-            modelBuilder.Entity("KLTN.Models.Database.PT_GoiTap", b =>
+            modelBuilder.Entity("KLTN.Models.Database.PT_PhanCongHoaHong", b =>
                 {
-                    b.Property<int>("MaPT_GoiTap")
+                    b.Property<int>("MaPhanCong")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaPT_GoiTap"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaPhanCong"));
 
-                    b.Property<int>("MaGoiTap")
+                    b.Property<int?>("MaGoiTap")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaLopHoc")
                         .HasColumnType("int");
 
                     b.Property<int>("MaPT")
                         .HasColumnType("int");
 
                     b.Property<decimal>("PhanTramHoaHong")
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(5, 2)");
 
-                    b.HasKey("MaPT_GoiTap");
+                    b.HasKey("MaPhanCong");
 
                     b.HasIndex("MaGoiTap");
 
-                    b.HasIndex("MaPT");
-
-                    b.ToTable("PT_GoiTap");
-                });
-
-            modelBuilder.Entity("KLTN.Models.Database.PT_LopHoc", b =>
-                {
-                    b.Property<int>("MaPT_LopHoc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaPT_LopHoc"));
-
-                    b.Property<int>("MaLopHoc")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MaPT")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PhanTramHoaHong")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.HasKey("MaPT_LopHoc");
-
                     b.HasIndex("MaLopHoc");
 
-                    b.HasIndex("MaPT");
+                    b.HasIndex("MaPT", "MaGoiTap")
+                        .IsUnique()
+                        .HasFilter("[MaGoiTap] IS NOT NULL");
 
-                    b.ToTable("PT_LopHoc");
+                    b.HasIndex("MaPT", "MaLopHoc")
+                        .IsUnique()
+                        .HasFilter("[MaLopHoc] IS NOT NULL");
+
+                    b.ToTable("PT_PhanCongHoaHongs");
                 });
 
             modelBuilder.Entity("KLTN.Models.Database.PhienDay", b =>
@@ -867,11 +872,23 @@ namespace KLTN.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("MaKVL_NguoiDung")
+                        .HasColumnType("int");
+
                     b.Property<int?>("MaTKNguoiThu")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaTK_NguoiDung")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("NgayThanhToan")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("NguoiDung_KhachVangLaiMaKVL")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("NguoiDung_TaiKhoanMaTK")
+                        .HasColumnType("int");
 
                     b.Property<string>("PhuongThucThanhToan")
                         .IsRequired()
@@ -897,6 +914,10 @@ namespace KLTN.Data.Migrations
                     b.HasIndex("MaGiaHan");
 
                     b.HasIndex("MaTKNguoiThu");
+
+                    b.HasIndex("NguoiDung_KhachVangLaiMaKVL");
+
+                    b.HasIndex("NguoiDung_TaiKhoanMaTK");
 
                     b.ToTable("ThanhToans");
                 });
@@ -959,7 +980,7 @@ namespace KLTN.Data.Migrations
                     b.Property<bool>("DaDoc")
                         .HasColumnType("bit");
 
-                    b.Property<int>("MaTV")
+                    b.Property<int>("MaTK")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("NgayGui")
@@ -969,7 +990,7 @@ namespace KLTN.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TaiKhoanMaTK")
+                    b.Property<int?>("ThanhVienMaTV")
                         .HasColumnType("int");
 
                     b.Property<string>("TieuDe")
@@ -979,9 +1000,9 @@ namespace KLTN.Data.Migrations
 
                     b.HasKey("MaThongBao");
 
-                    b.HasIndex("MaTV");
+                    b.HasIndex("MaTK");
 
-                    b.HasIndex("TaiKhoanMaTK");
+                    b.HasIndex("ThanhVienMaTV");
 
                     b.ToTable("ThongBaos");
                 });
@@ -1006,9 +1027,6 @@ namespace KLTN.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("LuotXem")
-                        .HasColumnType("int");
-
                     b.Property<string>("MoTaNgan")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -1031,18 +1049,14 @@ namespace KLTN.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("ThoiGianDoc")
-                        .HasColumnType("int");
-
                     b.Property<string>("TieuDe")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("TrangThai")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("MaTinTuc");
 
@@ -1067,6 +1081,24 @@ namespace KLTN.Data.Migrations
                     b.HasOne("KLTN.Models.Database.TaiKhoan", "TaiKhoan")
                         .WithMany("BaoCaoTaiChinhsLap")
                         .HasForeignKey("NguoiLap");
+
+                    b.Navigation("TaiKhoan");
+                });
+
+            modelBuilder.Entity("KLTN.Models.Database.CapNhatAnhNhanDien", b =>
+                {
+                    b.HasOne("KLTN.Models.Database.TaiKhoan", "TaiKhoan")
+                        .WithMany("AnhNhanDienDuocCapNhat")
+                        .HasForeignKey("MaTK")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KLTN.Models.Database.TaiKhoan", "NguoiCapNhatTaiKhoan")
+                        .WithMany("CapNhatAnhNhanDienThucHien")
+                        .HasForeignKey("NguoiCapNhat")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("NguoiCapNhatTaiKhoan");
 
                     b.Navigation("TaiKhoan");
                 });
@@ -1117,29 +1149,21 @@ namespace KLTN.Data.Migrations
 
             modelBuilder.Entity("KLTN.Models.Database.DoanhThu", b =>
                 {
-                    b.HasOne("KLTN.Models.Database.KhachVangLai", "KhachVangLai")
-                        .WithMany("DoanhThus")
-                        .HasForeignKey("MaKVL");
-
-                    b.HasOne("KLTN.Models.Database.TaiKhoan", "NguoiThu")
-                        .WithMany("DoanhThusLap")
-                        .HasForeignKey("MaNguoiThu");
-
-                    b.HasOne("KLTN.Models.Database.ThanhVien", "ThanhVien")
-                        .WithMany("DoanhThus")
-                        .HasForeignKey("MaTV");
-
                     b.HasOne("KLTN.Models.Database.ThanhToan", "ThanhToan")
+                        .WithMany("DoanhThus")
+                        .HasForeignKey("MaThanhToan")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KLTN.Models.Database.TaiKhoan", "TaiKhoan")
                         .WithMany()
-                        .HasForeignKey("MaThanhToan");
+                        .HasForeignKey("NguoiTao")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("KhachVangLai");
-
-                    b.Navigation("NguoiThu");
+                    b.Navigation("TaiKhoan");
 
                     b.Navigation("ThanhToan");
-
-                    b.Navigation("ThanhVien");
                 });
 
             modelBuilder.Entity("KLTN.Models.Database.GiaHanDangKy", b =>
@@ -1191,13 +1215,17 @@ namespace KLTN.Data.Migrations
                         .WithMany("LichSuCheckIns")
                         .HasForeignKey("MaKVL");
 
-                    b.HasOne("KLTN.Models.Database.ThanhVien", "ThanhVien")
+                    b.HasOne("KLTN.Models.Database.TaiKhoan", "TaiKhoan")
+                        .WithMany()
+                        .HasForeignKey("MaTK");
+
+                    b.HasOne("KLTN.Models.Database.ThanhVien", null)
                         .WithMany("LichSuCheckIns")
-                        .HasForeignKey("MaTV");
+                        .HasForeignKey("ThanhVienMaTV");
 
                     b.Navigation("KhachVangLai");
 
-                    b.Navigation("ThanhVien");
+                    b.Navigation("TaiKhoan");
                 });
 
             modelBuilder.Entity("KLTN.Models.Database.LichSuDangKy", b =>
@@ -1228,38 +1256,23 @@ namespace KLTN.Data.Migrations
                     b.Navigation("HuanLuyenVien");
                 });
 
-            modelBuilder.Entity("KLTN.Models.Database.PT_GoiTap", b =>
+            modelBuilder.Entity("KLTN.Models.Database.PT_PhanCongHoaHong", b =>
                 {
                     b.HasOne("KLTN.Models.Database.GoiTap", "GoiTap")
-                        .WithMany("PT_GoiTaps")
-                        .HasForeignKey("MaGoiTap")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .WithMany("PT_PhanCongHoaHongs")
+                        .HasForeignKey("MaGoiTap");
+
+                    b.HasOne("KLTN.Models.Database.LopHoc", "LopHoc")
+                        .WithMany("PT_PhanCongHoaHongs")
+                        .HasForeignKey("MaLopHoc");
 
                     b.HasOne("KLTN.Models.Database.HuanLuyenVien", "HuanLuyenVien")
-                        .WithMany("PT_GoiTaps")
+                        .WithMany("PT_PhanCongHoaHongs")
                         .HasForeignKey("MaPT")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("GoiTap");
-
-                    b.Navigation("HuanLuyenVien");
-                });
-
-            modelBuilder.Entity("KLTN.Models.Database.PT_LopHoc", b =>
-                {
-                    b.HasOne("KLTN.Models.Database.LopHoc", "LopHoc")
-                        .WithMany("PT_LopHocs")
-                        .HasForeignKey("MaLopHoc")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("KLTN.Models.Database.HuanLuyenVien", "HuanLuyenVien")
-                        .WithMany("PT_LopHocs")
-                        .HasForeignKey("MaPT")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("HuanLuyenVien");
 
@@ -1341,9 +1354,21 @@ namespace KLTN.Data.Migrations
                         .WithMany("ThanhToansLap")
                         .HasForeignKey("MaTKNguoiThu");
 
+                    b.HasOne("KLTN.Models.Database.KhachVangLai", "NguoiDung_KhachVangLai")
+                        .WithMany()
+                        .HasForeignKey("NguoiDung_KhachVangLaiMaKVL");
+
+                    b.HasOne("KLTN.Models.Database.TaiKhoan", "NguoiDung_TaiKhoan")
+                        .WithMany()
+                        .HasForeignKey("NguoiDung_TaiKhoanMaTK");
+
                     b.Navigation("DangKy");
 
                     b.Navigation("GiaHanDangKy");
+
+                    b.Navigation("NguoiDung_KhachVangLai");
+
+                    b.Navigation("NguoiDung_TaiKhoan");
 
                     b.Navigation("NguoiThu");
                 });
@@ -1359,17 +1384,17 @@ namespace KLTN.Data.Migrations
 
             modelBuilder.Entity("KLTN.Models.Database.ThongBao", b =>
                 {
-                    b.HasOne("KLTN.Models.Database.ThanhVien", "ThanhVien")
-                        .WithMany("ThongBaos")
-                        .HasForeignKey("MaTV")
+                    b.HasOne("KLTN.Models.Database.TaiKhoan", "TaiKhoan")
+                        .WithMany("ThongBaosGui")
+                        .HasForeignKey("MaTK")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("KLTN.Models.Database.TaiKhoan", null)
-                        .WithMany("ThongBaosGui")
-                        .HasForeignKey("TaiKhoanMaTK");
+                    b.HasOne("KLTN.Models.Database.ThanhVien", null)
+                        .WithMany("ThongBaos")
+                        .HasForeignKey("ThanhVienMaTV");
 
-                    b.Navigation("ThanhVien");
+                    b.Navigation("TaiKhoan");
                 });
 
             modelBuilder.Entity("KLTN.Models.Database.TinTuc", b =>
@@ -1406,7 +1431,7 @@ namespace KLTN.Data.Migrations
 
                     b.Navigation("LichSuDangKys");
 
-                    b.Navigation("PT_GoiTaps");
+                    b.Navigation("PT_PhanCongHoaHongs");
 
                     b.Navigation("PhienDays");
                 });
@@ -1417,9 +1442,7 @@ namespace KLTN.Data.Migrations
 
                     b.Navigation("LopHocs");
 
-                    b.Navigation("PT_GoiTaps");
-
-                    b.Navigation("PT_LopHocs");
+                    b.Navigation("PT_PhanCongHoaHongs");
 
                     b.Navigation("PhienDays");
                 });
@@ -1427,8 +1450,6 @@ namespace KLTN.Data.Migrations
             modelBuilder.Entity("KLTN.Models.Database.KhachVangLai", b =>
                 {
                     b.Navigation("DangKys");
-
-                    b.Navigation("DoanhThus");
 
                     b.Navigation("LichSuCheckIns");
 
@@ -1446,7 +1467,7 @@ namespace KLTN.Data.Migrations
 
                     b.Navigation("DichVu");
 
-                    b.Navigation("PT_LopHocs");
+                    b.Navigation("PT_PhanCongHoaHongs");
 
                     b.Navigation("PhienDays");
                 });
@@ -1458,9 +1479,11 @@ namespace KLTN.Data.Migrations
 
             modelBuilder.Entity("KLTN.Models.Database.TaiKhoan", b =>
                 {
+                    b.Navigation("AnhNhanDienDuocCapNhat");
+
                     b.Navigation("BaoCaoTaiChinhsLap");
 
-                    b.Navigation("DoanhThusLap");
+                    b.Navigation("CapNhatAnhNhanDienThucHien");
 
                     b.Navigation("GiaHanDangKysLap");
 
@@ -1475,11 +1498,14 @@ namespace KLTN.Data.Migrations
                     b.Navigation("TinTucsDang");
                 });
 
+            modelBuilder.Entity("KLTN.Models.Database.ThanhToan", b =>
+                {
+                    b.Navigation("DoanhThus");
+                });
+
             modelBuilder.Entity("KLTN.Models.Database.ThanhVien", b =>
                 {
                     b.Navigation("DangKys");
-
-                    b.Navigation("DoanhThus");
 
                     b.Navigation("LichSuCheckIns");
 

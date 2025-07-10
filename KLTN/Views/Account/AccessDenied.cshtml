@@ -9,10 +9,48 @@
                 <i class="bi bi-exclamation-triangle-fill text-red-600 dark:text-red-400 text-4xl"></i>
             </div>
             <h1 class="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Từ chối truy cập</h1>
-            <p class="mb-6 text-center text-gray-500 dark:text-gray-400">Bạn không có quyền truy cập trang này. Vui lòng liên hệ với quản trị viên nếu bạn cho rằng đây là một sự nhầm lẫn.</p>
-            <a asp-controller="Home" asp-action="Index" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                <i class="bi bi-house-door-fill me-2"></i>Quay lại trang chủ
-            </a>
+            
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400" role="alert">
+                    <span class="font-medium">Lỗi!</span> @TempData["ErrorMessage"]
+                </div>
+            }
+            
+            <p class="mb-6 text-center text-gray-500 dark:text-gray-400">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <span>Tài khoản của bạn không có quyền truy cập trang này. Bạn cần được cấp quyền phù hợp.</span>
+                    
+                    @if (ViewBag.ReturnUrl != null && ViewBag.ReturnUrl.Contains("DangKies/DangKyOnline"))
+                    {
+                        <span class="block mt-2">Để đăng ký dịch vụ, bạn cần có quyền "Thành viên". Vui lòng nhấn nút bên dưới để được cấp quyền.</span>
+                    }
+                }
+                else
+                {
+                    <span>Bạn cần đăng nhập để truy cập trang này.</span>
+                }
+            </p>
+            
+            <div class="flex space-x-4">
+                <a asp-controller="Home" asp-action="Index" class="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                    <i class="bi bi-house-door-fill me-2"></i>Quay lại trang chủ
+                </a>
+                
+                @if (!User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@ViewBag.ReturnUrl" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Đăng nhập
+                    </a>
+                }
+                else if (ViewBag.ReturnUrl != null && ViewBag.ReturnUrl.Contains("DangKies/DangKyOnline"))
+                {
+                    <a asp-controller="Account" asp-action="UpdateToMemberRole" class="text-white bg-green-600 hover:bg-green-700 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                        <i class="bi bi-person-plus-fill me-2"></i>Cấp quyền Thành viên
+                    </a>
+                }
+            </div>
         </div>
     </div>
 </div> 

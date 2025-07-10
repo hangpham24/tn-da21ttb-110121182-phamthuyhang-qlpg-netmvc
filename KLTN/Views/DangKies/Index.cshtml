@@ -1,78 +1,206 @@
 ﻿@model IEnumerable<KLTN.Models.Database.DangKy>
 
 @{
-    ViewData["Title"] = "Danh sách đăng ký";
+    ViewData["Title"] = "Quản lý đăng ký";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
+    var sortOrder = ViewData["CurrentSort"] as string;
+    var dateStartSort = ViewData["DateStartSortParm"] as string;
+    var dateEndSort = ViewData["DateEndSortParm"] as string;
+    var typeSort = ViewData["TypeSortParm"] as string;
+    var statusSort = ViewData["StatusSortParm"] as string;
+    var memberSort = ViewData["MemberSortParm"] as string;
+    var currentFilter = ViewData["CurrentFilter"] as string;
+    
+    var totalItems = ViewBag.TotalItems;
+    var totalPages = ViewBag.TotalPages;
+    var currentPage = ViewBag.CurrentPage;
+    var pageSize = ViewBag.PageSize;
 }
 
-<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Danh sách đăng ký</h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Quản lý thông tin đăng ký tập luyện</p>
-        </div>
-        <a asp-action="Create" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+<div class="p-4">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Quản lý đăng ký</h1>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+        <form asp-action="Index" method="get" class="flex flex-1 gap-2">
+            <input type="hidden" name="sortOrder" value="@sortOrder" />
+            <input type="text" name="searchString" value="@currentFilter" placeholder="Tìm kiếm theo tên thành viên, gói tập, lớp học..." class="flex-1 px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center">
+                <i class="fas fa-search mr-2"></i>Tìm kiếm
+            </button>
+            <a asp-action="Index" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center">
+                <i class="fas fa-times mr-2"></i>Xóa bộ lọc
+            </a>
+        </form>
+        <a asp-action="Create" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center">
             <i class="fas fa-plus mr-2"></i>Thêm đăng ký mới
         </a>
     </div>
 
-    <div class="relative overflow-x-auto">
-        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                <tr>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.NgayBatDau)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.NgayKetThuc)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.LoaiDangKy)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.SoBuoi)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.TrangThai)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.GhiChu)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.NgayDangKy)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.ThanhVien)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.KhachVangLai)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.GoiTap)</th>
-                    <th scope="col" class="px-6 py-3">@Html.DisplayNameFor(model => model.LopHoc)</th>
-                    <th scope="col" class="px-6 py-3">
-                        <span class="sr-only">Thao tác</span>
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.NgayBatDau)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.NgayKetThuc)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.LoaiDangKy)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.SoBuoi)</td>
-                        <td class="px-6 py-4">
-                            @{
-                                var statusClass = item.TrangThai == "DangHoatDong" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
-                                var statusText = item.TrangThai == "DangHoatDong" ? "Đang hoạt động" : "Đã kết thúc";
-                            }
-                            <span class="@statusClass text-xs font-medium px-2.5 py-0.5 rounded">@statusText</span>
-                        </td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.GhiChu)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.NgayDangKy)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.ThanhVien.MaTV)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.KhachVangLai.MaKVL)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.GoiTap.TenGoi)</td>
-                        <td class="px-6 py-4">@Html.DisplayFor(modelItem => item.LopHoc.TenLop)</td>
-                        <td class="px-6 py-4">
-                            <div class="flex items-center space-x-3">
-                                <a asp-action="Edit" asp-route-id="@item.MaDangKy" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                                    <i class="fas fa-edit mr-1"></i>Sửa
-                                </a>
-                                <a asp-action="Details" asp-route-id="@item.MaDangKy" class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-green-600 dark:hover:bg-green-700 focus:outline-none dark:focus:ring-green-800">
-                                    <i class="fas fa-info-circle mr-1"></i>Chi tiết
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@item.MaDangKy" class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800">
-                                    <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                </a>
-                            </div>
-                        </td>
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <a asp-action="Index" asp-route-sortOrder="@dateStartSort" asp-route-currentFilter="@currentFilter" class="text-gray-500 hover:text-gray-700">
+                                Ngày bắt đầu
+                                @if (sortOrder == "datestart_desc") {
+                                    <i class="bi bi-arrow-down"></i>
+                                } else if (string.IsNullOrEmpty(sortOrder)) {
+                                    <i class="bi bi-arrow-up"></i>
+                                }
+                            </a>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <a asp-action="Index" asp-route-sortOrder="@dateEndSort" asp-route-currentFilter="@currentFilter" class="text-gray-500 hover:text-gray-700">
+                                Ngày kết thúc
+                                @if (sortOrder == "dateend_desc") {
+                                    <i class="bi bi-arrow-down"></i>
+                                } else if (sortOrder == "dateend") {
+                                    <i class="bi bi-arrow-up"></i>
+                                }
+                            </a>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <a asp-action="Index" asp-route-sortOrder="@typeSort" asp-route-currentFilter="@currentFilter" class="text-gray-500 hover:text-gray-700">
+                                Loại đăng ký
+                                @if (sortOrder == "type_desc") {
+                                    <i class="bi bi-arrow-down"></i>
+                                } else if (sortOrder == "type") {
+                                    <i class="bi bi-arrow-up"></i>
+                                }
+                            </a>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Số buổi</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <a asp-action="Index" asp-route-sortOrder="@statusSort" asp-route-currentFilter="@currentFilter" class="text-gray-500 hover:text-gray-700">
+                                Trạng thái
+                                @if (sortOrder == "status_desc") {
+                                    <i class="bi bi-arrow-down"></i>
+                                } else if (sortOrder == "status") {
+                                    <i class="bi bi-arrow-up"></i>
+                                }
+                            </a>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ghi chú</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày đăng ký</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <a asp-action="Index" asp-route-sortOrder="@memberSort" asp-route-currentFilter="@currentFilter" class="text-gray-500 hover:text-gray-700">
+                                Thành viên/Khách
+                                @if (sortOrder == "member_desc") {
+                                    <i class="bi bi-arrow-down"></i>
+                                } else if (sortOrder == "member") {
+                                    <i class="bi bi-arrow-up"></i>
+                                }
+                            </a>
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Gói tập</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lớp học</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Thao tác</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach (var item in Model)
+                    {
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.NgayBatDau.ToString("dd/MM/yyyy")</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.NgayKetThuc.ToString("dd/MM/yyyy")</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.LoaiDangKy</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.SoBuoi</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @{
+                                    var statusClass = item.TrangThai == "DangHoatDong" ? "bg-green-100 text-green-800" : (item.TrangThai == "DaKetThuc" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800");
+                                    var statusText = item.TrangThai == "DangHoatDong" ? "Đang hoạt động" : (item.TrangThai == "DaKetThuc" ? "Đã kết thúc" : item.TrangThai);
+                                }
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @statusClass">@statusText</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.GhiChu</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.NgayDangKy.ToString("dd/MM/yyyy")</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                @if (item.ThanhVien != null)
+                                {
+                                    @item.ThanhVien.HoTen
+                                }
+                                else if (item.KhachVangLai != null)
+                                {
+                                    <span class="italic">@item.KhachVangLai.HoTen (Khách)</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.GoiTap?.TenGoi</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@item.LopHoc?.TenLop</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end space-x-3">
+                                    <a asp-action="Edit" asp-route-id="@item.MaDangKy" class="text-yellow-500 hover:text-yellow-700 flex items-center">
+                                        <i class="bi bi-pencil"></i>Sửa
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.MaDangKy" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                        <i class="bi bi-eye"></i>Chi tiết
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.MaDangKy" class="text-red-600 hover:text-red-900 flex items-center">
+                                        <i class="bi bi-trash"></i>Xóa
+                                    </a>
+                                    @if (item.TrangThai == "DaKetThuc")
+                                    {
+                                        <a href="/GiaHanDangKies/Create?maDangKy=@item.MaDangKy" class="text-green-600 hover:text-green-900 flex items-center">
+                                            <i class="bi bi-arrow-repeat"></i>Gia hạn
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
+    
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="mt-4 flex justify-between items-center">
+            <div class="text-sm text-gray-700">
+                Hiển thị <span class="font-medium">@(((currentPage - 1) * pageSize) + 1)</span> đến <span class="font-medium">@(Math.Min(currentPage * pageSize, totalItems))</span> trong <span class="font-medium">@totalItems</span> kết quả
+            </div>
+            <div class="flex items-center space-x-2">
+                @if (currentPage > 1)
+                {
+                    <a asp-action="Index" asp-route-sortOrder="@sortOrder" asp-route-currentFilter="@currentFilter" asp-route-pageNumber="1" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                    <a asp-action="Index" asp-route-sortOrder="@sortOrder" asp-route-currentFilter="@currentFilter" asp-route-pageNumber="@(currentPage - 1)" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                }
+
+                @{
+                    var startPage = Math.Max(1, currentPage - 2);
+                    var endPage = Math.Min(totalPages, startPage + 4);
+                    if (endPage - startPage < 4 && startPage > 1)
+                    {
+                        startPage = Math.Max(1, endPage - 4);
+                    }
+                }
+
+                @for (var i = startPage; i <= endPage; i++)
+                {
+                    <a asp-action="Index" asp-route-sortOrder="@sortOrder" asp-route-currentFilter="@currentFilter" asp-route-pageNumber="@i" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium @(i == currentPage ? "bg-blue-600 text-white" : "text-gray-700 bg-white hover:bg-gray-50")">
+                        @i
+                    </a>
+                }
+
+                @if (currentPage < totalPages)
+                {
+                    <a asp-action="Index" asp-route-sortOrder="@sortOrder" asp-route-currentFilter="@currentFilter" asp-route-pageNumber="@(currentPage + 1)" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <a asp-action="Index" asp-route-sortOrder="@sortOrder" asp-route-currentFilter="@currentFilter" asp-route-pageNumber="@totalPages" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                }
+            </div>
+        </div>
+    }
 </div>

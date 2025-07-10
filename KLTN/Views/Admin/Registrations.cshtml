@@ -1,0 +1,110 @@
+@model IEnumerable<KLTN.Models.Database.DangKy>
+
+@{
+    ViewData["Title"] = "Tất cả đăng ký";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="p-4">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Tất cả đăng ký</h1>
+        <p class="text-gray-600 dark:text-gray-400">Quản lý tất cả các đăng ký tập trong hệ thống</p>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden dark:bg-gray-800">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Mã đăng ký</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Thành viên</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Loại đăng ký</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Dịch vụ</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Ngày đăng ký</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Ngày bắt đầu</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Ngày kết thúc</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Trạng thái</th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase dark:text-gray-400">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-800">
+                    @foreach (var item in Model)
+                    {
+                        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                @item.MaDangKy
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                @if (item.ThanhVien != null)
+                                {
+                                    @item.ThanhVien.HoTen
+                                }
+                                else if (item.KhachVangLai != null)
+                                {
+                                    @item.KhachVangLai.HoTen <span class="text-xs text-gray-500">(Khách vãng lai)</span>
+                                }
+                                else
+                                {
+                                    <span>Không xác định</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                @item.LoaiDangKy
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                @if (item.GoiTap != null && item.LoaiDangKy == "GoiTap")
+                                {
+                                    @item.GoiTap.TenGoi <span class="text-xs text-gray-500">(Gói tập)</span>
+                                }
+                                else if (item.LopHoc != null && item.LoaiDangKy == "LopHoc")
+                                {
+                                    @item.LopHoc.TenLop <span class="text-xs text-gray-500">(Lớp học)</span>
+                                }
+                                else
+                                {
+                                    <span>Không xác định</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                @item.NgayDangKy.ToString("dd/MM/yyyy")
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                @item.NgayBatDau.ToString("dd/MM/yyyy")
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                @item.NgayKetThuc.ToString("dd/MM/yyyy")
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-normal">
+                                @if (item.TrangThai == "ConHieuLuc")
+                                {
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                                        Còn hiệu lực
+                                    </span>
+                                }
+                                else if (item.TrangThai == "HetHan")
+                                {
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                                        Hết hạn
+                                    </span>
+                                }
+                                else if (item.TrangThai == "DaHuy")
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                                        Đã hủy
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>@item.TrangThai</span>
+                                }
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <a href="/DangKies/Details/@item.MaDangKy" class="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:text-blue-400">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> 

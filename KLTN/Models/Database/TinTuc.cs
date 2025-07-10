@@ -19,9 +19,9 @@ namespace KLTN.Models.Database
         [Display(Name = "Tiêu đề")]
         public string TieuDe { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Vui l�ng nh?p m� t? ng?n")]
+        [Required(ErrorMessage = "Vui lòng nhập mô tả ngắn")]
         [StringLength(500)]
-        [Display(Name = "M� t? ng?n")]
+        [Display(Name = "Mô tả ngắn")]
         public string MoTaNgan { get; set; } = string.Empty;
 
         [Required]
@@ -32,17 +32,17 @@ namespace KLTN.Models.Database
         [Display(Name = "Hình ảnh URL")]
         public string? HinhAnhURL { get; set; }
 
+        [Required]
+        [StringLength(100)]
+        [Display(Name = "Danh mục")]
+        public string DanhMuc { get; set; } = "TinTuc"; // Default value
+
         [NotMapped]
-        [Display(Name = "File h�nh ?nh")]
+        [Display(Name = "File hình ảnh")]
         public IFormFile? HinhAnhFile { get; set; }
 
-        [Required(ErrorMessage = "Vui l�ng nh?p danh m?c")]
         [StringLength(100)]
-        [Display(Name = "Danh m?c")]
-        public string DanhMuc { get; set; } = string.Empty;
-
-        [StringLength(100)]
-        [Display(Name = "T�c gi? (hi?n th?)")]
+        [Display(Name = "Tác giả (hiển thị)")]
         public string? TacGiaDisplay { get; set; }
 
         [ForeignKey("TaiKhoan")]
@@ -53,21 +53,16 @@ namespace KLTN.Models.Database
         [Display(Name = "Ngày đăng")]
         public DateTime NgayDang { get; set; } = DateTime.Now;
 
-        [Display(Name = "Th?i gian d?c (pht)")]
-        public int? ThoiGianDoc { get; set; }
-
-        [Display(Name = "Lu?t xem")]
-        public int LuotXem { get; set; } = 0;
-
-        [Display(Name = "Hi?n th?")]
+        [Display(Name = "Hiển thị")]
         public bool HienThi { get; set; } = true;
 
-        [Display(Name = "Tin n?i b?t")]
+        [Display(Name = "Tin nổi bật")]
         public bool NoiBat { get; set; } = false;
-
-        [StringLength(20)]
+        
+        // Kept for backward compatibility but no longer used - visibility is controlled by the HienThi property
+        [StringLength(50)]
         [Display(Name = "Trạng thái")]
-        public string TrangThai { get; set; } = "HoatDong";
+        public string? TrangThai { get; set; } = "Đã duyệt"; // Default to approved
 
         // Navigation properties
         public virtual TaiKhoan? TaiKhoan { get; set; }

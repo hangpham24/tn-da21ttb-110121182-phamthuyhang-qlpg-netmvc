@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class GoiTapsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -20,10 +22,58 @@ namespace KLTN.Controllers
         }
 
         // GET: GoiTaps
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
         {
-            var applicationDbContext = _context.GoiTap.Include(g => g.KhuyenMai);
-            return View(await applicationDbContext.ToListAsync());
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewData["DurationSortParm"] = sortOrder == "duration" ? "duration_desc" : "duration";
+            ViewData["PriceSortParm"] = sortOrder == "price" ? "price_desc" : "price";
+
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+
+            var goiTaps = _context.GoiTap.Include(g => g.KhuyenMai).AsQueryable();
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                goiTaps = goiTaps.Where(g => g.TenGoi.Contains(searchString));
+            }
+
+            goiTaps = sortOrder switch
+            {
+                "name_desc" => goiTaps.OrderByDescending(g => g.TenGoi),
+                "duration" => goiTaps.OrderBy(g => g.ThoiHanThang),
+                "duration_desc" => goiTaps.OrderByDescending(g => g.ThoiHanThang),
+                "price" => goiTaps.OrderBy(g => g.GiaTien),
+                "price_desc" => goiTaps.OrderByDescending(g => g.GiaTien),
+                _ => goiTaps.OrderBy(g => g.TenGoi),
+            };
+
+            const int pageSize = 5;
+            var totalItems = await goiTaps.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            pageNumber = pageNumber ?? 1;
+            pageNumber = Math.Max(1, Math.Min(pageNumber.Value, totalPages));
+
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.PageSize = pageSize;
+
+            var items = await goiTaps
+                .Skip((pageNumber.Value - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return View(items);
         }
 
         // GET: GoiTaps/Details/5
@@ -57,7 +107,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaGoi,TenGoi,MoTa,ThoiHanThang,GiaTien,SoLanTapToiDa,MaKM")] GoiTap goiTap)
+        public async Task<IActionResult> Create([Bind("MaGoi,TenGoi,MoTa,ThoiHanThang,GiaTien,SoLanTapToiDa,LoaiGoiTap,MaKM")] GoiTap goiTap)
         {
             if (ModelState.IsValid)
             {
@@ -91,7 +141,7 @@ namespace KLTN.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaGoi,TenGoi,MoTa,ThoiHanThang,GiaTien,SoLanTapToiDa,MaKM")] GoiTap goiTap)
+        public async Task<IActionResult> Edit(int id, [Bind("MaGoi,TenGoi,MoTa,ThoiHanThang,GiaTien,SoLanTapToiDa,LoaiGoiTap,MaKM")] GoiTap goiTap)
         {
             if (id != goiTap.MaGoi)
             {

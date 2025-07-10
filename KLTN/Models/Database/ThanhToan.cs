@@ -22,6 +22,14 @@ namespace KLTN.Models.Database
         [Display(Name = "Gia hạn đăng ký (nếu có)")]
         public int? MaGiaHan { get; set; }
         
+        [ForeignKey("TaiKhoan")]
+        [Display(Name = "Người dùng (Tài khoản)")]
+        public int? MaTK_NguoiDung { get; set; }
+        
+        [ForeignKey("KhachVangLai")]
+        [Display(Name = "Người dùng (Khách vãng lai)")]
+        public int? MaKVL_NguoiDung { get; set; }
+        
         [Required(ErrorMessage = "Vui lòng nhập số tiền")]
         [Column(TypeName = "decimal(18,2)")]
         [Display(Name = "Số tiền")]
@@ -72,5 +80,8 @@ namespace KLTN.Models.Database
         public virtual TaiKhoan? NguoiThu { get; set; }
         public virtual DangKy? DangKy { get; set; }
         public virtual GiaHanDangKy? GiaHanDangKy { get; set; }
+        public virtual TaiKhoan? NguoiDung_TaiKhoan { get; set; }
+        public virtual KhachVangLai? NguoiDung_KhachVangLai { get; set; }
+        public virtual ICollection<DoanhThu>? DoanhThus { get; set; }
     }
 } 

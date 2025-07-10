@@ -47,10 +47,44 @@ namespace KLTN.Controllers
         }
 
         // GET: GiaHanDangKies/Create
-        public IActionResult Create()
+        public IActionResult Create(int? maDangKy)
         {
-            ViewData["MaDangKy"] = new SelectList(_context.DangKys, "MaDangKy", "LoaiDangKy");
-            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash");
+            var dangKyList = _context.DangKys
+                .Include(d => d.ThanhVien)
+                .Include(d => d.KhachVangLai)
+                .Include(d => d.GoiTap)
+                .Include(d => d.LopHoc)
+                .Select(d => new {
+                    d.MaDangKy,
+                    Display = 
+                        d.LoaiDangKy == "GoiTap"
+                            ? (d.GoiTap.TenGoi + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                            : (d.LopHoc.TenLop + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                }).ToList();
+
+            ViewData["MaDangKy"] = new SelectList(dangKyList, "MaDangKy", "Display", maDangKy);
+            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap");
+
+            if (maDangKy.HasValue)
+            {
+                var dangKyCu = _context.DangKys
+                    .Include(d => d.GoiTap)
+                    .Include(d => d.LopHoc)
+                    .FirstOrDefault(d => d.MaDangKy == maDangKy.Value);
+                if (dangKyCu != null)
+                {
+                    ViewBag.NgayKetThucCu = dangKyCu.NgayKetThuc;
+                    ViewBag.SoBuoiCu = dangKyCu.SoBuoi;
+                    ViewBag.LoaiDangKyCu = dangKyCu.LoaiDangKy;
+                    ViewBag.GhiChuCu = dangKyCu.GhiChu;
+                    ViewBag.MaGoiTapCu = dangKyCu.MaGoiTap;
+                    ViewBag.MaLopHocCu = dangKyCu.MaLopHoc;
+                    ViewBag.NgayBatDauCu = dangKyCu.NgayBatDau;
+                    ViewBag.NgayDangKyCu = dangKyCu.NgayDangKy;
+                    ViewBag.TenGoiTapCu = dangKyCu.GoiTap?.TenGoi;
+                    ViewBag.TenLopHocCu = dangKyCu.LopHoc?.TenLop;
+                }
+            }
             return View();
         }
 
@@ -64,11 +98,36 @@ namespace KLTN.Controllers
             if (ModelState.IsValid)
             {
                 _context.Add(giaHanDangKy);
+                // Cập nhật đăng ký gốc
+                var dangKy = await _context.DangKys.FindAsync(giaHanDangKy.MaDangKy);
+                if (dangKy != null)
+                {
+                    dangKy.NgayKetThuc = giaHanDangKy.NgayKetThucMoi;
+                    if (giaHanDangKy.SoBuoiThem.HasValue)
+                    {
+                        dangKy.SoBuoi = giaHanDangKy.SoBuoiThem;
+                    }
+                    dangKy.TrangThai = "DangHoatDong";
+                    _context.Update(dangKy);
+                }
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaDangKy"] = new SelectList(_context.DangKys, "MaDangKy", "LoaiDangKy", giaHanDangKy.MaDangKy);
-            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", giaHanDangKy.MaTKNguoiThu);
+            var dangKyList = _context.DangKys
+                .Include(d => d.ThanhVien)
+                .Include(d => d.KhachVangLai)
+                .Include(d => d.GoiTap)
+                .Include(d => d.LopHoc)
+                .Select(d => new {
+                    d.MaDangKy,
+                    Display = 
+                        d.LoaiDangKy == "GoiTap"
+                            ? (d.GoiTap.TenGoi + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                            : (d.LopHoc.TenLop + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                }).ToList();
+
+            ViewData["MaDangKy"] = new SelectList(dangKyList, "MaDangKy", "Display", giaHanDangKy.MaDangKy);
+            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", giaHanDangKy.MaTKNguoiThu);
             return View(giaHanDangKy);
         }
 
@@ -85,8 +144,21 @@ namespace KLTN.Controllers
             {
                 return NotFound();
             }
-            ViewData["MaDangKy"] = new SelectList(_context.DangKys, "MaDangKy", "LoaiDangKy", giaHanDangKy.MaDangKy);
-            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", giaHanDangKy.MaTKNguoiThu);
+            var dangKyList = _context.DangKys
+                .Include(d => d.ThanhVien)
+                .Include(d => d.KhachVangLai)
+                .Include(d => d.GoiTap)
+                .Include(d => d.LopHoc)
+                .Select(d => new {
+                    d.MaDangKy,
+                    Display = 
+                        d.LoaiDangKy == "GoiTap"
+                            ? (d.GoiTap.TenGoi + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                            : (d.LopHoc.TenLop + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                }).ToList();
+
+            ViewData["MaDangKy"] = new SelectList(dangKyList, "MaDangKy", "Display", giaHanDangKy.MaDangKy);
+            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", giaHanDangKy.MaTKNguoiThu);
             return View(giaHanDangKy);
         }
 
@@ -122,8 +194,21 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaDangKy"] = new SelectList(_context.DangKys, "MaDangKy", "LoaiDangKy", giaHanDangKy.MaDangKy);
-            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "MatKhauHash", giaHanDangKy.MaTKNguoiThu);
+            var dangKyList = _context.DangKys
+                .Include(d => d.ThanhVien)
+                .Include(d => d.KhachVangLai)
+                .Include(d => d.GoiTap)
+                .Include(d => d.LopHoc)
+                .Select(d => new {
+                    d.MaDangKy,
+                    Display = 
+                        d.LoaiDangKy == "GoiTap"
+                            ? (d.GoiTap.TenGoi + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                            : (d.LopHoc.TenLop + " - " + (d.ThanhVien != null ? d.ThanhVien.HoTen : d.KhachVangLai.HoTen))
+                }).ToList();
+
+            ViewData["MaDangKy"] = new SelectList(dangKyList, "MaDangKy", "Display", giaHanDangKy.MaDangKy);
+            ViewData["MaTKNguoiThu"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", giaHanDangKy.MaTKNguoiThu);
             return View(giaHanDangKy);
         }
 

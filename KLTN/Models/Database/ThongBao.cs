@@ -23,14 +23,14 @@ namespace KLTN.Models.Database
         [Display(Name = "Ngày gửi")]
         public DateTime NgayGui { get; set; } = DateTime.Now;
 
-        [ForeignKey("ThanhVien")]
-        [Display(Name = "Thành viên")]
-        public int MaTV { get; set; }
+        [ForeignKey("TaiKhoan")]
+        [Display(Name = "Tài khoản nhận")]
+        public int MaTK { get; set; }
 
         [Display(Name = "Đã đọc")]
         public bool DaDoc { get; set; } = false;
 
         // Navigation properties
-        public virtual ThanhVien? ThanhVien { get; set; }
+        public virtual TaiKhoan? TaiKhoan { get; set; }
     }
 }

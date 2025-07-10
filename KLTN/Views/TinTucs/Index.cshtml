@@ -1,107 +1,128 @@
 ﻿@model IEnumerable<KLTN.Models.Database.TinTuc>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý tin tức";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Index</h1>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    @if (TempData["Message"] != null)
+    {
+        <div id="alert-success" class="flex items-center p-4 mb-6 text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400" role="alert">
+            <i class="bi bi-check-circle-fill flex-shrink-0 w-4 h-4"></i>
+            <span class="sr-only">Success</span>
+            <div class="ml-3 text-sm font-medium">
+                @TempData["Message"]
+            </div>
+            <button type="button" class="ml-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-success" aria-label="Close">
+                <span class="sr-only">Close</span>
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    }
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Danh sách tin tức</h2>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Quản lý tất cả nội dung tin tức trên hệ thống</p>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-4 md:mt-0">
+            <a asp-action="Create" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                <i class="bi bi-plus-circle mr-2"></i>
+                Thêm tin tức mới
+            </a>
+        </div>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TieuDe)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MoTaNgan)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NoiDung)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HinhAnhURL)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DanhMuc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TacGiaDisplay)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayDang)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ThoiGianDoc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LuotXem)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HienThi)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NoiBat)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TaiKhoan)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TieuDe)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MoTaNgan)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NoiDung)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HinhAnhURL)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DanhMuc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TacGiaDisplay)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NgayDang)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ThoiGianDoc)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LuotXem)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HienThi)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NoiBat)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThai)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TaiKhoan.MatKhauHash)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaTinTuc">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaTinTuc">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaTinTuc">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.TieuDe)
+                    </th>
+                    <th scope="col" class="px-6 py-3 hidden md:table-cell">
+                        @Html.DisplayNameFor(model => model.DanhMuc)
+                    </th>
+                    <th scope="col" class="px-6 py-3 hidden md:table-cell">
+                        @Html.DisplayNameFor(model => model.TacGiaDisplay)
+                    </th>
+                    <th scope="col" class="px-6 py-3 hidden lg:table-cell">
+                        @Html.DisplayNameFor(model => model.NgayDang)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.HienThi)
+                    </th>
+                    <th scope="col" class="px-6 py-3 text-center">
+                        <span class="sr-only">Thao tác</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                        <div>
+                            @Html.DisplayFor(modelItem => item.TieuDe)
+                            <div class="mt-1 text-xs text-gray-500 dark:text-gray-400 md:hidden">
+                                @Html.DisplayFor(modelItem => item.TacGiaDisplay)
+                            </div>
+                            @if(item.NoiBat) 
+                            {
+                                <span class="bg-purple-100 text-purple-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-purple-900 dark:text-purple-300">
+                                    <i class="bi bi-star-fill me-1"></i>Nổi bật
+                                </span>
+                            }
+                        </div>
+                    </th>
+                    <td class="px-6 py-4 hidden md:table-cell">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                            @(item.DanhMuc == "TinTuc" ? "Tin tức" : 
+                              item.DanhMuc == "SuKien" ? "Sự kiện" : 
+                              item.DanhMuc == "KhuyenMai" ? "Khuyến mãi" : 
+                              item.DanhMuc == "Blog" ? "Blog" : item.DanhMuc)
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 hidden md:table-cell">
+                        @Html.DisplayFor(modelItem => item.TacGiaDisplay)
+                    </td>
+                    <td class="px-6 py-4 hidden lg:table-cell">
+                        @Html.DisplayFor(modelItem => item.NgayDang)
+                    </td>
+                    <td class="px-6 py-4">
+                        @if (item.HienThi)
+                        {
+                            <span class="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                                <i class="bi bi-eye me-1"></i>Hiển thị
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                                <i class="bi bi-eye-slash me-1"></i>Ẩn
+                            </span>
+                        }
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div class="flex items-center justify-end space-x-3">
+                            <a asp-action="ToggleVisibility" asp-route-id="@item.MaTinTuc" class="@(item.HienThi ? "text-gray-600 hover:text-gray-900" : "text-green-600 hover:text-green-900") flex items-center">
+                                <i class="bi @(item.HienThi ? "bi-eye-slash" : "bi-eye") me-1"></i>
+                                @(item.HienThi ? "Ẩn" : "Hiển thị")
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@item.MaTinTuc" class="text-yellow-500 hover:text-yellow-700 flex items-center">
+                                <i class="bi bi-pencil"></i>Sửa
+                            </a>
+                            <a asp-action="Details" asp-route-id="@item.MaTinTuc" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                <i class="bi bi-eye"></i>Chi tiết
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.MaTinTuc" class="text-red-600 hover:text-red-900 flex items-center">
+                                <i class="bi bi-trash"></i>Xóa
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using KLTN.Data;
 using KLTN.Models.Database;
+using Microsoft.AspNetCore.Authorization;
 
 namespace KLTN.Controllers
 {
+    [Authorize]
     public class LichSuCheckInsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,7 +24,9 @@ namespace KLTN.Controllers
         // GET: LichSuCheckIns
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.LichSuCheckIns.Include(l => l.KhachVangLai).Include(l => l.ThanhVien);
+            var applicationDbContext = _context.LichSuCheckIns
+                .Include(l => l.TaiKhoan)
+                .Include(l => l.KhachVangLai);
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -35,8 +39,8 @@ namespace KLTN.Controllers
             }
 
             var lichSuCheckIn = await _context.LichSuCheckIns
+                .Include(l => l.TaiKhoan)
                 .Include(l => l.KhachVangLai)
-                .Include(l => l.ThanhVien)
                 .FirstOrDefaultAsync(m => m.MaCheckIn == id);
             if (lichSuCheckIn == null)
             {
@@ -49,17 +53,15 @@ namespace KLTN.Controllers
         // GET: LichSuCheckIns/Create
         public IActionResult Create()
         {
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL");
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV");
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap");
+            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen");
             return View();
         }
 
         // POST: LichSuCheckIns/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("MaCheckIn,MaTV,MaKVL,ThoiGian,KetQuaNhanDien,AnhNhanDien")] LichSuCheckIn lichSuCheckIn)
+        public async Task<IActionResult> Create([Bind("MaCheckIn,MaTK,MaKVL,ThoiGian,KetQuaNhanDien,AnhNhanDien")] LichSuCheckIn lichSuCheckIn)
         {
             if (ModelState.IsValid)
             {
@@ -67,8 +69,8 @@ namespace KLTN.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", lichSuCheckIn.MaKVL);
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", lichSuCheckIn.MaTV);
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", lichSuCheckIn.MaTK);
+            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen", lichSuCheckIn.MaKVL);
             return View(lichSuCheckIn);
         }
 
@@ -85,17 +87,15 @@ namespace KLTN.Controllers
             {
                 return NotFound();
             }
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", lichSuCheckIn.MaKVL);
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", lichSuCheckIn.MaTV);
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", lichSuCheckIn.MaTK);
+            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen", lichSuCheckIn.MaKVL);
             return View(lichSuCheckIn);
         }
 
         // POST: LichSuCheckIns/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("MaCheckIn,MaTV,MaKVL,ThoiGian,KetQuaNhanDien,AnhNhanDien")] LichSuCheckIn lichSuCheckIn)
+        public async Task<IActionResult> Edit(int id, [Bind("MaCheckIn,MaTK,MaKVL,ThoiGian,KetQuaNhanDien,AnhNhanDien")] LichSuCheckIn lichSuCheckIn)
         {
             if (id != lichSuCheckIn.MaCheckIn)
             {
@@ -122,8 +122,8 @@ namespace KLTN.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "MaKVL", lichSuCheckIn.MaKVL);
-            ViewData["MaTV"] = new SelectList(_context.ThanhViens, "MaTV", "MaTV", lichSuCheckIn.MaTV);
+            ViewData["MaTK"] = new SelectList(_context.TaiKhoans, "MaTK", "TenDangNhap", lichSuCheckIn.MaTK);
+            ViewData["MaKVL"] = new SelectList(_context.KhachVangLais, "MaKVL", "HoTen", lichSuCheckIn.MaKVL);
             return View(lichSuCheckIn);
         }
 
@@ -136,8 +136,8 @@ namespace KLTN.Controllers
             }
 
             var lichSuCheckIn = await _context.LichSuCheckIns
+                .Include(l => l.TaiKhoan)
                 .Include(l => l.KhachVangLai)
-                .Include(l => l.ThanhVien)
                 .FirstOrDefaultAsync(m => m.MaCheckIn == id);
             if (lichSuCheckIn == null)
             {

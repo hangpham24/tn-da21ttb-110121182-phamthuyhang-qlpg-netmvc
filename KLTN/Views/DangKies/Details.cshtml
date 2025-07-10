@@ -132,3 +132,129 @@
         </div>
     </div>
 </div>
+
+        <div class="space-y-4">
+            <div>
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    @Html.DisplayNameFor(model => model.NgayDangKy)
+                </h3>
+                <p class="mt-1 text-base text-gray-900 dark:text-white">
+                    @Html.DisplayFor(model => model.NgayDangKy)
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    @Html.DisplayNameFor(model => model.ThanhVien)
+                </h3>
+                <p class="mt-1 text-base text-gray-900 dark:text-white">
+                    @Html.DisplayFor(model => model.ThanhVien.MaTV)
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    @Html.DisplayNameFor(model => model.KhachVangLai)
+                </h3>
+                <p class="mt-1 text-base text-gray-900 dark:text-white">
+                    @Html.DisplayFor(model => model.KhachVangLai.MaKVL)
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    @Html.DisplayNameFor(model => model.GoiTap)
+                </h3>
+                <p class="mt-1 text-base text-gray-900 dark:text-white">
+                    @Html.DisplayFor(model => model.GoiTap.TenGoi)
+                </p>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    @Html.DisplayNameFor(model => model.LopHoc)
+                </h3>
+                <p class="mt-1 text-base text-gray-900 dark:text-white">
+                    @Html.DisplayFor(model => model.LopHoc.NgayTrongTuan)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h4>DangKy</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.NgayBatDau)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.NgayBatDau)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.NgayKetThuc)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.NgayKetThuc)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LoaiDangKy)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LoaiDangKy)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.SoBuoi)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SoBuoi)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TrangThai)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TrangThai)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.GhiChu)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.GhiChu)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.NgayDangKy)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.NgayDangKy)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.ThanhVien)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ThanhVien.MaTV)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.KhachVangLai)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.KhachVangLai.MaKVL)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.GoiTap)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.GoiTap.TenGoi)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.LopHoc)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LopHoc.NgayTrongTuan)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.MaDangKy">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

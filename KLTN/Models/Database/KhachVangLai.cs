@@ -38,7 +38,6 @@ namespace KLTN.Models.Database
         // Navigation properties
         public virtual ICollection<DangKy>? DangKys { get; set; }
         public virtual ICollection<LichSuCheckIn>? LichSuCheckIns { get; set; }
-        public virtual ICollection<DoanhThu>? DoanhThus { get; set; }
         public virtual ICollection<PhienTap>? PhienTaps { get; set; }
     }
 }

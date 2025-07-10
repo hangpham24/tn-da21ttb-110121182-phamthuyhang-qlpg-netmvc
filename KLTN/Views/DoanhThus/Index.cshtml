@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <h1>Index</h1>
@@ -16,31 +17,19 @@
                 @Html.DisplayNameFor(model => model.SoTien)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.NoiDung)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayThu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LoaiThu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
+                @Html.DisplayNameFor(model => model.Ngay)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.GhiChu)
             </th>
             <th>
+                @Html.DisplayNameFor(model => model.NgayTao)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.ThanhToan)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.ThanhVien)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.KhachVangLai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NguoiThu)
+                @Html.DisplayNameFor(model => model.TaiKhoan)
             </th>
             <th></th>
         </tr>
@@ -52,36 +41,24 @@
                 @Html.DisplayFor(modelItem => item.SoTien)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.NoiDung)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NgayThu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LoaiThu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThai)
+                @Html.DisplayFor(modelItem => item.Ngay)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.GhiChu)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.NgayTao)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.ThanhToan.LoaiThanhToan)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ThanhVien.MaTV)
+                @Html.DisplayFor(modelItem => item.TaiKhoan.MatKhauHash)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.KhachVangLai.MaKVL)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.NguoiThu.MatKhauHash)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaThu">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaThu">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaThu">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.MaDoanhThu">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.MaDoanhThu">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.MaDoanhThu">Delete</a>
             </td>
         </tr>
 }

@@ -53,7 +53,6 @@ namespace KLTN.Models.Database
         public virtual ICollection<DangKy>? DangKys { get; set; }
         public virtual ICollection<LichSuCheckIn>? LichSuCheckIns { get; set; }
         public virtual ICollection<ThongBao>? ThongBaos { get; set; }
-        public virtual ICollection<DoanhThu>? DoanhThus { get; set; }
         public virtual ICollection<LichSuDangKy>? LichSuDangKys { get; set; }
         public virtual ICollection<PhienTap>? PhienTaps { get; set; }
     }

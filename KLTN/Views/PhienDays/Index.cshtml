@@ -1,89 +1,108 @@
 ﻿@model IEnumerable<KLTN.Models.Database.PhienDay>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý phiên dạy";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Index</h1>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quản lý phiên dạy</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Danh sách các phiên dạy của huấn luyện viên</p>
+        </div>
+        <a asp-action="Create" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center">
+            <i class="bi bi-plus-circle me-2"></i> Tạo mới
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayDay)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GiaTriBuoiDay)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LoaiPhienDay)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LoaiDichVu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GhiChu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HuanLuyenVien)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LopHoc)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GoiTap)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.BangLuongPT)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.NgayDay)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GiaTriBuoiDay)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LoaiPhienDay)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LoaiDichVu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TrangThai)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GhiChu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HuanLuyenVien.MaPT)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LopHoc.NgayTrongTuan)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GoiTap.TenGoi)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.BangLuongPT.MaLuong)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaPhienDay">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaPhienDay">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaPhienDay">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="overflow-x-auto rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.NgayDay)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.GiaTriBuoiDay)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.LoaiPhienDay)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.LoaiDichVu)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.TrangThai)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.HuanLuyenVien)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.LopHoc)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Thao tác
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td class="px-6 py-4">
+                            @(item.NgayDay != DateTime.MinValue ? item.NgayDay.ToString("dd/MM/yyyy HH:mm") : "")
+                        </td>
+                        <td class="px-6 py-4">
+                            @string.Format("{0:N0} VNĐ", item.GiaTriBuoiDay)
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.LoaiPhienDay)
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.LoaiDichVu)
+                        </td>
+                        <td class="px-6 py-4">
+                            @{
+                                var statusClass = item.TrangThai switch {
+                                    "DaHoanThanh" => "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+                                    "ChuaHoanThanh" => "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+                                    "DaHuy" => "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+                                    _ => "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                                };
+
+                                var statusText = item.TrangThai switch {
+                                    "DaHoanThanh" => "Đã hoàn thành",
+                                    "ChuaHoanThanh" => "Chưa hoàn thành",
+                                    "DaHuy" => "Đã hủy",
+                                    _ => item.TrangThai
+                                };
+                            }
+                            <span class="px-2.5 py-1 rounded-full text-xs font-medium @statusClass">
+                                @statusText
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.HuanLuyenVien.MaPT)
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.LopHoc.TenLop)
+                        </td>
+                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end space-x-3">
+                                    <a asp-action="Edit" asp-route-id="@item.MaPhienDay" class="text-yellow-500 hover:text-yellow-700 flex items-center">
+                                        <i class="bi bi-pencil"></i>Sửa
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.MaPhienDay" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                        <i class="bi bi-eye"></i>Chi tiết
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.MaPhienDay" class="text-red-600 hover:text-red-900 flex items-center">
+                                        <i class="bi bi-trash"></i>Xóa
+                                    </a>
+                                </div>
+                            </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

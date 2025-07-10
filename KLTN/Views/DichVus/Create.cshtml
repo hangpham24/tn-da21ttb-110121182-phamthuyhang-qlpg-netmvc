@@ -1,61 +1,117 @@
 ﻿@model KLTN.Models.Database.DichVu
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm dịch vụ mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Create</h1>
-
-<h4>DichVu</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="TenDichVu" class="control-label"></label>
-                <input asp-for="TenDichVu" class="form-control" />
-                <span asp-validation-for="TenDichVu" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MoTa" class="control-label"></label>
-                <input asp-for="MoTa" class="form-control" />
-                <span asp-validation-for="MoTa" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LoaiDichVu" class="control-label"></label>
-                <input asp-for="LoaiDichVu" class="form-control" />
-                <span asp-validation-for="LoaiDichVu" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="GiaBatDau" class="control-label"></label>
-                <input asp-for="GiaBatDau" class="form-control" />
-                <span asp-validation-for="GiaBatDau" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HinhAnhURL" class="control-label"></label>
-                <input asp-for="HinhAnhURL" class="form-control" />
-                <span asp-validation-for="HinhAnhURL" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MaGoiTap" class="control-label"></label>
-                <select asp-for="MaGoiTap" class ="form-control" asp-items="ViewBag.MaGoiTap"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="MaLopHoc" class="control-label"></label>
-                <select asp-for="MaLopHoc" class ="form-control" asp-items="ViewBag.MaLopHoc"></select>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    <div class="mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Thêm dịch vụ mới</h1>
+            <a asp-action="Index" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:ring-4 focus:ring-gray-300 font-medium text-sm">
+                <i class="bi bi-arrow-left mr-1"></i> Quay lại danh sách
+            </a>
+        </div>
+        <hr class="h-px my-4 bg-gray-200 border-0 dark:bg-gray-700">
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+    <form asp-action="Create" class="space-y-6">
+        <div asp-validation-summary="ModelOnly" class="text-red-500 dark:text-red-400 mb-4"></div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <div class="mb-6">
+                    <label asp-for="TenDichVu" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tên dịch vụ</label>
+                    <input asp-for="TenDichVu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập tên dịch vụ" required />
+                    <span asp-validation-for="TenDichVu" class="text-red-500 dark:text-red-400 text-sm"></span>
+                </div>
+
+                <div class="mb-6">
+                    <label asp-for="LoaiDichVu" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Loại dịch vụ</label>
+                    <select asp-for="LoaiDichVu" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+                        <option value="GoiTap">Gói tập</option>
+                        <option value="LopHoc">Lớp học</option>
+                    </select>
+                    <span asp-validation-for="LoaiDichVu" class="text-red-500 dark:text-red-400 text-sm"></span>
+                </div>
+                
+                <div class="mb-6">
+                    <label asp-for="GiaBatDau" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Giá bắt đầu (VNĐ)</label>
+                    <input asp-for="GiaBatDau" type="number" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập giá" required />
+                    <span asp-validation-for="GiaBatDau" class="text-red-500 dark:text-red-400 text-sm"></span>
+                </div>
+                
+                <div class="mb-6">
+                    <label asp-for="HinhAnhURL" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">URL hình ảnh</label>
+                    <input asp-for="HinhAnhURL" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập URL hình ảnh" />
+                    <span asp-validation-for="HinhAnhURL" class="text-red-500 dark:text-red-400 text-sm"></span>
+                </div>
+            </div>
+            
+            <div>
+                <div class="mb-6">
+                    <label asp-for="MoTa" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Mô tả</label>
+                    <textarea asp-for="MoTa" rows="4" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Nhập mô tả dịch vụ"></textarea>
+                    <span asp-validation-for="MoTa" class="text-red-500 dark:text-red-400 text-sm"></span>
+                </div>
+
+                <div class="mb-6" id="goiTapSection">
+                    <label asp-for="MaGoiTap" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Gói tập</label>
+                    <select asp-for="MaGoiTap" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" asp-items="ViewBag.MaGoiTap">
+                        <option value="">-- Chọn gói tập --</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6" id="lopHocSection">
+                    <label asp-for="MaLopHoc" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Lớp học</label>
+                    <select asp-for="MaLopHoc" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" asp-items="ViewBag.MaLopHoc">
+                        <option value="">-- Chọn lớp học --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-center">
+            <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                <i class="bi bi-save mr-1"></i> Lưu dịch vụ
+            </button>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Hiển thị/ẩn các trường nhập dựa trên loại dịch vụ đã chọn
+        document.addEventListener('DOMContentLoaded', function() {
+            const loaiDichVuSelect = document.getElementById('LoaiDichVu');
+            const goiTapSection = document.getElementById('goiTapSection');
+            const lopHocSection = document.getElementById('lopHocSection');
+            
+            function updateSections() {
+                const selectedValue = loaiDichVuSelect.value;
+                
+                if (selectedValue === 'GoiTap') {
+                    goiTapSection.style.display = 'block';
+                    lopHocSection.style.display = 'none';
+                    document.getElementById('MaLopHoc').value = '';
+                } else if (selectedValue === 'LopHoc') {
+                    goiTapSection.style.display = 'none';
+                    lopHocSection.style.display = 'block';
+                    document.getElementById('MaGoiTap').value = '';
+                } else {
+                    goiTapSection.style.display = 'block';
+                    lopHocSection.style.display = 'block';
+                }
+            }
+            
+            // Chạy khi tải trang
+            updateSections();
+            
+            // Chạy khi thay đổi select
+            loaiDichVuSelect.addEventListener('change', updateSections);
+        });
+    </script>
 }

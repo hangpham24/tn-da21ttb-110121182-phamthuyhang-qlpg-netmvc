@@ -1,42 +1,116 @@
 ﻿@model IEnumerable<KLTN.Models.Database.BaoCaoTaiChinh>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Báo cáo tài chính";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>Index</h1>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    <div class="mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Danh sách báo cáo tài chính</h2>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Quản lý các báo cáo tài chính của phòng gym</p>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Thang)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Nam)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TongDoanhThu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.NgayLapBaoCao)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TrangThai)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GhiChu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TaiKhoan)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+    <div class="mb-4 flex justify-between items-center">
+        <div>
+            <a asp-action="Create" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                <i class="bi bi-plus-lg mr-2"></i>
+                Thêm mới báo cáo
+            </a>
+        </div>
+    </div>
+
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.Thang)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.Nam)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.TongDoanhThu)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.NgayLapBaoCao)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.TrangThai)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.GhiChu)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.TaiKhoan)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        <span class="sr-only">Thao tác</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.Thang)
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.Nam)
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.TongDoanhThu)
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.NgayLapBaoCao)
+                        </td>
+                        <td class="px-6 py-4">
+                            @{
+                                string badgeClass = "bg-blue-100 text-blue-800";
+                                if (item.TrangThai == "Đã duyệt")
+                                {
+                                    badgeClass = "bg-green-100 text-green-800";
+                                }
+                                else if (item.TrangThai == "Chờ duyệt")
+                                {
+                                    badgeClass = "bg-yellow-100 text-yellow-800";
+                                }
+                                else if (item.TrangThai == "Từ chối")
+                                {
+                                    badgeClass = "bg-red-100 text-red-800";
+                                }
+                            }
+                            <span class="@badgeClass text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
+                                @Html.DisplayFor(modelItem => item.TrangThai)
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.GhiChu)
+                        </td>
+                        <td class="px-6 py-4">
+                            @Html.DisplayFor(modelItem => item.TaiKhoan.TenDangNhap)
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex space-x-2 justify-end">
+                                <a asp-action="Edit" asp-route-id="@item.MaBaoCao" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.MaBaoCao" class="font-medium text-green-600 dark:text-green-500 hover:underline">
+                                    <i class="bi bi-info-circle"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.MaBaoCao" class="font-medium text-red-600 dark:text-red-500 hover:underline">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
 @foreach (var item in Model) {
         <tr>
             <td>
@@ -58,7 +132,7 @@
                 @Html.DisplayFor(modelItem => item.GhiChu)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.TaiKhoan.MatKhauHash)
+                @Html.DisplayFor(modelItem => item.TaiKhoan.TenDangNhap)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.MaBaoCao">Edit</a> |

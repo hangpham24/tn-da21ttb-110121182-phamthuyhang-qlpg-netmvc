@@ -1,0 +1,61 @@
+﻿@model KLTN.Models.Database.BangLuongPT
+
+@{
+    ViewData["Title"] = "Tạo bảng lương mới";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="p-4">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Tạo bảng lương mới</h1>
+        <p class="text-gray-600">Tạo bảng lương mới cho huấn luyện viên</p>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg p-6 max-w-2xl">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-red-500 mb-4"></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="mb-4">
+                    <label asp-for="MaPT" class="block text-sm font-medium text-gray-700 mb-1">Huấn luyện viên</label>
+                    <select asp-for="MaPT" class="border border-gray-300 rounded-md w-full p-2" 
+                            asp-items="ViewBag.MaPT">
+                        <option value="">-- Chọn huấn luyện viên --</option>
+                    </select>
+                    <span asp-validation-for="MaPT" class="text-sm text-red-500"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="ThangNam" class="block text-sm font-medium text-gray-700 mb-1">Tháng năm</label>
+                    <input asp-for="ThangNam" class="border border-gray-300 rounded-md w-full p-2" type="month" value="@DateTime.Now.ToString("yyyy-MM")" />
+                    <span asp-validation-for="ThangNam" class="text-sm text-red-500"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="LuongCoBan" class="block text-sm font-medium text-gray-700 mb-1">Lương cơ bản (VNĐ)</label>
+                    <input asp-for="LuongCoBan" class="border border-gray-300 rounded-md w-full p-2" type="number" min="0" step="100000" />
+                    <span asp-validation-for="LuongCoBan" class="text-sm text-red-500"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="GhiChu" class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                    <textarea asp-for="GhiChu" class="border border-gray-300 rounded-md w-full p-2 h-20"></textarea>
+                    <span asp-validation-for="GhiChu" class="text-sm text-red-500"></span>
+                </div>
+            </div>
+
+            <div class="mt-6 flex space-x-3">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                    <i class="bi bi-save me-1"></i> Lưu và tính lương
+                </button>
+                <a asp-action="Index" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

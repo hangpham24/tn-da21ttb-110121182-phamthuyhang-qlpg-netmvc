@@ -10,9 +10,9 @@ namespace KLTN.Models.Database
         [Key]
         public int MaCheckIn { get; set; }
 
-        [ForeignKey("ThanhVien")]
-        [Display(Name = "Thành viên")]
-        public int? MaTV { get; set; }
+        [ForeignKey("TaiKhoan")]
+        [Display(Name = "Tài khoản")]
+        public int? MaTK { get; set; }
 
         [ForeignKey("KhachVangLai")]
         [Display(Name = "Khách vãng lai")]
@@ -30,7 +30,7 @@ namespace KLTN.Models.Database
         public byte[]? AnhNhanDien { get; set; }
 
         // Navigation properties
-        public virtual ThanhVien? ThanhVien { get; set; }
+        public virtual TaiKhoan? TaiKhoan { get; set; }
         public virtual KhachVangLai? KhachVangLai { get; set; }
     }
 }

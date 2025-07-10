@@ -1,0 +1,123 @@
+﻿@model KLTN.Models.Database.BangLuongPT
+
+@{
+    ViewData["Title"] = "Xóa bảng lương";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="p-4">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Xóa bảng lương</h1>
+        <p class="text-gray-600">Xác nhận xóa bảng lương huấn luyện viên</p>
+    </div>
+
+    <div class="bg-white shadow-md rounded-lg p-6 max-w-3xl mb-6">
+        <div class="p-4 mb-6 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-red-800/20 dark:text-red-400" role="alert">
+            <div class="flex items-center">
+                <i class="bi bi-exclamation-triangle-fill mr-2 text-lg"></i>
+                <span class="font-medium">Cảnh báo!</span>
+            </div>
+            <div class="mt-2 ml-6">
+                Bạn có chắc chắn muốn xóa bảng lương này? Thao tác này không thể hoàn tác và sẽ xóa hoàn toàn dữ liệu này khỏi hệ thống.
+                <br />
+                Các phiên dạy liên kết với bảng lương này sẽ được giữ lại nhưng không còn liên kết với bảng lương nào.
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-gray-50 rounded-lg p-5">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Thông tin bảng lương</h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.HuanLuyenVien)</p>
+                        <p class="text-base font-medium text-gray-900">
+                            @(Model.HuanLuyenVien?.HoTen ?? "N/A")
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.ThangNam)</p>
+                        <p class="text-base font-medium text-gray-900">@Model.ThangNam.ToString("MM/yyyy")</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.TrangThai)</p>
+                        @if (Model.TrangThai == "DaThanhToan")
+                        {
+                            <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                Đã thanh toán
+                            </span>
+                        }
+                        else if (Model.TrangThai == "ChuaThanhToan")
+                        {
+                            <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                Chưa thanh toán
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                @Html.DisplayFor(model => model.TrangThai)
+                            </span>
+                        }
+                    </div>
+                    
+                    @if (Model.NgayThanhToan.HasValue)
+                    {
+                        <div>
+                            <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.NgayThanhToan)</p>
+                            <p class="text-base font-medium text-gray-900">@Model.NgayThanhToan.Value.ToString("dd/MM/yyyy")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-5">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Thông tin lương</h3>
+                
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.LuongCoBan)</p>
+                        <p class="text-base font-medium text-gray-900">@Model.LuongCoBan.ToString("#,##0") VNĐ</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.TongDoanhThu)</p>
+                        <p class="text-base font-medium text-gray-900">@Model.TongDoanhThu.ToString("#,##0") VNĐ</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.TongHoaHong)</p>
+                        <p class="text-base font-medium text-gray-900">@Model.TongHoaHong.ToString("#,##0") VNĐ</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.TongThanhToan)</p>
+                        <p class="text-base font-medium text-gray-900">@Model.TongThanhToan.ToString("#,##0") VNĐ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.GhiChu))
+        {
+            <div class="mb-6">
+                <p class="text-sm text-gray-500">@Html.DisplayNameFor(model => model.GhiChu)</p>
+                <p class="p-3 bg-gray-50 rounded mt-1">@Model.GhiChu</p>
+            </div>
+        }
+
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="MaLuong" />
+            <div class="flex space-x-3">
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                    <i class="bi bi-trash me-1"></i> Xác nhận xóa
+                </button>
+                <a asp-action="Index" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -2,92 +2,69 @@
 
 @{
     ViewData["Title"] = "Chi tiết gói tập";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
-    <div class="flex justify-between items-center mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Chi tiết gói tập</h2>
-            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">Thông tin chi tiết về gói tập</p>
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Chi tiết gói tập</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+        <li class="breadcrumb-item"><a href="/GoiTaps">Gói tập</a></li>
+        <li class="breadcrumb-item active">Chi tiết</li>
+    </ol>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-info-circle me-1"></i>
+            Thông tin chi tiết
         </div>
-        <div class="flex items-center space-x-3">
-            <a asp-action="Edit" asp-route-id="@Model?.MaGoi" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
-                <i class="fas fa-edit mr-2"></i>Chỉnh sửa
-            </a>
-            <a asp-action="Index" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-700">
-                <i class="fas fa-arrow-left mr-2"></i>Quay lại
-            </a>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="space-y-4">
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.TenGoi)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
+                </dt>
+                <dd class="col-sm-10">
                     @Html.DisplayFor(model => model.TenGoi)
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                </dd>
+                <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.MoTa)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
+                </dt>
+                <dd class="col-sm-10">
                     @Html.DisplayFor(model => model.MoTa)
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                </dd>
+                <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.ThoiHanThang)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.ThoiHanThang) tháng
-                </p>
-            </div>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.ThoiHanThang)
+                </dd>
+                <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.GiaTien)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.GiaTien) VNĐ
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.GiaTien)
+                </dd>
+                <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.SoLanTapToiDa)
-                </h3>
-                <p class="mt-1 text-base text-gray-900 dark:text-white">
-                    @Html.DisplayFor(model => model.SoLanTapToiDa) buổi
-                </p>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.SoLanTapToiDa)
+                </dd>
+                <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.KhuyenMai)
-                </h3>
-                <p class="mt-1">
-                    @if (Model?.KhuyenMai != null)
-                    {
-                        <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
-                            @Html.DisplayFor(model => model.KhuyenMai.TenKM)
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="bg-gray-100 text-gray-800 text-sm font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
-                            Không có khuyến mãi
-                        </span>
-                    }
-                </p>
+                </dt>
+                <dd class="col-sm-10">
+                    @(Model.KhuyenMai != null ? Model.KhuyenMai.TenKM : "Không có")
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer">
+            <div class="btn-group">
+                <a asp-action="Edit" asp-route-id="@Model.MaGoi" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Sửa
+                </a>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Quay lại
+                </a>
             </div>
         </div>
     </div>

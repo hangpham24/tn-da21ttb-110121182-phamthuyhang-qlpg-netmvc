@@ -26,9 +26,11 @@ namespace KLTN.Data
         public DbSet<KhachVangLai> KhachVangLais { get; set; }
         public DbSet<TinTuc> TinTucs { get; set; }
         public DbSet<ThongBao> ThongBaos { get; set; }
-        public DbSet<DoanhThu> DoanhThus { get; set; }
         public DbSet<BaoCaoTaiChinh> BaoCaoTaiChinhs { get; set; }
         public DbSet<ThanhToan> ThanhToans { get; set; }
+        public DbSet<DoanhThu> DoanhThus { get; set; }
+        public DbSet<CapNhatAnhNhanDien> CapNhatAnhNhanDiens { get; set; }
+        public DbSet<PT_PhanCongHoaHong> PT_PhanCongHoaHongs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -90,9 +92,34 @@ namespace KLTN.Data
                 .HasMany(tk => tk.GiaHanDangKysLap)
                 .WithOne(gh => gh.NguoiThu)
                 .HasForeignKey(gh => gh.MaTKNguoiThu);
+
+            // Cấu hình mối quan hệ 1-N giữa TaiKhoan và CapNhatAnhNhanDien (người cập nhật)
+            modelBuilder.Entity<TaiKhoan>()
+                .HasMany(t => t.CapNhatAnhNhanDienThucHien)
+                .WithOne(c => c.NguoiCapNhatTaiKhoan)
+                .HasForeignKey(c => c.NguoiCapNhat)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cấu hình mối quan hệ 1-N giữa TaiKhoan và CapNhatAnhNhanDien (người được cập nhật)
+            modelBuilder.Entity<TaiKhoan>()
+                .HasMany(t => t.AnhNhanDienDuocCapNhat)
+                .WithOne(c => c.TaiKhoan)
+                .HasForeignKey(c => c.MaTK)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Cấu hình UNIQUE constraint cho PT_PhanCongHoaHong
+            modelBuilder.Entity<PT_PhanCongHoaHong>()
+                .HasIndex(p => new { p.MaPT, p.MaGoiTap }).IsUnique();
+            modelBuilder.Entity<PT_PhanCongHoaHong>()
+                .HasIndex(p => new { p.MaPT, p.MaLopHoc }).IsUnique();
+
+            // Cấu hình mối quan hệ 1-N giữa ThanhToan và DoanhThu
+            modelBuilder.Entity<ThanhToan>()
+                .HasMany(tt => tt.DoanhThus)
+                .WithOne(dt => dt.ThanhToan)
+                .HasForeignKey(dt => dt.MaThanhToan);
         }
         public DbSet<KLTN.Models.Database.PhienTap> PhienTap { get; set; } = default!;
-        public DbSet<KLTN.Models.Database.PT_GoiTap> PT_GoiTap { get; set; } = default!;
-        public DbSet<KLTN.Models.Database.PT_LopHoc> PT_LopHoc { get; set; } = default!;
+        public DbSet<KLTN.Models.Database.DoanhThu> DoanhThu { get; set; } = default!;
     }
 }

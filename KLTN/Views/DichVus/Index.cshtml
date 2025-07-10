@@ -1,71 +1,154 @@
 ﻿@model IEnumerable<KLTN.Models.Database.DichVu>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý dịch vụ";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";  
 }
 
-<h1>Index</h1>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Quản lý dịch vụ</h1>
+        <a asp-action="Create" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-medium text-sm">
+            <i class="bi bi-plus-lg mr-1"></i> Thêm mới
+        </a>
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.TenDichVu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MoTa)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LoaiDichVu)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GiaBatDau)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.HinhAnhURL)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.GoiTap)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LopHoc)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.TenDichVu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.MoTa)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LoaiDichVu)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GiaBatDau)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.HinhAnhURL)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GoiTap.TenGoi)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LopHoc.NgayTrongTuan)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.MaDichVu">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.MaDichVu">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaDichVu">Delete</a>
-            </td>
-        </tr>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+        <form method="get" class="flex flex-1 gap-2 flex-wrap">
+            <div class="flex-1 min-w-[200px]">
+                <input type="text" name="search" placeholder="Tìm kiếm dịch vụ..." 
+                       value="@Context.Request.Query["search"]"
+                       class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            
+            <div class="min-w-[150px]">
+                <select name="loaiDichVu" class="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                    @foreach (var item in (IEnumerable<SelectListItem>)ViewBag.LoaiDichVu)
+                    {
+                        <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                    }
+                </select>
+            </div>
+            
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center">
+                    <i class="bi bi-search mr-1"></i> Tìm kiếm
+                </button>
+                <a href="@Url.Action("Index")" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center">
+                    <i class="bi bi-x-circle mr-1"></i> Xóa bộ lọc
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+        <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.TenDichVu)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.MoTa)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.LoaiDichVu)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.GiaBatDau)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Hình ảnh
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.GoiTap)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        @Html.DisplayNameFor(model => model.LopHoc)
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        <span class="sr-only">Hành động</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model) {
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                        @Html.DisplayFor(modelItem => item.TenDichVu)
+                    </td>
+                    <td class="px-6 py-4">
+                        @(item.MoTa != null && item.MoTa.Length > 50 ? item.MoTa.Substring(0, 50) + "..." : item.MoTa)
+                    </td>
+                    <td class="px-6 py-4">
+                        @{
+                            var serviceTypeClass = item.LoaiDichVu switch {
+                                "GoiTap" => "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+                                "LopHoc" => "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+                                _ => "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                            };
+                            var serviceTypeText = item.LoaiDichVu switch {
+                                "GoiTap" => "Gói tập",
+                                "LopHoc" => "Lớp học",
+                                _ => item.LoaiDichVu
+                            };
+                        }
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-medium @serviceTypeClass">
+                            @serviceTypeText
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        @string.Format("{0:N0} VNĐ", item.GiaBatDau)
+                    </td>
+                    <td class="px-6 py-4">
+                        @if (item.LoaiDichVu == "GoiTap")
+                        {
+                            <img src="/img/gym01.jpg" alt="@item.TenDichVu" class="w-16 h-16 object-cover rounded" />
+                        }
+                        else if (!string.IsNullOrEmpty(item.HinhAnhURL))
+                        {
+                            <img src="@item.HinhAnhURL" alt="@item.TenDichVu" class="w-16 h-16 object-cover rounded" 
+                                 onerror="this.onerror=null; this.src='/img/placeholder.jpg'; this.alt='Hình ảnh không khả dụng';" />
+                        }
+                        else
+                        {
+                            <span>Không có hình ảnh</span>
+                        }
+                    </td>
+                    <td class="px-6 py-4">
+                        @(item.GoiTap != null ? item.GoiTap.TenGoi : "N/A")
+                    </td>
+                    <td class="px-6 py-4">
+                        @(item.LopHoc != null ? item.LopHoc.TenLop : "N/A")
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end space-x-3">
+                                    <a asp-action="Edit" asp-route-id="@item.MaDichVu" class="text-yellow-500 hover:text-yellow-700 flex items-center">
+                                        <i class="bi bi-pencil"></i>Sửa
+                                    </a>
+                                    <a asp-action="Details" asp-route-id="@item.MaDichVu" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                        <i class="bi bi-eye"></i>Chi tiết
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@item.MaDichVu" class="text-red-600 hover:text-red-900 flex items-center">
+                                        <i class="bi bi-trash"></i>Xóa
+                                    </a>
+                                </div>
+                            </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Xử lý submit form khi thay đổi dropdown
+        document.addEventListener('DOMContentLoaded', function() {
+            const loaiDichVuSelect = document.querySelector('select[name="loaiDichVu"]');
+            loaiDichVuSelect.addEventListener('change', function() {
+                this.closest('form').submit();
+            });
+        });
+    </script>
 }
-    </tbody>
-</table>

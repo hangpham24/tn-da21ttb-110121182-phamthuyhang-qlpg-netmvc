@@ -48,6 +48,21 @@ namespace KLTN.Controllers
             return View(viewModel);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Registrations()
+        {
+            var registrations = await _context.DangKys
+                .Include(d => d.ThanhVien)
+                .Include(d => d.KhachVangLai)
+                .Include(d => d.GoiTap)
+                .Include(d => d.LopHoc)
+                .OrderByDescending(d => d.NgayDangKy)
+                .ToListAsync();
+
+            return View(registrations);
+        }
+
         public IActionResult Finance()
         {
             return View();
@@ -73,61 +88,57 @@ namespace KLTN.Controllers
 
             ViewData["CurrentFilter"] = searchString;
 
-            var query = _context.DoanhThus
-                .Include(d => d.ThanhToan)
-                    .ThenInclude(t => t.DangKy)
-                        .ThenInclude(dk => dk.ThanhVien)
-                .Include(d => d.ThanhToan)
-                    .ThenInclude(t => t.DangKy)
-                        .ThenInclude(dk => dk.KhachVangLai)
-                .Include(d => d.ThanhToan)
-                    .ThenInclude(t => t.DangKy)
-                        .ThenInclude(dk => dk.GoiTap)
-                .Include(d => d.ThanhToan)
-                    .ThenInclude(t => t.DangKy)
-                        .ThenInclude(dk => dk.LopHoc)
-                .Include(d => d.NguoiThu)
+            var query = _context.ThanhToans
+                .Include(t => t.DangKy)
+                    .ThenInclude(dk => dk.ThanhVien)
+                .Include(t => t.DangKy)
+                    .ThenInclude(dk => dk.KhachVangLai)
+                .Include(t => t.DangKy)
+                    .ThenInclude(dk => dk.GoiTap)
+                .Include(t => t.DangKy)
+                    .ThenInclude(dk => dk.LopHoc)
+                .Include(t => t.NguoiThu)
                 .AsQueryable();
 
             if (!String.IsNullOrEmpty(searchString))
             {
-                query = query.Where(d =>
-                    (d.ThanhToan.DangKy.ThanhVien != null && d.ThanhToan.DangKy.ThanhVien.HoTen.Contains(searchString)) ||
-                    (d.ThanhToan.DangKy.KhachVangLai != null && d.ThanhToan.DangKy.KhachVangLai.HoTen.Contains(searchString)) ||
-                    (d.NguoiThu != null && d.NguoiThu.TenDangNhap.Contains(searchString)) ||
-                    (d.GhiChu != null && d.GhiChu.Contains(searchString)));
+                query = query.Where(t =>
+                    (t.DangKy.ThanhVien != null && t.DangKy.ThanhVien.HoTen.Contains(searchString)) ||
+                    (t.DangKy.KhachVangLai != null && t.DangKy.KhachVangLai.HoTen.Contains(searchString)) ||
+                    (t.NguoiThu != null && t.NguoiThu.TenDangNhap.Contains(searchString)) ||
+                    (t.GhiChu != null && t.GhiChu.Contains(searchString)));
             }
 
             switch (sortOrder)
             {
                 case "date_desc":
-                    query = query.OrderByDescending(d => d.NgayThu);
+                    query = query.OrderByDescending(t => t.NgayThanhToan);
                     break;
                 case "type":
-                    query = query.OrderBy(d => d.LoaiThu);
+                    query = query.OrderBy(t => t.LoaiThanhToan);
                     break;
                 case "type_desc":
-                    query = query.OrderByDescending(d => d.LoaiThu);
+                    query = query.OrderByDescending(t => t.LoaiThanhToan);
                     break;
                 case "amount":
-                    query = query.OrderBy(d => d.SoTien);
+                    query = query.OrderBy(t => t.SoTien);
                     break;
                 case "amount_desc":
-                    query = query.OrderByDescending(d => d.SoTien);
+                    query = query.OrderByDescending(t => t.SoTien);
                     break;
                 case "status":
-                    query = query.OrderBy(d => d.TrangThai);
+                    query = query.OrderBy(t => t.TrangThai);
                     break;
                 case "status_desc":
-                    query = query.OrderByDescending(d => d.TrangThai);
+                    query = query.OrderByDescending(t => t.TrangThai);
                     break;
                 default:
-                    query = query.OrderBy(d => d.NgayThu);
+                    query = query.OrderBy(t => t.NgayThanhToan);
                     break;
             }
 
             int pageSize = 10;
-            return View(await PaginatedList<DoanhThu>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
+            return View(await PaginatedList<ThanhToan>.CreateAsync(query.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // Phương thức GET để hiển thị form chuẩn hóa quyền
@@ -191,16 +202,15 @@ namespace KLTN.Controllers
                     // Xóa quyền "HuanLuyenVien"
                     _context.Quyens.Remove(huanLuyenVienRole);
                 }
-                
+
                 await _context.SaveChangesAsync();
-                
-                TempData["StatusMessage"] = "Dữ liệu quyền đã được chuẩn hóa thành công.";
-                return RedirectToAction("Index", "Admin");
+                TempData["Message"] = "Chuẩn hóa quyền thành công!";
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Lỗi: {ex.Message}";
-                return RedirectToAction("Index", "Admin");
+                TempData["Error"] = "Có lỗi xảy ra khi chuẩn hóa quyền: " + ex.Message;
+                return View();
             }
         }
     }

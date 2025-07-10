@@ -1,0 +1,188 @@
+@model KLTN.Models.Database.DangKy
+
+@{
+    ViewData["Title"] = "Đăng Ký Thành Công";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-8">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="p-4 mb-6 text-sm text-green-800 rounded-lg bg-green-50" role="alert">
+                    <i class="bi bi-check-circle me-2"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+            
+            <div class="text-center mb-8">
+                <i class="bi bi-check-circle-fill text-green-500 text-7xl mb-4"></i>
+                <h1 class="text-3xl font-bold text-gray-900 mb-3">Đăng ký thành công!</h1>
+                <p class="text-gray-600">Cảm ơn bạn đã đăng ký dịch vụ tại Gym FitNest.</p>
+            </div>
+            
+            <!-- Thông tin đăng ký -->
+            <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-gray-800">Thông tin đăng ký</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-sm text-gray-500">Mã đăng ký</p>
+                        <p class="font-medium">#@Model.MaDangKy</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Ngày đăng ký</p>
+                        <p class="font-medium">@Model.NgayDangKy.ToString("dd/MM/yyyy HH:mm")</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Loại dịch vụ</p>
+                        <p class="font-medium">
+                            @if (Model.LoaiDangKy == "GoiTap")
+                            {
+                                <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Gói tập</span>
+                            }
+                            else
+                            {
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Lớp học</span>
+                            }
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Trạng thái</p>
+                        <p class="font-medium">
+                            @switch (Model.TrangThai)
+                            {
+                                case "ConHieuLuc":
+                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Còn hiệu lực</span>
+                                    break;
+                                case "ChoThanhToan":
+                                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Chờ thanh toán</span>
+                                    break;
+                                case "HetHan":
+                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Hết hạn</span>
+                                    break;
+                                default:
+                                    <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">@Model.TrangThai</span>
+                                    break;
+                            }
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-500">Ngày bắt đầu</p>
+                        <p class="font-medium">@Model.NgayBatDau.ToString("dd/MM/yyyy")</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Ngày kết thúc</p>
+                        <p class="font-medium">@Model.NgayKetThuc.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Thông tin dịch vụ -->
+            <div class="bg-blue-50 p-6 rounded-lg mb-6">
+                <h2 class="text-xl font-semibold mb-4 text-blue-800">Thông tin dịch vụ</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    @if (Model.LoaiDangKy == "GoiTap" && Model.GoiTap != null)
+                    {
+                        <div>
+                            <p class="text-sm text-gray-500">Tên gói tập</p>
+                            <p class="font-medium">@Model.GoiTap.TenGoi</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Thời hạn</p>
+                            <p class="font-medium">@Model.GoiTap.ThoiHanThang tháng</p>
+                        </div>
+                    }
+                    else if (Model.LoaiDangKy == "LopHoc" && Model.LopHoc != null)
+                    {
+                        <div>
+                            <p class="text-sm text-gray-500">Tên lớp học</p>
+                            <p class="font-medium">@Model.LopHoc.TenLop</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Lịch học</p>
+                            <p class="font-medium">@Model.LopHoc.NgayTrongTuan (@Model.LopHoc.ThoiGianBatDau.ToString(@"hh\:mm") - @Model.LopHoc.ThoiGianKetThuc.ToString(@"hh\:mm"))</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Số buổi</p>
+                            <p class="font-medium">@(Model.SoBuoi.HasValue ? $"{Model.SoBuoi.Value} buổi" : "Không giới hạn")</p>
+                        </div>
+                    }
+                </div>
+            </div>
+            
+            <!-- Thông tin thanh toán -->
+            @if (Model.ThanhToans != null && Model.ThanhToans.Any())
+            {
+                var thanhToan = Model.ThanhToans.FirstOrDefault();
+                <div class="bg-yellow-50 p-6 rounded-lg mb-6">
+                    <h2 class="text-xl font-semibold mb-4 text-yellow-800">Thông tin thanh toán</h2>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <p class="text-sm text-gray-500">Mã thanh toán</p>
+                            <p class="font-medium">#@thanhToan.MaThanhToan</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Ngày thanh toán</p>
+                            <p class="font-medium">@(thanhToan.NgayThanhToan != null && thanhToan.NgayThanhToan != DateTime.MinValue ? thanhToan.NgayThanhToan.ToString("dd/MM/yyyy") : "Chưa thanh toán")</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Số tiền</p>
+                            <p class="font-bold text-lg">@thanhToan.SoTien.ToString("N0") VNĐ</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Phương thức</p>
+                            <p class="font-medium">
+                                @switch (thanhToan.PhuongThucThanhToan)
+                                {
+                                    case "TienMat":
+                                        <span>Tiền mặt tại quầy</span>
+                                        break;
+                                    case "ChuyenKhoan":
+                                        <span>Chuyển khoản</span>
+                                        break;
+                                    case "ThanhToanOnline":
+                                        <span>Thanh toán online</span>
+                                        break;
+                                    default:
+                                        <span>@thanhToan.PhuongThucThanhToan</span>
+                                        break;
+                                }
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Trạng thái</p>
+                            <p class="font-medium">
+                                @switch (thanhToan.TrangThai)
+                                {
+                                    case "DaThanhToan":
+                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Đã thanh toán</span>
+                                        break;
+                                    case "ChuaThanhToan":
+                                        <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Chưa thanh toán</span>
+                                        break;
+                                    case "DaHuy":
+                                        <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Đã hủy</span>
+                                        break;
+                                    default:
+                                        <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full">@thanhToan.TrangThai</span>
+                                        break;
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+            
+            <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6 mt-8">
+                <a href="@Url.Action("LichSuDangKy")" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+                    <i class="bi bi-list-ul me-2"></i> Xem lịch sử đăng ký
+                </a>
+                <a href="@Url.Action("Index", "Home")" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg">
+                    <i class="bi bi-house-door me-2"></i> Trở về trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</div> 

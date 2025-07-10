@@ -63,8 +63,7 @@ namespace KLTN.Models.Database
         // Navigation properties
         public virtual TaiKhoan? TaiKhoan { get; set; }
         public virtual ICollection<LopHoc>? LopHocs { get; set; }
-        public virtual ICollection<PT_GoiTap>? PT_GoiTaps { get; set; }
-        public virtual ICollection<PT_LopHoc>? PT_LopHocs { get; set; }
+        public virtual ICollection<PT_PhanCongHoaHong>? PT_PhanCongHoaHongs { get; set; }
         public virtual ICollection<PhienDay>? PhienDays { get; set; }
         public virtual ICollection<BangLuongPT>? BangLuongPTs { get; set; }
     }
