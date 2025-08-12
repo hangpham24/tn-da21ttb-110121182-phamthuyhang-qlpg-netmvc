@@ -1,0 +1,177 @@
+@{
+    ViewData["Title"] = "Dashboard - Huấn luyện viên";
+    Layout = "_TrainerLayout";
+    var trainer = ViewBag.Trainer as GymManagement.Web.Models.DTOs.NguoiDungDto;
+    var myClasses = ViewBag.MyClasses as IEnumerable<GymManagement.Web.Data.Models.LopHoc>;
+    var currentSalary = ViewBag.CurrentSalary as GymManagement.Web.Data.Models.BangLuong;
+    var totalClasses = ViewBag.TotalClasses as int?;
+    var activeClasses = ViewBag.ActiveClasses as int?;
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">🏋️ Chào mừng, @(trainer?.Ho) @(trainer?.Ten)!</h1>
+        <p class="text-gray-600">Dashboard huấn luyện viên - Quản lý lớp học và lương</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Classes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Tổng số lớp</p>
+                    <p class="text-2xl font-bold text-gray-900">@(totalClasses ?? 0)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Classes -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Lớp đang hoạt động</p>
+                    <p class="text-2xl font-bold text-gray-900">@(activeClasses ?? 0)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Month Salary -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Lương tháng này</p>
+                    <p class="text-2xl font-bold text-gray-900">
+                        @if (currentSalary != null)
+                        {
+                            @currentSalary.TongThanhToan.ToString("N0") <span class="text-sm">VNĐ</span>
+                        }
+                        else
+                        {
+                            <span class="text-gray-400">Chưa có</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Status -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Trạng thái thanh toán</p>
+                    <p class="text-lg font-bold">
+                        @if (currentSalary?.NgayThanhToan != null)
+                        {
+                            <span class="text-green-600">✅ Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="text-orange-600">⏳ Chờ thanh toán</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Classes Overview -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">🎓 Lớp học của tôi</h3>
+            <a href="@Url.Action("MyClasses", "Trainer")" class="text-blue-600 hover:text-blue-800 font-medium">Xem tất cả →</a>
+        </div>
+        
+        @if (myClasses != null && myClasses.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach (var lopHoc in myClasses)
+                {
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <h4 class="font-semibold text-gray-900">@lopHoc.TenLop</h4>
+                            <span class="px-2 py-1 text-xs rounded-full @(lopHoc.TrangThai == "OPEN" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800")">
+                                @(lopHoc.TrangThai == "OPEN" ? "Hoạt động" : "Tạm dừng")
+                            </span>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p>⏰ @lopHoc.GioBatDau.ToString("HH:mm") - @lopHoc.GioKetThuc.ToString("HH:mm")</p>
+                            <p>📅 @lopHoc.ThuTrongTuan</p>
+                            <p>👥 Sức chứa: @lopHoc.SucChua người</p>
+                            @if (!string.IsNullOrEmpty(lopHoc.MoTa))
+                            {
+                                <p class="text-xs text-gray-500 mt-2">@lopHoc.MoTa</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-8 text-gray-500">
+                <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <p>Bạn chưa được phân công lớp học nào</p>
+            </div>
+        }
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="@Url.Action("MyClasses", "Trainer")" class="block p-6 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg transition-all text-center">
+            <div class="text-3xl mb-3">🎓</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Lớp của tôi</h4>
+            <p class="text-sm text-gray-600">Quản lý lớp học được phân công</p>
+        </a>
+
+        <a href="@Url.Action("Schedule", "Trainer")" class="block p-6 bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200 rounded-lg transition-all text-center">
+            <div class="text-3xl mb-3">📅</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Lịch dạy</h4>
+            <p class="text-sm text-gray-600">Xem lịch dạy cá nhân</p>
+        </a>
+
+        <a href="@Url.Action("Students", "Trainer")" class="block p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 hover:from-yellow-100 hover:to-yellow-200 rounded-lg transition-all text-center">
+            <div class="text-3xl mb-3">👥</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Học viên</h4>
+            <p class="text-sm text-gray-600">Danh sách học viên</p>
+        </a>
+
+        <a href="@Url.Action("Salary", "Trainer")" class="block p-6 bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-lg transition-all text-center">
+            <div class="text-3xl mb-3">💰</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Lương</h4>
+            <p class="text-sm text-gray-600">Thông tin lương và hoa hồng</p>
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto refresh dashboard data every 5 minutes
+        setInterval(function() {
+            location.reload();
+        }, 300000);
+    </script>
+}

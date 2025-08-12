@@ -1,0 +1,28 @@
+%% QUY TRÌNH TÍNH LƯƠNG HUẤN LUYỆN VIÊN
+%% Tối ưu cho Draw.io import
+
+flowchart TD
+    A[Cuối tháng] --> B[Thu thập dữ liệu HLV]
+    B --> C[Tính lương cơ bản]
+    C --> D[Tính hoa hồng theo lớp]
+    D --> E[Tính thưởng hiệu suất]
+    E --> F[Tính các khoản trừ]
+    F --> G[Tính lương thực nhận]
+    G --> H[Tạo bảng lương]
+    H --> I{Admin phê duyệt?}
+    I -->|Không| J[Chỉnh sửa]
+    J --> H
+    I -->|Có| K[Gửi bảng lương]
+    K --> L[Chuyển khoản]
+    L --> M[Hoàn tất]
+
+    %% Styling
+    classDef startNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef successNode fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef warningNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef decisionNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+
+    class A startNode
+    class M successNode
+    class J warningNode
+    class I decisionNode

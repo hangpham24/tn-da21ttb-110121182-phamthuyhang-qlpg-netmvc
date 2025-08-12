@@ -1,0 +1,421 @@
+@model GymManagement.Web.Models.DTOs.NguoiDungDto
+
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    Layout = "_MemberLayout";
+}
+
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+            <div class="flex items-center space-x-6">
+                @if (!string.IsNullOrEmpty(Model.AnhDaiDien))
+                {
+                    <img src="@Model.AnhDaiDien" alt="@Model.HoTen" 
+                         class="w-20 h-20 rounded-full object-cover" 
+                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full items-center justify-center" style="display:none;">
+                        <span class="text-2xl font-bold text-blue-600">@(Model.HoTen?.Substring(0, 1).ToUpper())</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span class="text-2xl font-bold text-blue-600">@(Model.HoTen?.Substring(0, 1).ToUpper())</span>
+                    </div>
+                }
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">@Model.HoTen</h1>
+                    <p class="text-gray-600">@Model.Email</p>
+                    <p class="text-sm text-gray-500">Thành viên từ @Model.NgayTao.ToString("MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="bg-white rounded-xl shadow-sm mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                    <button type="button" onclick="switchTab('personal')" id="tab-personal" 
+                            class="tab-button border-b-2 border-blue-500 text-blue-600 py-4 px-1 text-sm font-medium">
+                        👤 Thông tin cá nhân
+                    </button>
+                    <button type="button" onclick="switchTab('stats')" id="tab-stats" 
+                            class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        📊 Thống kê tập luyện
+                    </button>
+                    <button type="button" onclick="switchTab('trainers')" id="tab-trainers" 
+                            class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                        🏃 Huấn luyện viên của tôi
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Personal Info Tab -->
+            <div id="content-personal" class="tab-content p-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Left Column - Display Info -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Thông tin hiện tại</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                    <span class="text-gray-600">Họ và tên:</span>
+                                    <span class="font-medium text-gray-900">@Model.HoTen</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                    <span class="text-gray-600">Email:</span>
+                                    <span class="font-medium text-gray-900">@Model.Email</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                    <span class="text-gray-600">Số điện thoại:</span>
+                                    <span class="font-medium text-gray-900">@(Model.SoDienThoai ?? "Chưa cập nhật")</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                    <span class="text-gray-600">Ngày sinh:</span>
+                                    <span class="font-medium text-gray-900">@(Model.NgaySinh?.ToString("dd/MM/yyyy") ?? "Chưa cập nhật")</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3 border-b border-gray-100">
+                                    <span class="text-gray-600">Giới tính:</span>
+                                    <span class="font-medium text-gray-900">@(Model.GioiTinh ?? "Chưa cập nhật")</span>
+                                </div>
+                                <div class="flex justify-between items-center py-3">
+                                    <span class="text-gray-600">Địa chỉ:</span>
+                                    <span class="font-medium text-gray-900">@(Model.DiaChi ?? "Chưa cập nhật")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Edit Actions -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quản lý tài khoản</h3>
+                            <div class="space-y-4">
+                                <a asp-action="Edit" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-3 px-4 rounded-lg font-medium transition duration-200">
+                                    ✏️ Chỉnh sửa thông tin
+                                </a>
+                                <a asp-action="ChangePassword" class="block w-full bg-yellow-600 hover:bg-yellow-700 text-white text-center py-3 px-4 rounded-lg font-medium transition duration-200">
+                                    🔒 Đổi mật khẩu
+                                </a>
+                                <a asp-action="Security" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-3 px-4 rounded-lg font-medium transition duration-200">
+                                    🛡️ Bảo mật tài khoản
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats Card -->
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-lg">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">Tóm tắt hoạt động</h4>
+                            <div class="grid grid-cols-2 gap-4 text-center">
+                                <div>
+                                    <div class="text-2xl font-bold text-blue-600" id="quick-sessions">--</div>
+                                    <div class="text-sm text-gray-600">Buổi tập</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-green-600" id="quick-frequency">--</div>
+                                    <div class="text-sm text-gray-600">Lần/tuần</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workout Stats Tab -->
+            <div id="content-stats" class="tab-content p-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Stats Cards -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <div class="bg-blue-50 p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                                    <span class="text-white text-xl">🏃</span>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-blue-600" id="total-sessions">--</div>
+                                    <div class="text-sm text-gray-600">Tổng buổi tập</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-green-50 p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                                    <span class="text-white text-xl">💰</span>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-green-600" id="total-cost">--</div>
+                                    <div class="text-sm text-gray-600">Tổng chi phí</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-purple-50 p-6 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
+                                    <span class="text-white text-xl">📈</span>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-purple-600" id="frequency">--</div>
+                                    <div class="text-sm text-gray-600">Lần/tuần (TB)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-yellow-50 p-6 rounded-lg">
+                            <div class="text-center">
+                                <div class="text-lg font-semibold text-gray-900 mb-2">Tháng này</div>
+                                <div class="text-3xl font-bold text-yellow-600" id="this-month">--</div>
+                                <div class="text-sm text-gray-600">buổi tập</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Area -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white p-6 border border-gray-200 rounded-lg">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Thống kê 6 tháng gần đây</h3>
+                            <div class="relative h-80">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Trainers Tab -->
+            <div id="content-trainers" class="tab-content p-6 hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900">👨‍🏫 Danh sách huấn luyện viên</h3>
+                    <p class="text-gray-600">Các huấn luyện viên đã và đang hướng dẫn bạn</p>
+                </div>
+
+                <div id="trainers-content">
+                    <div class="flex items-center justify-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                        <span class="text-gray-500">Đang tải danh sách huấn luyện viên...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let currentTab = 'personal';
+        let monthlyChart = null;
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Remove active styles from all tabs
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('border-blue-500', 'text-blue-600');
+                button.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Show selected tab content
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+
+            // Add active styles to selected tab
+            const selectedTab = document.getElementById(`tab-${tabName}`);
+            selectedTab.classList.add('border-blue-500', 'text-blue-600');
+            selectedTab.classList.remove('border-transparent', 'text-gray-500');
+
+            currentTab = tabName;
+
+            // Load data based on tab
+            if (tabName === 'stats') {
+                loadPersonalStats();
+            } else if (tabName === 'trainers') {
+                loadTrainers();
+            }
+        }
+
+        function loadPersonalStats() {
+            fetch('/Profile/GetPersonalStats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const stats = data.stats;
+                        
+                        // Update stats cards
+                        document.getElementById('total-sessions').textContent = stats.TotalSessions;
+                        document.getElementById('total-cost').textContent = stats.TotalCost.toLocaleString('vi-VN') + ' VNĐ';
+                        document.getElementById('frequency').textContent = stats.Frequency;
+                        document.getElementById('this-month').textContent = stats.ThisMonth;
+
+                        // Update quick stats in personal tab
+                        document.getElementById('quick-sessions').textContent = stats.TotalSessions;
+                        document.getElementById('quick-frequency').textContent = stats.Frequency;
+
+                        // Create chart
+                        createMonthlyChart(stats.MonthlyData);
+                    } else {
+                        console.error('Error loading stats:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading personal stats:', error);
+                });
+        }
+
+        function createMonthlyChart(monthlyData) {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+            
+            monthlyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthlyData.map(d => d.Month),
+                    datasets: [{
+                        label: 'Số buổi tập',
+                        data: monthlyData.map(d => d.Count),
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadTrainers() {
+            fetch('/Profile/MyTrainers')
+                .then(response => response.text())
+                .then(html => {
+                    // Extract only the trainers content from the returned HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const trainersData = doc.querySelector('script[type="application/json"]');
+                    
+                    if (trainersData) {
+                        const trainers = JSON.parse(trainersData.textContent);
+                        displayTrainers(trainers);
+                    } else {
+                        // Fallback: make AJAX call to get trainers data
+                        loadTrainersData();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading trainers:', error);
+                    loadTrainersData();
+                });
+        }
+
+        function loadTrainersData() {
+            // Since we can't easily extract ViewBag data via AJAX, we'll load it directly
+            // This would need to be implemented as a separate API endpoint
+            const trainersContent = document.getElementById('trainers-content');
+            trainersContent.innerHTML = `
+                <div class="text-center py-8">
+                    <p class="text-gray-500">Tính năng này đang được phát triển.</p>
+                    <p class="text-sm text-gray-400 mt-2">Vui lòng reload trang và chọn tab "Huấn luyện viên của tôi" để xem thông tin.</p>
+                </div>
+            `;
+        }
+
+        function displayTrainers(trainers) {
+            const trainersContent = document.getElementById('trainers-content');
+            
+            if (!trainers || trainers.length === 0) {
+                trainersContent.innerHTML = `
+                    <div class="text-center py-8">
+                        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Chưa có huấn luyện viên</h3>
+                        <p class="text-gray-500">Bạn chưa đăng ký lớp học nào có huấn luyện viên hướng dẫn.</p>
+                        <a href="${window.location.origin}/Member/Classes" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Xem lớp học
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">';
+            
+            trainers.forEach(trainer => {
+                html += `
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                <span class="text-lg font-bold text-blue-600">${trainer.HoTen.charAt(0)}</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900">${trainer.HoTen}</h4>
+                                <p class="text-sm text-gray-600">Huấn luyện viên</p>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center text-sm text-gray-600">
+                                <span class="mr-2">📧</span>
+                                ${trainer.Email || 'Chưa cập nhật'}
+                            </div>
+                            <div class="flex items-center text-sm text-gray-600">
+                                <span class="mr-2">📱</span>
+                                ${trainer.SoDienThoai || 'Chưa cập nhật'}
+                            </div>
+                        </div>
+                        
+                        <div class="border-t pt-4">
+                            <p class="text-sm font-medium text-gray-900 mb-2">Lớp học của bạn (${trainer.TotalClasses}):</p>
+                            <div class="space-y-1">
+                                ${trainer.MyClasses.map(className => 
+                                    `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1 mb-1">${className}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            trainersContent.innerHTML = html;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load quick stats for personal tab
+            loadPersonalStats();
+        });
+    </script>
+}

@@ -1,0 +1,635 @@
+@{
+    ViewData["Title"] = "Học viên - Huấn luyện viên";
+    Layout = "_TrainerLayout";
+    var myClasses = ViewBag.MyClasses as IEnumerable<GymManagement.Web.Data.Models.LopHoc>;
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">👥 Học viên của tôi</h1>
+        <p class="text-gray-600">Quản lý học viên trong các lớp học được phân công</p>
+    </div>
+
+    <!-- Class Selection and Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Class Selection -->
+            <div>
+                <label for="classSelect" class="block text-sm font-medium text-gray-700 mb-2">
+                    <span class="flex items-center">
+                        🎓 Chọn lớp học
+                    </span>
+                </label>
+                <select id="classSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">-- Tất cả lớp học --</option>
+                    @if (myClasses != null)
+                    {
+                        @foreach (var lopHoc in myClasses)
+                        {
+                            <option value="@lopHoc.LopHocId">@lopHoc.TenLop (@lopHoc.ThuTrongTuan, @lopHoc.GioBatDau.ToString("HH:mm")-@lopHoc.GioKetThuc.ToString("HH:mm"))</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Search Input -->
+            <div>
+                <label for="searchStudent" class="block text-sm font-medium text-gray-700 mb-2">
+                    <span class="flex items-center">
+                        🔍 Tìm kiếm học viên
+                    </span>
+                </label>
+                <input type="text" id="searchStudent" placeholder="Tên, email, số điện thoại..." 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+
+            <!-- Status Filter -->
+            <div>
+                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">
+                    <span class="flex items-center">
+                        📊 Trạng thái
+                    </span>
+                </label>
+                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="ACTIVE">Đang hoạt động</option>
+                    <option value="INACTIVE">Không hoạt động</option>
+                    <option value="EXPIRED">Hết hạn</option>
+                </select>
+            </div>
+
+            <!-- Registration Date Filter -->
+            <div>
+                <label for="dateFilter" class="block text-sm font-medium text-gray-700 mb-2">
+                    <span class="flex items-center">
+                        📅 Thời gian đăng ký
+                    </span>
+                </label>
+                <select id="dateFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả thời gian</option>
+                    <option value="7">7 ngày gần đây</option>
+                    <option value="30">30 ngày gần đây</option>
+                    <option value="90">3 tháng gần đây</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Filter Actions -->
+        <div class="flex flex-wrap items-center justify-between mt-4 pt-4 border-t border-gray-200">
+            <div class="flex items-center space-x-2">
+                <button id="clearFilters" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors">
+                    🗑️ Xóa bộ lọc
+                </button>
+                <span id="resultsCount" class="text-sm text-gray-500"></span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="exportStudents" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors" disabled>
+                    📊 Xuất Excel
+                </button>
+                <button id="refreshData" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors">
+                    🔄 Làm mới
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students List -->
+    <div id="studentsContainer">
+        <!-- Default state -->
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Chọn lớp học để xem học viên</h3>
+            <p class="text-gray-600">Vui lòng chọn một lớp học từ danh sách trên để xem danh sách học viên.</p>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="bg-white rounded-lg shadow-md p-12 text-center hidden">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+        <p class="text-gray-600">Đang tải danh sách học viên...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="bg-white rounded-lg shadow-md p-12 text-center hidden">
+        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Chưa có học viên nào</h3>
+        <p class="text-gray-600">Lớp học này chưa có học viên đăng ký.</p>
+    </div>
+</div>
+
+<!-- Student Details Modal -->
+<div id="studentModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center rounded-t-lg">
+                <h3 class="text-xl font-semibold text-gray-900 flex items-center">
+                    👤 Chi tiết học viên
+                </h3>
+                <button onclick="closeStudentModal()" class="text-gray-400 hover:text-gray-600 p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="studentDetails">
+                    <!-- Student details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let currentStudents = [];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Event listeners
+            document.getElementById('classSelect').addEventListener('change', handleFilterChange);
+            document.getElementById('searchStudent').addEventListener('input', debounce(filterStudents, 300));
+            document.getElementById('statusFilter').addEventListener('change', filterStudents);
+            document.getElementById('dateFilter').addEventListener('change', filterStudents);
+            document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
+            document.getElementById('refreshData').addEventListener('click', refreshAllData);
+            document.getElementById('exportStudents').addEventListener('click', exportToExcel);
+            
+            // Check if classId is provided in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const classId = urlParams.get('classId');
+            if (classId) {
+                document.getElementById('classSelect').value = classId;
+                handleFilterChange();
+            } else {
+                // Load all students from all classes initially
+                loadStudents();
+            }
+        });
+
+        function loadStudents() {
+            const classId = document.getElementById('classSelect').value;
+            
+            showLoadingState();
+            
+            // Choose API endpoint based on selection
+            const apiUrl = !classId || classId === '' 
+                ? '@Url.Action("GetAllStudentsByTrainer", "Trainer")'
+                : `@Url.Action("GetStudentsByClass", "Trainer")?classId=${classId}`;
+            
+            // Load students via API
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentStudents = data.data;
+                        displayStudents(currentStudents);
+                    } else {
+                        showError(data.message || 'Có lỗi xảy ra khi tải danh sách học viên.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading students:', error);
+                    showError('Có lỗi xảy ra khi tải danh sách học viên.');
+                });
+        }
+
+        function displayStudents(students) {
+            const container = document.getElementById('studentsContainer');
+            
+            if (!students || students.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            const studentsHtml = `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            Danh sách học viên (${students.length} người)
+                        </h3>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        ${students.map(student => `
+                            <div class="p-6 hover:bg-gray-50 transition-colors student-item border-l-4 border-l-transparent hover:border-l-purple-500" 
+                                 data-name="${student.name?.toLowerCase() || ''}"
+                                 data-email="${student.email?.toLowerCase() || ''}"
+                                 data-phone="${student.phone?.toLowerCase() || ''}"
+                                 data-status="${student.status?.toUpperCase() || ''}"
+                                 data-registration-date="${student.registrationDate || ''}">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <span class="text-lg font-semibold text-purple-600">
+                                                    ${(student.name || 'N/A').charAt(0).toUpperCase()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1">
+                                            <h4 class="text-lg font-semibold text-gray-900">${student.name || 'N/A'}</h4>
+                                            <div class="flex flex-wrap gap-2 text-sm text-gray-600 mt-1">
+                                                <span class="flex items-center">
+                                                    📧 ${student.email || 'Chưa có email'}
+                                                </span>
+                                                ${student.phone ? `<span class="flex items-center">📱 ${student.phone}</span>` : ''}
+                                            </div>
+                                            <p class="text-sm text-gray-500 mt-1">
+                                                📅 Đăng ký: ${student.registrationDate ? new Date(student.registrationDate).toLocaleDateString('vi-VN') : 'N/A'}
+                                                ${student.expiryDate ? ` • Hết hạn: ${new Date(student.expiryDate).toLocaleDateString('vi-VN')}` : ''}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-3">
+                                        <span class="px-3 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(student.status)}">
+                                            ${getStatusText(student.status)}
+                                        </span>
+                                        <div class="flex space-x-1">
+                                            <button onclick="viewStudentDetails('${student.id}')" 
+                                                    class="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                                    title="Xem chi tiết">
+                                                👁️ Chi tiết
+                                            </button>
+                                            <button onclick="contactStudent('${student.id}', '${student.email}')" 
+                                                    class="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                                                    title="Liên hệ">
+                                                💬 Liên hệ
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = studentsHtml;
+            hideAllStates();
+        }
+
+        function filterStudents() {
+            const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            const studentItems = document.querySelectorAll('.student-item');
+            
+            let visibleCount = 0;
+            
+            studentItems.forEach(item => {
+                const name = item.getAttribute('data-name') || '';
+                const email = item.getAttribute('data-email') || '';
+                const phone = item.getAttribute('data-phone') || '';
+                const status = item.getAttribute('data-status') || '';
+                const registrationDate = item.getAttribute('data-registration-date') || '';
+                
+                // Text search (name, email, phone)
+                const matchesSearch = !searchTerm || 
+                    name.includes(searchTerm) || 
+                    email.includes(searchTerm) || 
+                    phone.includes(searchTerm);
+                
+                // Status filter
+                const matchesStatus = !statusFilter || status === statusFilter;
+                
+                // Date filter
+                let matchesDate = true;
+                if (dateFilter && registrationDate) {
+                    const regDate = new Date(registrationDate);
+                    const now = new Date();
+                    const daysAgo = parseInt(dateFilter);
+                    const cutoffDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
+                    matchesDate = regDate >= cutoffDate;
+                }
+                
+                if (matchesSearch && matchesStatus && matchesDate) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            updateResultsCount(visibleCount, studentItems.length);
+            updateExportButton(visibleCount > 0);
+        }
+
+        function viewStudentDetails(studentId) {
+            // Show loading in modal
+            document.getElementById('studentDetails').innerHTML = `
+                <div class="text-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <p>Đang tải thông tin học viên...</p>
+                </div>
+            `;
+            document.getElementById('studentModal').classList.remove('hidden');
+            
+            // Load student details via API
+            fetch(`@Url.Action("GetStudentDetails", "Trainer")?studentId=${studentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const student = data.data;
+                        document.getElementById('studentDetails').innerHTML = `
+                            <div class="space-y-6">
+                                <!-- Student Header -->
+                                <div class="flex items-center space-x-4 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+                                    <div class="h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center">
+                                        ${student.avatar ? 
+                                            `<img src="${student.avatar}" alt="${student.name}" class="h-16 w-16 rounded-full object-cover">` :
+                                            `<span class="text-2xl font-semibold text-purple-600">${(student.name || 'N/A').charAt(0).toUpperCase()}</span>`
+                                        }
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-xl font-semibold text-gray-900">${student.name || 'N/A'}</h4>
+                                        <p class="text-gray-600">${student.email || 'Chưa có email'}</p>
+                                        <p class="text-sm text-gray-500">Tham gia từ ${student.joinDate || 'N/A'}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Personal Information -->
+                                <div>
+                                    <h5 class="text-lg font-semibold text-gray-900 mb-3">📋 Thông tin cá nhân</h5>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                                        <div class="p-3 bg-gray-50 rounded">
+                                            <p class="font-medium text-gray-700">📧 Email:</p>
+                                            <p class="text-gray-900">${student.email || 'Chưa có email'}</p>
+                                        </div>
+                                        <div class="p-3 bg-gray-50 rounded">
+                                            <p class="font-medium text-gray-700">📱 Số điện thoại:</p>
+                                            <p class="text-gray-900">${student.phone || 'Chưa có'}</p>
+                                        </div>
+                                        <div class="p-3 bg-gray-50 rounded">
+                                            <p class="font-medium text-gray-700">🎂 Ngày sinh:</p>
+                                            <p class="text-gray-900">${student.dateOfBirth || 'Chưa có'}</p>
+                                        </div>
+                                        <div class="p-3 bg-gray-50 rounded">
+                                            <p class="font-medium text-gray-700">👤 Giới tính:</p>
+                                            <p class="text-gray-900">${student.gender || 'Chưa có'}</p>
+                                        </div>
+                                        <div class="p-3 bg-gray-50 rounded md:col-span-2">
+                                            <p class="font-medium text-gray-700">🏠 Địa chỉ:</p>
+                                            <p class="text-gray-900">${student.address || 'Chưa có'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Class Registrations -->
+                                <div>
+                                    <h5 class="text-lg font-semibold text-gray-900 mb-3">🎓 Lớp học đã đăng ký</h5>
+                                    ${student.registrations && student.registrations.length > 0 ? `
+                                        <div class="space-y-3">
+                                            ${student.registrations.map(reg => `
+                                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                                    <div>
+                                                        <h6 class="font-medium text-gray-900">${reg.className}</h6>
+                                                        <p class="text-sm text-gray-600">
+                                                            ${reg.registrationDate} - ${reg.expiryDate}
+                                                        </p>
+                                                    </div>
+                                                    <span class="px-3 py-1 text-xs font-medium rounded-full ${getStatusBadgeClass(reg.status)}">
+                                                        ${getStatusText(reg.status)}
+                                                    </span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    ` : `
+                                        <p class="text-gray-500 text-center py-4">Chưa đăng ký lớp học nào</p>
+                                    `}
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex justify-center space-x-3 pt-4 border-t border-gray-200">
+                                    <button onclick="contactStudent('${student.id}', '${student.email}')" 
+                                            class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors">
+                                        💬 Liên hệ
+                                    </button>
+                                    <button onclick="closeStudentModal()" 
+                                            class="px-4 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors">
+                                        ✖️ Đóng
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('studentDetails').innerHTML = `
+                            <div class="text-center py-8">
+                                <div class="text-red-500 text-4xl mb-4">⚠️</div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Có lỗi xảy ra</h4>
+                                <p class="text-gray-600 mb-4">${data.message || 'Không thể tải thông tin học viên.'}</p>
+                                <button onclick="closeStudentModal()" 
+                                        class="px-4 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors">
+                                    Đóng
+                                </button>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading student details:', error);
+                    document.getElementById('studentDetails').innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="text-red-500 text-4xl mb-4">⚠️</div>
+                            <h4 class="text-lg font-semibold text-gray-900 mb-2">Có lỗi xảy ra</h4>
+                            <p class="text-gray-600 mb-4">Không thể tải thông tin học viên. Vui lòng thử lại.</p>
+                            <button onclick="closeStudentModal()" 
+                                    class="px-4 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors">
+                                Đóng
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+
+        function closeStudentModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+
+        function showDefaultState() {
+            hideAllStates();
+            document.getElementById('studentsContainer').innerHTML = `
+                <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Chọn lớp học để xem học viên</h3>
+                    <p class="text-gray-600">Vui lòng chọn một lớp học từ danh sách trên để xem danh sách học viên.</p>
+                </div>
+            `;
+        }
+
+        function showLoadingState() {
+            hideAllStates();
+            document.getElementById('studentsContainer').innerHTML = `
+                <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                    <p class="text-gray-600">Đang tải danh sách học viên...</p>
+                </div>
+            `;
+        }
+
+        function showEmptyState() {
+            hideAllStates();
+            document.getElementById('studentsContainer').innerHTML = `
+                <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Chưa có học viên nào</h3>
+                    <p class="text-gray-600">Lớp học này chưa có học viên đăng ký.</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            hideAllStates();
+            document.getElementById('studentsContainer').innerHTML = `
+                <div class="bg-white rounded-lg shadow-md p-12 text-center">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Có lỗi xảy ra</h3>
+                    <p class="text-gray-600">${message}</p>
+                    <button onclick="loadStudents()" class="mt-4 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                        Thử lại
+                    </button>
+                </div>
+            `;
+        }
+
+        function hideAllStates() {
+            // This function is called when displaying students to hide other states
+        }
+
+        // Helper functions
+        function getStatusBadgeClass(status) {
+            switch(status?.toUpperCase()) {
+                case 'ACTIVE': return 'bg-green-100 text-green-800';
+                case 'INACTIVE': return 'bg-gray-100 text-gray-800';
+                case 'EXPIRED': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        function getStatusText(status) {
+            switch(status?.toUpperCase()) {
+                case 'ACTIVE': return 'Đang hoạt động';
+                case 'INACTIVE': return 'Không hoạt động';
+                case 'EXPIRED': return 'Hết hạn';
+                default: return 'Không xác định';
+            }
+        }
+        
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        function handleFilterChange() {
+            const classId = document.getElementById('classSelect').value;
+            if (classId) {
+                loadStudents();
+            } else {
+                loadAllStudents();
+            }
+        }
+        
+        function loadAllStudents() {
+            showLoadingState();
+            // This would typically make multiple API calls to get students from all classes
+            // For now, we'll show a message to select a class
+            showDefaultState();
+        }
+        
+        function clearAllFilters() {
+            document.getElementById('classSelect').value = '';
+            document.getElementById('searchStudent').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            showDefaultState();
+            updateResultsCount(0, 0);
+            updateExportButton(false);
+        }
+        
+        function refreshAllData() {
+            const classId = document.getElementById('classSelect').value;
+            if (classId) {
+                loadStudents();
+            } else {
+                loadAllStudents();
+            }
+        }
+        
+        function updateResultsCount(visible, total) {
+            const countElement = document.getElementById('resultsCount');
+            if (total > 0) {
+                countElement.textContent = `Hiển thị ${visible} / ${total} học viên`;
+            } else {
+                countElement.textContent = '';
+            }
+        }
+        
+        function updateExportButton(enabled) {
+            const exportBtn = document.getElementById('exportStudents');
+            exportBtn.disabled = !enabled;
+            exportBtn.classList.toggle('opacity-50', !enabled);
+        }
+        
+        function exportToExcel() {
+            const visibleStudents = Array.from(document.querySelectorAll('.student-item:not([style*="display: none"])'));
+            if (visibleStudents.length === 0) {
+                alert('Không có học viên nào để xuất!');
+                return;
+            }
+            
+            // Create CSV content
+            let csvContent = 'Tên,Email,Điện thoại,Trạng thái,Ngày đăng ký\n';
+            visibleStudents.forEach(item => {
+                const name = item.getAttribute('data-name') || '';
+                const email = item.getAttribute('data-email') || '';
+                const phone = item.getAttribute('data-phone') || '';
+                const status = getStatusText(item.getAttribute('data-status'));
+                const regDate = item.getAttribute('data-registration-date') || '';
+                
+                csvContent += `"${name}","${email}","${phone}","${status}","${regDate}"\n`;
+            });
+            
+            // Download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `students_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function contactStudent(studentId, email) {
+            if (email && email !== 'Chưa có email') {
+                window.location.href = `mailto:${email}?subject=Liên hệ từ huấn luyện viên&body=Xin chào,\n\n`;
+            } else {
+                alert('Học viên này chưa có địa chỉ email!');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('studentModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeStudentModal();
+            }
+        });
+    </script>
+}

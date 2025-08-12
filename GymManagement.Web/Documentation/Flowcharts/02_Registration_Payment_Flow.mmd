@@ -1,0 +1,38 @@
+%% QUY TRÌNH ĐĂNG KÝ GÓI TẬP VÀ THANH TOÁN
+%% Tối ưu cho Draw.io import
+
+flowchart TD
+    A[Chọn gói tập] --> B[Nhập thông tin cá nhân]
+    B --> C{Có mã giảm giá?}
+    C -->|Có| D[Validate mã giảm giá]
+    D --> E{Mã hợp lệ?}
+    E -->|Không| F[Thông báo mã không hợp lệ]
+    F --> G[Tính tổng tiền gốc]
+    E -->|Có| H[Áp dụng giảm giá]
+    C -->|Không| G
+    H --> I[Tính tổng tiền sau giảm]
+    G --> J{Phương thức thanh toán?}
+    I --> J
+    J -->|VNPay| K[🔒 BEGIN TRANSACTION]
+    J -->|Tiền mặt| L[Tạo pending payment]
+    K --> M[Tạo VNPay URL]
+    M --> N[Redirect to VNPay]
+    N --> O{Thanh toán thành công?}
+    O -->|Không| P[🔄 ROLLBACK TRANSACTION]
+    O -->|Có| Q[Kích hoạt gói tập]
+    L --> R[Admin xác nhận]
+    R --> Q
+    Q --> S[🔒 COMMIT TRANSACTION]
+    S --> T[Gửi email xác nhận]
+    T --> U[Hoàn tất đăng ký]
+
+    %% Styling
+    classDef startNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef successNode fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef errorNode fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef decisionNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+
+    class A startNode
+    class U successNode
+    class F,P errorNode
+    class C,E,J,O decisionNode

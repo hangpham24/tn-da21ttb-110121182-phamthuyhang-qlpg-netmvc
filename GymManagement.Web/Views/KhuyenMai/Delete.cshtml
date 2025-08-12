@@ -1,0 +1,217 @@
+@model GymManagement.Web.Data.Models.KhuyenMai
+@{
+    ViewData["Title"] = "Xóa khuyến mãi";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center mb-4">
+            <a href="@Url.Action("Index")" class="text-gray-500 hover:text-gray-700 mr-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-900">🗑️ Xóa khuyến mãi</h1>
+        </div>
+        <p class="text-gray-600">Bạn có chắc chắn muốn xóa khuyến mãi này không?</p>
+    </div>
+
+    <!-- Warning Alert -->
+    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">Cảnh báo!</h3>
+                <div class="mt-2 text-sm text-red-700">
+                    <p>Hành động này không thể hoàn tác. Khuyến mãi sẽ bị xóa vĩnh viễn khỏi hệ thống.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotion Details -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+        <div class="bg-gradient-to-r from-red-500 to-pink-600 px-6 py-8 text-white">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold">@Model.MaCode</h2>
+                    <p class="text-red-100 mt-2">@(Model.MoTa ?? "Không có mô tả")</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-4xl font-bold">@(Model.PhanTramGiam ?? 0)%</div>
+                    <div class="text-sm text-red-100">GIẢM GIÁ</div>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-red-100">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4m-6 0h6m-6 0V7a1 1 0 00-1 1v11a2 2 0 002 2h8a2 2 0 002-2V8a1 1 0 00-1-1h-1V7"></path>
+                </svg>
+                Có hiệu lực từ @Model.NgayBatDau.ToString("dd/MM/yyyy") đến @Model.NgayKetThuc.ToString("dd/MM/yyyy")
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Summary -->
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Thông tin sẽ bị xóa</h3>
+        </div>
+        <div class="px-6 py-4">
+            <dl class="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Mã khuyến mãi</dt>
+                    <dd class="mt-1 text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded">@Model.MaCode</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Phần trăm giảm giá</dt>
+                    <dd class="mt-1 text-sm text-gray-900">@(Model.PhanTramGiam ?? 0)%</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Ngày tạo</dt>
+                    <dd class="mt-1 text-sm text-gray-900">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd>
+                </div>
+                <div>
+                    <dt class="text-sm font-medium text-gray-500">Trạng thái</dt>
+                    <dd class="mt-1 text-sm text-gray-900">
+                        @{
+                            var today = DateOnly.FromDateTime(DateTime.Today);
+                            var isActive = Model.KichHoat && Model.NgayBatDau <= today && Model.NgayKetThuc >= today;
+                            var isExpired = Model.NgayKetThuc < today;
+                            var isUpcoming = Model.NgayBatDau > today;
+                        }
+                        
+                        @if (isActive)
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Đang hoạt động
+                            </span>
+                        }
+                        else if (isExpired)
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                Đã hết hạn
+                            </span>
+                        }
+                        else if (isUpcoming)
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Sắp diễn ra
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                Đã tắt
+                            </span>
+                        }
+                    </dd>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.MoTa))
+                {
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm font-medium text-gray-500">Mô tả</dt>
+                        <dd class="mt-1 text-sm text-gray-900 bg-gray-50 p-3 rounded-md">@Model.MoTa</dd>
+                    </div>
+                }
+            </dl>
+        </div>
+    </div>
+
+    <!-- Impact Warning -->
+    @if (isActive)
+    {
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">Khuyến mãi đang hoạt động!</h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p>Khuyến mãi này hiện đang có hiệu lực. Việc xóa có thể ảnh hưởng đến khách hàng đang sử dụng mã này.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Confirmation Form -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Xác nhận xóa</h3>
+        </div>
+        <div class="px-6 py-4">
+            <form asp-action="Delete" method="post">
+                <input asp-for="KhuyenMaiId" type="hidden" />
+                
+                <!-- Confirmation Checkbox -->
+                <div class="mb-6">
+                    <div class="flex items-start">
+                        <div class="flex items-center h-5">
+                            <input id="confirmDelete" type="checkbox" 
+                                   class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded"
+                                   required>
+                        </div>
+                        <div class="ml-3 text-sm">
+                            <label for="confirmDelete" class="font-medium text-gray-700">
+                                Tôi hiểu rằng hành động này không thể hoàn tác và đồng ý xóa khuyến mãi <strong>@Model.MaCode</strong>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="@Url.Action("Index")" 
+                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Hủy
+                    </a>
+                    <a href="@Url.Action("Details", new { id = Model.KhuyenMaiId })" 
+                       class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Xem chi tiết
+                    </a>
+                    <button type="submit" id="deleteButton" disabled
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Xóa khuyến mãi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Enable/disable delete button based on checkbox
+            $('#confirmDelete').change(function() {
+                $('#deleteButton').prop('disabled', !this.checked);
+            });
+
+            // Confirm before submit
+            $('form').submit(function(e) {
+                if (!$('#confirmDelete').is(':checked')) {
+                    e.preventDefault();
+                    alert('Vui lòng xác nhận bằng cách tích vào ô checkbox');
+                    return false;
+                }
+
+                if (!confirm('Bạn có chắc chắn muốn xóa khuyến mãi "@Model.MaCode" không? Hành động này không thể hoàn tác.')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+    </script>
+}

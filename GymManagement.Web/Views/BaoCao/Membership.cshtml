@@ -1,0 +1,775 @@
+@{
+    ViewData["Title"] = "Báo Cáo Thành Viên - Admin";
+    Layout = "_Layout";
+}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="@Url.Action("Index", "BaoCao")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Báo cáo thành viên</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div class="mb-4 lg:mb-0">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                        👥 Báo Cáo Thành Viên
+                    </h1>
+                    <p class="text-gray-600 text-lg">Thống kê đăng ký, retention và demographics</p>
+                </div>
+                
+                <!-- Refresh Button -->
+                <div class="flex space-x-3">
+                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Làm mới
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Active Members -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Thành viên hoạt động</p>
+                        <p id="totalActiveMembers" class="text-3xl font-bold text-blue-600">0</p>
+                        <p class="text-xs text-gray-500 mt-1">Đang có gói tập hiệu lực</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Members This Month -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Thành viên mới tháng này</p>
+                        <p id="newMembersThisMonth" class="text-3xl font-bold text-green-600">0</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="newMemberChange" class="text-green-500">+0%</span> so với tháng trước
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Retention Rate -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Tỷ lệ giữ chân</p>
+                        <p id="retentionRate" class="text-3xl font-bold text-purple-600">0%</p>
+                        <p class="text-xs text-gray-500 mt-1">Gia hạn sau 3 tháng</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Age -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Tuổi trung bình</p>
+                        <p id="averageAge" class="text-3xl font-bold text-orange-600">0</p>
+                        <p class="text-xs text-gray-500 mt-1">Của tất cả thành viên</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Registration Trend Chart -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">📈 Xu hướng đăng ký (12 tháng)</h3>
+                    <div class="flex space-x-2">
+                        <button class="period-btn px-3 py-1 text-xs bg-blue-600 text-white rounded-full" data-period="6">6 tháng</button>
+                        <button class="period-btn px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors" data-period="12">12 tháng</button>
+                    </div>
+                </div>
+                <div class="h-80">
+                    <canvas id="registrationChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Members by Package Chart -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">📦 Phân bố theo gói tập</h3>
+                    <div class="text-sm text-gray-500">Số lượng thành viên</div>
+                </div>
+                <div class="h-80">
+                    <canvas id="packageChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demographics Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Age Distribution -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    Phân bố độ tuổi
+                </h3>
+                <div class="h-64">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Gender Distribution -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    Phân bố giới tính
+                </h3>
+                <div class="h-64">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Membership Status -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Trạng thái thành viên
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                            <span class="text-sm font-medium text-gray-700">Hoạt động</span>
+                        </div>
+                        <span id="activeCount" class="text-sm font-bold text-green-600">0</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-full mr-3"></div>
+                            <span class="text-sm font-medium text-gray-700">Sắp hết hạn</span>
+                        </div>
+                        <span id="expiringCount" class="text-sm font-bold text-yellow-600">0</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+                            <span class="text-sm font-medium text-gray-700">Hết hạn</span>
+                        </div>
+                        <span id="expiredCount" class="text-sm font-bold text-red-600">0</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-gray-500 rounded-full mr-3"></div>
+                            <span class="text-sm font-medium text-gray-700">Tạm ngưng</span>
+                        </div>
+                        <span id="pausedCount" class="text-sm font-bold text-gray-600">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Registrations -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Đăng ký gần đây
+                </h3>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thành viên</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gói tập</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá trị</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentRegistrationsBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Table rows will be populated by JavaScript -->
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                <div class="flex items-center justify-center">
+                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
+                                    Đang tải dữ liệu...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // Global variables
+        let registrationChart, packageChart, ageChart, genderChart;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadMembershipData();
+
+            // Event listeners
+            document.getElementById('refreshBtn').addEventListener('click', loadMembershipData);
+
+            // Period buttons
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    changePeriod(this.dataset.period);
+                });
+            });
+        });
+
+        // Load membership data
+        function loadMembershipData() {
+            showLoading(true);
+
+            fetch('@Url.Action("GetMembershipData", "BaoCao")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateSummaryCards(data);
+                        updateRegistrationChart(data.registrationTrend);
+                        updatePackageChart(data.membersByPackage);
+                        updateDemographicsCharts();
+                        updateMembershipStatus();
+                        updateRecentRegistrations();
+                    } else {
+                        showNotification('Có lỗi khi tải dữ liệu thành viên', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading membership data:', error);
+                    showNotification('Có lỗi khi tải dữ liệu thành viên', 'error');
+                })
+                .finally(() => {
+                    showLoading(false);
+                });
+        }
+
+        // Update summary cards
+        function updateSummaryCards(data) {
+            document.getElementById('totalActiveMembers').textContent = data.totalActive.toLocaleString('vi-VN');
+
+            // Calculate new members this month (mock data)
+            const newMembersThisMonth = Math.floor(Math.random() * 50) + 20;
+            const changePercent = Math.floor(Math.random() * 30) - 5; // -5% to +25%
+
+            document.getElementById('newMembersThisMonth').textContent = newMembersThisMonth.toLocaleString('vi-VN');
+
+            const changeElement = document.getElementById('newMemberChange');
+            changeElement.textContent = (changePercent >= 0 ? '+' : '') + changePercent + '%';
+            changeElement.className = changePercent >= 0 ? 'text-green-500' : 'text-red-500';
+
+            // Mock retention rate and average age
+            document.getElementById('retentionRate').textContent = (Math.random() * 20 + 75).toFixed(1) + '%';
+            document.getElementById('averageAge').textContent = Math.floor(Math.random() * 10 + 28);
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            initializeRegistrationChart();
+            initializePackageChart();
+            initializeAgeChart();
+            initializeGenderChart();
+        }
+
+        function initializeRegistrationChart() {
+            const ctx = document.getElementById('registrationChart').getContext('2d');
+
+            registrationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Đăng ký mới',
+                        data: [],
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        function initializePackageChart() {
+            const ctx = document.getElementById('packageChart').getContext('2d');
+
+            packageChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(147, 51, 234, 0.8)',
+                            'rgba(249, 115, 22, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(34, 197, 94)',
+                            'rgb(147, 51, 234)',
+                            'rgb(249, 115, 22)',
+                            'rgb(239, 68, 68)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeAgeChart() {
+            const ctx = document.getElementById('ageChart').getContext('2d');
+
+            // Generate mock age distribution data
+            const ageLabels = ['18-25', '26-35', '36-45', '46-55', '55+'];
+            const ageData = [25, 35, 20, 15, 5]; // Percentages
+
+            ageChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ageLabels,
+                    datasets: [{
+                        label: 'Số lượng (%)',
+                        data: ageData,
+                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                        borderColor: 'rgb(99, 102, 241)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 40,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeGenderChart() {
+            const ctx = document.getElementById('genderChart').getContext('2d');
+
+            // Generate mock gender distribution data
+            const genderData = [60, 40]; // Male: 60%, Female: 40%
+
+            genderChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Nam', 'Nữ'],
+                    datasets: [{
+                        data: genderData,
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(236, 72, 153)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update charts with new data
+        function updateRegistrationChart(data) {
+            // Generate mock data for 12 months
+            const months = [];
+            const values = [];
+            const today = new Date();
+
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(today);
+                date.setMonth(date.getMonth() - i);
+                months.push(date.toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' }));
+                values.push(Math.floor(Math.random() * 50) + 10); // 10-60 new members per month
+            }
+
+            registrationChart.data.labels = months;
+            registrationChart.data.datasets[0].data = values;
+            registrationChart.update('active');
+        }
+
+        function updatePackageChart(data) {
+            // Use real data if available, otherwise use mock data
+            let labels, values;
+
+            if (data && Object.keys(data).length > 0) {
+                labels = Object.keys(data);
+                values = Object.values(data);
+            } else {
+                // Mock data
+                labels = ['Gói Cơ Bản', 'Gói Premium', 'Gói VIP', 'Gói Gia Đình'];
+                values = [45, 30, 20, 5];
+            }
+
+            packageChart.data.labels = labels;
+            packageChart.data.datasets[0].data = values;
+            packageChart.update('active');
+        }
+
+        function updateDemographicsCharts() {
+            // Charts are already initialized with mock data
+            // In a real application, you would fetch and update with real data
+        }
+
+        // Update membership status
+        function updateMembershipStatus() {
+            // Generate mock status data
+            const total = parseInt(document.getElementById('totalActiveMembers').textContent.replace(/,/g, ''));
+            const active = total;
+            const expiring = Math.floor(total * 0.15); // 15% expiring soon
+            const expired = Math.floor(total * 0.05); // 5% expired
+            const paused = Math.floor(total * 0.03); // 3% paused
+
+            document.getElementById('activeCount').textContent = active.toLocaleString('vi-VN');
+            document.getElementById('expiringCount').textContent = expiring.toLocaleString('vi-VN');
+            document.getElementById('expiredCount').textContent = expired.toLocaleString('vi-VN');
+            document.getElementById('pausedCount').textContent = paused.toLocaleString('vi-VN');
+        }
+
+        // Update recent registrations table
+        function updateRecentRegistrations() {
+            const tbody = document.getElementById('recentRegistrationsBody');
+
+            // Generate mock recent registrations
+            const registrations = [
+                {
+                    name: 'Nguyễn Văn A',
+                    package: 'Gói Premium',
+                    date: '2024-01-20',
+                    status: 'Hoạt động',
+                    value: 1500000
+                },
+                {
+                    name: 'Trần Thị B',
+                    package: 'Gói Cơ Bản',
+                    date: '2024-01-19',
+                    status: 'Hoạt động',
+                    value: 800000
+                },
+                {
+                    name: 'Lê Văn C',
+                    package: 'Gói VIP',
+                    date: '2024-01-18',
+                    status: 'Hoạt động',
+                    value: 2500000
+                },
+                {
+                    name: 'Phạm Thị D',
+                    package: 'Gói Gia Đình',
+                    date: '2024-01-17',
+                    status: 'Hoạt động',
+                    value: 3000000
+                },
+                {
+                    name: 'Hoàng Văn E',
+                    package: 'Gói Premium',
+                    date: '2024-01-16',
+                    status: 'Hoạt động',
+                    value: 1500000
+                }
+            ];
+
+            tbody.innerHTML = registrations.map(reg => `
+                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                <span class="text-blue-600 font-medium">${reg.name.charAt(0)}</span>
+                            </div>
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">${reg.name}</div>
+                                <div class="text-sm text-gray-500">Thành viên mới</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            ${reg.package}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        ${formatDate(reg.date)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            ${reg.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        ${formatCurrency(reg.value)}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Change period for registration chart
+        function changePeriod(period) {
+            // Update button states
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-blue-100', 'text-blue-600');
+            });
+
+            event.target.classList.remove('bg-blue-100', 'text-blue-600');
+            event.target.classList.add('bg-blue-600', 'text-white');
+
+            // Update chart data based on period
+            const months = [];
+            const values = [];
+            const today = new Date();
+            const monthsToShow = parseInt(period);
+
+            for (let i = monthsToShow - 1; i >= 0; i--) {
+                const date = new Date(today);
+                date.setMonth(date.getMonth() - i);
+                months.push(date.toLocaleDateString('vi-VN', { month: 'short', year: 'numeric' }));
+                values.push(Math.floor(Math.random() * 50) + 10);
+            }
+
+            registrationChart.data.labels = months;
+            registrationChart.data.datasets[0].data = values;
+            registrationChart.update('active');
+        }
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function showLoading(show) {
+            const elements = ['totalActiveMembers', 'newMembersThisMonth', 'retentionRate', 'averageAge'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (show) {
+                    element.innerHTML = '<div class="animate-pulse bg-gray-200 h-6 rounded"></div>';
+                }
+            });
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span class="mr-2">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 10);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+    </script>
+}

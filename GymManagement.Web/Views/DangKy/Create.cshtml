@@ -1,0 +1,278 @@
+@model GymManagement.Web.Data.Models.DangKy
+@{
+    ViewData["Title"] = "Tạo đăng ký mới";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">➕ Tạo đăng ký mới</h1>
+            <p class="text-gray-600">Tạo đăng ký gói tập hoặc lớp học cho thành viên</p>
+        </div>
+        <a href="@Url.Action("Index")" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            ← Quay lại danh sách
+        </a>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <form asp-action="Create" method="post" data-loading="true">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
+            <!-- Registration Type Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3">Loại đăng ký</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="relative">
+                        <input type="radio" id="packageType" name="registrationType" value="package" class="sr-only" checked>
+                        <label for="packageType" class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors registration-type-option">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">💳</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Gói tập</h3>
+                                    <p class="text-sm text-gray-500">Đăng ký gói tập theo thời hạn</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="radio" id="classType" name="registrationType" value="class" class="sr-only">
+                        <label for="classType" class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-300 transition-colors registration-type-option">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">🎓</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Lớp học</h3>
+                                    <p class="text-sm text-gray-500">Đăng ký lớp học cụ thể</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Member Selection -->
+            <div class="mb-6">
+                <label asp-for="NguoiDungId" class="block text-sm font-medium text-gray-700 mb-2">Thành viên</label>
+                <select asp-for="NguoiDungId" asp-items="ViewBag.Members" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Chọn thành viên --</option>
+                </select>
+                <span asp-validation-for="NguoiDungId" class="text-red-600 text-sm"></span>
+            </div>
+
+            <!-- Package Registration Section -->
+            <div id="packageSection" class="registration-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label asp-for="GoiTapId" class="block text-sm font-medium text-gray-700 mb-2">Gói tập</label>
+                        <select asp-for="GoiTapId" asp-items="ViewBag.Packages" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">-- Chọn gói tập --</option>
+                        </select>
+                        <span asp-validation-for="GoiTapId" class="text-red-600 text-sm"></span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Thời hạn (tháng)</label>
+                        <input type="number" id="packageDuration" min="1" max="24" value="1" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Registration Section -->
+            <div id="classSection" class="registration-section hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label asp-for="LopHocId" class="block text-sm font-medium text-gray-700 mb-2">Lớp học</label>
+                        <select asp-for="LopHocId" asp-items="ViewBag.Classes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">-- Chọn lớp học --</option>
+                        </select>
+                        <span asp-validation-for="LopHocId" class="text-red-600 text-sm"></span>
+                    </div>
+                    <div>
+                        <label asp-for="NgayBatDau" class="block text-sm font-medium text-gray-700 mb-2">Ngày bắt đầu</label>
+                        <input asp-for="NgayBatDau" type="date" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <span asp-validation-for="NgayBatDau" class="text-red-600 text-sm"></span>
+                    </div>
+                    <div>
+                        <label asp-for="NgayKetThuc" class="block text-sm font-medium text-gray-700 mb-2">Ngày kết thúc</label>
+                        <input asp-for="NgayKetThuc" type="date" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <span asp-validation-for="NgayKetThuc" class="text-red-600 text-sm"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Fields -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label asp-for="TrangThai" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                    <select asp-for="TrangThai" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="PENDING">Chờ xử lý</option>
+                    </select>
+                    <span asp-validation-for="TrangThai" class="text-red-600 text-sm"></span>
+                </div>
+                <div>
+                    <label asp-for="PhiDangKy" class="block text-sm font-medium text-gray-700 mb-2">Phí đăng ký (VNĐ)</label>
+                    <input asp-for="PhiDangKy" type="number" min="0" step="1000" placeholder="Để trống nếu dùng giá mặc định"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <span asp-validation-for="PhiDangKy" class="text-red-600 text-sm"></span>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-6">
+                <label asp-for="LyDoHuy" class="block text-sm font-medium text-gray-700 mb-2">Lý do hủy (nếu có)</label>
+                <textarea asp-for="LyDoHuy" rows="3" placeholder="Lý do hủy đăng ký (chỉ khi cần thiết)..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                <span asp-validation-for="LyDoHuy" class="text-red-600 text-sm"></span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4">
+                <a href="@Url.Action("Index")" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors">
+                    Hủy
+                </a>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors">
+                    ✅ Tạo đăng ký
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Registration type toggle
+        document.querySelectorAll('input[name="registrationType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                toggleRegistrationSections();
+                updateFormValidation();
+            });
+        });
+
+        function toggleRegistrationSections() {
+            const packageType = document.getElementById('packageType').checked;
+            const packageSection = document.getElementById('packageSection');
+            const classSection = document.getElementById('classSection');
+
+            if (packageType) {
+                packageSection.classList.remove('hidden');
+                classSection.classList.add('hidden');
+                
+                // Clear class fields
+                document.querySelector('select[name="LopHocId"]').value = '';
+                document.querySelector('input[name="NgayBatDau"]').value = '';
+                document.querySelector('input[name="NgayKetThuc"]').value = '';
+            } else {
+                packageSection.classList.add('hidden');
+                classSection.classList.remove('hidden');
+                
+                // Clear package fields
+                document.querySelector('select[name="GoiTapId"]').value = '';
+                
+                // Set default dates for class registration
+                const today = new Date();
+                const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+                
+                document.querySelector('input[name="NgayBatDau"]').value = today.toISOString().split('T')[0];
+                document.querySelector('input[name="NgayKetThuc"]').value = nextMonth.toISOString().split('T')[0];
+            }
+
+            // Update visual selection
+            document.querySelectorAll('.registration-type-option').forEach(option => {
+                option.classList.remove('border-blue-500', 'border-green-500', 'bg-blue-50', 'bg-green-50');
+                option.classList.add('border-gray-200');
+            });
+
+            if (packageType) {
+                document.querySelector('label[for="packageType"]').classList.add('border-blue-500', 'bg-blue-50');
+            } else {
+                document.querySelector('label[for="classType"]').classList.add('border-green-500', 'bg-green-50');
+            }
+        }
+
+        function updateFormValidation() {
+            const packageType = document.getElementById('packageType').checked;
+            
+            // Update required attributes based on registration type
+            if (packageType) {
+                document.querySelector('select[name="GoiTapId"]').required = true;
+                document.querySelector('select[name="LopHocId"]').required = false;
+                document.querySelector('input[name="NgayBatDau"]').required = false;
+                document.querySelector('input[name="NgayKetThuc"]').required = false;
+            } else {
+                document.querySelector('select[name="GoiTapId"]').required = false;
+                document.querySelector('select[name="LopHocId"]').required = true;
+                document.querySelector('input[name="NgayBatDau"]').required = true;
+                document.querySelector('input[name="NgayKetThuc"]').required = true;
+            }
+        }
+
+        // Package duration change handler
+        document.getElementById('packageDuration').addEventListener('change', function() {
+            const duration = parseInt(this.value);
+            if (duration > 0) {
+                const today = new Date();
+                const endDate = new Date(today.getFullYear(), today.getMonth() + duration, today.getDate());
+                
+                // Update hidden fields for package registration
+                document.querySelector('input[name="NgayBatDau"]').value = today.toISOString().split('T')[0];
+                document.querySelector('input[name="NgayKetThuc"]').value = endDate.toISOString().split('T')[0];
+            }
+        });
+
+        // Date validation for class registration
+        document.querySelector('input[name="NgayBatDau"]').addEventListener('change', function() {
+            const startDate = new Date(this.value);
+            const endDateInput = document.querySelector('input[name="NgayKetThuc"]');
+            const endDate = new Date(endDateInput.value);
+            
+            if (endDate <= startDate) {
+                const newEndDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate());
+                endDateInput.value = newEndDate.toISOString().split('T')[0];
+            }
+        });
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleRegistrationSections();
+            updateFormValidation();
+            
+            // Set default package duration
+            document.getElementById('packageDuration').dispatchEvent(new Event('change'));
+        });
+
+        // Form submission handler
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const packageType = document.getElementById('packageType').checked;
+            
+            if (packageType) {
+                // For package registration, set dates based on duration
+                const duration = parseInt(document.getElementById('packageDuration').value);
+                const today = new Date();
+                const endDate = new Date(today.getFullYear(), today.getMonth() + duration, today.getDate());
+                
+                document.querySelector('input[name="NgayBatDau"]').value = today.toISOString().split('T')[0];
+                document.querySelector('input[name="NgayKetThuc"]').value = endDate.toISOString().split('T')[0];
+                
+                // Clear class field
+                document.querySelector('select[name="LopHocId"]').value = '';
+            } else {
+                // For class registration, clear package field
+                document.querySelector('select[name="GoiTapId"]').value = '';
+            }
+        });
+    </script>
+}

@@ -1,0 +1,1099 @@
+@model IEnumerable<GymManagement.Web.Models.DTOs.GoiTapDto>
+
+@{
+    ViewData["Title"] = "Gói Tập - Thành viên";
+    Layout = "_MemberLayout";
+}
+
+<!-- Hero Section -->
+<div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6">
+                <span class="text-3xl">💪</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                Gói Tập <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Premium</span>
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Chọn gói tập phù hợp với mục tiêu và ngân sách của bạn. Tất cả gói đều bao gồm hỗ trợ từ huấn luyện viên chuyên nghiệp.
+            </p>
+            @if (ViewBag.RegisteredPackages != null && ViewBag.RegisteredPackages > 0)
+            {
+                <div class="mt-6 inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                    Bạn đã đăng ký @ViewBag.RegisteredPackages gói tập
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Policy Notice -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="ml-4 flex-1">
+                <h3 class="text-lg font-semibold text-blue-900 mb-2">🔒 Chính sách đăng ký gói tập</h3>
+                <div class="text-blue-800 space-y-2">
+                    <p class="flex items-center">
+                        <svg class="w-4 h-4 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <strong>Mỗi thành viên chỉ có thể sở hữu một gói tập tại một thời điểm</strong>
+                    </p>
+                    <p class="text-sm ml-6">Khi bạn đã đăng ký một gói (Cơ Bản, Tiêu Chuẩn hoặc VIP), bạn sẽ không thể đăng ký thêm gói khác trong thời gian gói hiện tại còn hiệu lực.</p>
+
+                    <div class="mt-4 p-3 bg-blue-100 rounded-lg">
+                        <p class="text-sm font-medium text-blue-900 mb-2">🔄 Nếu muốn chuyển đổi sang gói khác:</p>
+                        <ul class="text-sm text-blue-800 space-y-1 ml-4">
+                            <li>• Chờ gói hiện tại kết thúc, sau đó đăng ký gói mới</li>
+                            <li>• Hủy gói đang sử dụng (theo chính sách "hủy linh hoạt"), rồi đăng ký gói mới ngay sau đó</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Active Package Notice -->
+@if (ViewBag.HasActivePackage == true)
+{
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="ml-4 flex-1">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-2">ℹ️ Bạn đã có gói tập đang hoạt động</h3>
+                    <div class="text-blue-800 space-y-2">
+                        <p>Bạn đã đăng ký <strong>@ViewBag.RegisteredPackages gói tập</strong>. Dưới đây là các gói khác bạn chưa đăng ký.</p>
+                        <div class="flex items-center space-x-4 mt-3">
+                            <a href="@Url.Action("MyRegistrations", "Member")"
+                               class="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                Xem gói đang sử dụng
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Packages Section -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    @if (Model != null && Model.Any())
+    {
+        <!-- Filter/Sort Options -->
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8">
+            <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                <span class="text-sm font-medium text-gray-700">Sắp xếp theo:</span>
+                <select id="sortPackages" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="price-asc">Giá: Thấp đến Cao</option>
+                    <option value="price-desc">Giá: Cao đến Thấp</option>
+                    <option value="duration-asc">Thời hạn: Ngắn đến Dài</option>
+                    <option value="duration-desc">Thời hạn: Dài đến Ngắn</option>
+                </select>
+            </div>
+            <div class="text-sm text-gray-500">
+                @if (ViewBag.HasActivePackage == true)
+                {
+                    <span>Hiển thị <span class="font-semibold text-gray-900">@Model.Count()</span> gói tập chưa đăng ký</span>
+                    <span class="mx-2">•</span>
+                    <span class="text-blue-600 font-semibold">Đã đăng ký: @ViewBag.RegisteredPackages gói</span>
+                }
+                else
+                {
+                    <span>Tìm thấy <span class="font-semibold text-gray-900">@Model.Count()</span> gói tập có thể đăng ký</span>
+                }
+            </div>
+        </div>
+
+        <!-- Packages Grid -->
+        <div id="packagesGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            @foreach (var package in Model)
+            {
+                <div class="package-card relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden border border-gray-100 flex flex-col h-full"
+                     data-price="@package.Gia" data-duration="@package.ThoiHanThang">
+
+                    @* <!-- Popular Badge -->
+                    @if (package.ThoiHanThang == 6)
+                    {
+                        <div class="absolute top-4 right-4 z-10">
+                            <div class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
+                                ⭐ PHỔ BIẾN
+                            </div>
+                        </div>
+                    }
+                    @if (package.ThoiHanThang >= 12)
+                    {
+                        <div class="absolute top-4 right-4 z-10">
+                            <div class="bg-gradient-to-r from-purple-500 to-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                                👑 VIP
+                            </div>
+                        </div>
+                    } *@
+
+                    <!-- Package Header -->
+                    <div class="relative overflow-hidden">
+                        @{
+                            var gradientClass = package.ThoiHanThang switch
+                            {
+                                1 => "from-green-500 to-emerald-600",
+                                3 => "from-blue-500 to-indigo-600",
+                                6 => "from-purple-500 to-violet-600",
+                                12 => "from-pink-500 to-rose-600",
+                                _ => "from-gray-500 to-gray-600"
+                            };
+                            var iconEmoji = package.ThoiHanThang switch
+                            {
+                                1 => "🌱",
+                                3 => "🚀",
+                                6 => "💎",
+                                12 => "👑",
+                                _ => "💪"
+                            };
+                        }
+                        <div class="bg-gradient-to-br @gradientClass text-white p-6 sm:p-8 relative overflow-hidden">
+                            <!-- Background Pattern -->
+                            <div class="absolute inset-0 opacity-10">
+                                <div class="absolute inset-0 bg-white bg-opacity-5"></div>
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-5 rounded-full -translate-y-16 translate-x-16"></div>
+                                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white bg-opacity-5 rounded-full translate-y-12 -translate-x-12"></div>
+                            </div>
+
+                            <div class="relative z-10">
+                                <!-- Header with Icon and Duration -->
+                                <div class="flex items-start justify-between mb-6">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                                            <span class="text-2xl">@iconEmoji</span>
+                                        </div>
+                                        @if (package.ThoiHanThang == 6)
+                                        {
+                                            <div class="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold">
+                                                ⭐ PHỔ BIẾN
+                                            </div>
+                                        }
+                                        @if (package.ThoiHanThang >= 12)
+                                        {
+                                            <div class="bg-white text-purple-600 px-3 py-1 rounded-full text-xs font-bold">
+                                                👑 VIP
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-xs opacity-80 uppercase tracking-wide">Thời hạn</div>
+                                        <div class="text-lg font-bold">@package.ThoiHanThang tháng</div>
+                                    </div>
+                                </div>
+
+                                <!-- Package Name -->
+                                <h3 class="text-xl sm:text-2xl font-bold mb-4 leading-tight">@package.TenGoi</h3>
+
+                                <!-- Price Section -->
+                                <div class="mb-2">
+                                    <div class="flex items-baseline space-x-2">
+                                        <span class="text-3xl sm:text-4xl font-bold">@package.Gia.ToString("N0")</span>
+                                        <span class="text-base sm:text-lg opacity-90">VNĐ</span>
+                                    </div>
+                                    <div class="text-xs sm:text-sm opacity-80 mt-1">
+                                        ~@((package.Gia / package.ThoiHanThang).ToString("N0")) VNĐ/tháng
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Package Content -->
+                    <div class="p-6 sm:p-8 flex-1 flex flex-col">
+                        <!-- Description -->
+                        <div class="mb-6">
+                            <p class="text-gray-600 leading-relaxed text-sm sm:text-base">@package.MoTa</p>
+                        </div>
+
+                        <!-- Features -->
+                        <div class="space-y-4 mb-8 flex-1">
+                            <h4 class="text-lg font-semibold text-gray-900 mb-4">✨ Quyền lợi bao gồm:</h4>
+
+                            <div class="grid gap-3">
+                                <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-lg border border-green-100">
+                                    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="text-sm font-medium text-gray-900">Thời hạn sử dụng</span>
+                                        <p class="text-xs text-gray-600 mt-1">@package.ThoiHanThang tháng không giới hạn</p>
+                                    </div>
+                                </div>
+
+                                @if (package.SoBuoiToiDa.HasValue)
+                                {
+                                    <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <span class="text-sm font-medium text-gray-900">Số buổi tập</span>
+                                            <p class="text-xs text-gray-600 mt-1">Tối đa @package.SoBuoiToiDa buổi trong thời hạn</p>
+                                        </div>
+                                    </div>
+                                }
+
+                                <div class="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                                    <div class="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="text-sm font-medium text-gray-900">Thiết bị tập luyện</span>
+                                        <p class="text-xs text-gray-600 mt-1">Truy cập tất cả thiết bị hiện đại</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
+                                    <div class="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="text-sm font-medium text-gray-900">Hỗ trợ chuyên nghiệp</span>
+                                        <p class="text-xs text-gray-600 mt-1">Tư vấn từ HLV có kinh nghiệm</p>
+                                    </div>
+                                </div>
+
+                                @if (package.ThoiHanThang >= 6)
+                                {
+                                    <div class="flex items-start space-x-3 p-3 bg-pink-50 rounded-lg border border-pink-100">
+                                        <div class="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <span class="text-sm font-medium text-gray-900">Đánh giá thể trạng</span>
+                                            <p class="text-xs text-gray-600 mt-1">Miễn phí kiểm tra sức khỏe định kỳ</p>
+                                        </div>
+                                    </div>
+                                }
+
+                                @if (package.ThoiHanThang >= 12)
+                                {
+                                    <div class="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                                        <div class="w-6 h-6 bg-yellow-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <span class="text-sm font-medium text-gray-900">Ưu đãi VIP</span>
+                                            <p class="text-xs text-gray-600 mt-1">Quyền lợi đặc biệt cho thành viên lâu năm</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="mt-auto pt-6 border-t border-gray-100">
+                            <div class="space-y-3">
+                                <!-- View Details Button -->
+                                <a asp-action="PackageDetails" asp-route-id="@package.GoiTapId"
+                                   class="block w-full text-center bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-xl transition-all duration-300 border-2 border-gray-200 hover:border-gray-300 group">
+                                    <span class="flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Xem Chi Tiết
+                                    </span>
+                                </a>
+
+                                <!-- Register Button -->
+                                <button onclick="registerPackage(@package.GoiTapId, @package.ThoiHanThang, '@package.TenGoi', @package.Gia)"
+                                        class="block w-full bg-gradient-to-r @gradientClass hover:shadow-xl text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group relative overflow-hidden">
+                                    <!-- Button Background Effect -->
+                                    <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+                                    <span class="relative flex items-center justify-center">
+                                        <svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        </svg>
+                                        <span class="text-base font-bold">Đăng Ký Ngay</span>
+                                    </span>
+                                </button>
+                            </div>
+
+                            <!-- Trust Indicators -->
+                            <div class="mt-4 flex items-center justify-center space-x-4 text-xs text-gray-500">
+                                <div class="flex items-center">
+                                    <svg class="w-3 h-3 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Bảo đảm chất lượng
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-3 h-3 mr-1 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Hủy linh hoạt
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- No Packages Available -->
+        <div class="text-center py-16">
+            <div class="max-w-md mx-auto">
+                <div class="w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8V4a1 1 0 00-1-1H7a1 1 0 00-1 1v1m8 0V4.5"></path>
+                    </svg>
+                </div>
+
+                <h3 class="text-xl font-semibold text-gray-900 mb-3">
+                    @if (ViewBag.HasActivePackage == true)
+                    {
+                        <span>🎉 Bạn đã đăng ký tất cả gói tập!</span>
+                    }
+                    else
+                    {
+                        <span>Không có gói tập nào</span>
+                    }
+                </h3>
+
+                <p class="text-gray-600 mb-6">
+                    @if (ViewBag.HasActivePackage == true)
+                    {
+                        <span>Bạn đã đăng ký tất cả các gói tập có sẵn. Hãy xem các gói đang sử dụng hoặc khám phá các lớp học.</span>
+                    }
+                    else
+                    {
+                        <span>Hiện tại không có gói tập nào có sẵn. Vui lòng quay lại sau.</span>
+                    }
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    @if (ViewBag.HasActivePackage == true)
+                    {
+                        <a href="@Url.Action("MyRegistrations", "Member")"
+                           class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Xem gói đang sử dụng
+                        </a>
+                        <a href="@Url.Action("Classes", "Member")"
+                           class="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                            </svg>
+                            Xem lớp học
+                        </a>
+                    }
+                    <a href="@Url.Action("Dashboard", "Member")"
+                       class="inline-flex items-center px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Quay về Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Enhanced Registration Modal -->
+<div id="registrationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 backdrop-blur-sm">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] transform transition-all duration-300 scale-95 flex flex-col" id="modalContent">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
+                            <span class="text-xl">💪</span>
+                        </div>
+                        <h3 class="text-xl font-bold">Xác nhận đăng ký</h3>
+                    </div>
+                    <button onclick="closeModal()" class="text-white hover:text-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body - Scrollable -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-2">Xác nhận đăng ký gói tập</h4>
+                    <p class="text-gray-600">Bạn có chắc chắn muốn đăng ký gói tập này không?</p>
+                </div>
+
+                <!-- Package Summary -->
+                <div id="packageSummary" class="bg-gray-50 rounded-xl p-4 mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">Gói tập:</span>
+                        <span id="packageName" class="font-semibold text-gray-900"></span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm text-gray-600">Thời hạn:</span>
+                        <span id="packageDuration" class="font-semibold text-gray-900"></span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Tổng tiền:</span>
+                        <span id="packagePrice" class="font-bold text-blue-600 text-lg"></span>
+                    </div>
+                </div>
+
+                <!-- Promotion Code Section -->
+                <div class="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+                    <!-- Applied Promotion Display -->
+                    <div id="appliedPromotionDisplay" class="hidden mb-4">
+                        <div class="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="flex items-center">
+                                        <span id="appliedPromotionCode" class="font-semibold text-gray-900 mr-2"></span>
+                                        <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">Đã áp dụng</span>
+                                    </div>
+                                    <p id="appliedPromotionDesc" class="text-sm text-gray-600 mt-1"></p>
+                                </div>
+                            </div>
+                            <button onclick="removeAppliedPromotion()" class="text-gray-400 hover:text-red-500 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Promotion Code Input -->
+                    <div id="promotionCodeInput">
+                        <label for="promotionCode" class="block text-sm font-medium text-gray-700 mb-3">
+                            <svg class="w-4 h-4 inline mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            Mã khuyến mãi (tùy chọn)
+                        </label>
+                    <div class="flex space-x-2">
+                        <input type="text"
+                               id="promotionCode"
+                               placeholder="Nhập mã khuyến mãi để được giảm giá"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        <button type="button"
+                                onclick="applyPromotionCode()"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
+                            Áp dụng
+                        </button>
+                    </div>
+
+                    <!-- Promotion feedback -->
+                    <div id="promotionFeedback" class="mt-3 text-sm hidden">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Price breakdown -->
+                    <div id="priceBreakdown" class="mt-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg hidden">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Giá gốc:</span>
+                            <span id="originalPrice" class="font-medium">1,500,000 VNĐ</span>
+                        </div>
+                        <div class="flex justify-between text-sm text-green-600 mb-2">
+                            <span>Giảm giá:</span>
+                            <span id="discountAmount" class="font-medium">-0 VNĐ</span>
+                        </div>
+                        <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-2">
+                            <span class="text-gray-800">Tổng thanh toán:</span>
+                            <span id="finalPrice" class="text-blue-600">1,500,000 VNĐ</span>
+                        </div>
+                    </div>
+                    </div> <!-- End promotionCodeInput -->
+                </div>
+            </div>
+
+            <!-- Modal Footer - Fixed -->
+            <div class="border-t border-gray-200 p-6 bg-gray-50 rounded-b-2xl">
+                <div class="flex space-x-3">
+                    <button onclick="closeModal()"
+                            class="flex-1 bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-xl border border-gray-300 transition-all duration-300">
+                        <span class="flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Hủy bỏ
+                        </span>
+                    </button>
+                    <button onclick="confirmRegistration()"
+                            class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        <span class="flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Xác nhận đăng ký
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedPackageId = null;
+        let selectedDuration = null;
+        let selectedPackageName = null;
+        let selectedPackagePrice = null;
+        let appliedPromotionId = null;
+
+        // Package registration function - Show modal with promotion code support
+        function registerPackage(packageId, duration, packageName, price) {
+            selectedPackageId = packageId;
+            selectedDuration = duration;
+            selectedPackageName = packageName;
+
+            // ✅ FIXED: price is already the total price for the entire package duration
+            // No need to multiply by duration since Gia in database is total package price
+            selectedPackagePrice = price;
+
+            console.log('✅ FIXED registerPackage:', {
+                packageId,
+                duration,
+                packageName,
+                totalPackagePrice: price,
+                monthlyRate: (price / duration).toFixed(0),
+                selectedPackagePrice
+            });
+
+            // Update modal content
+            document.getElementById('packageName').textContent = packageName;
+            document.getElementById('packageDuration').textContent = duration + ' tháng';
+            document.getElementById('packagePrice').textContent = new Intl.NumberFormat('vi-VN').format(price) + ' VNĐ';
+            document.getElementById('originalPrice').textContent = new Intl.NumberFormat('vi-VN').format(price) + ' VNĐ';
+            document.getElementById('finalPrice').textContent = new Intl.NumberFormat('vi-VN').format(price) + ' VNĐ';
+
+            // Reset promotion code form
+            document.getElementById('promotionCode').value = '';
+            document.getElementById('promotionFeedback').classList.add('hidden');
+            document.getElementById('priceBreakdown').classList.add('hidden');
+            document.getElementById('appliedPromotionDisplay').classList.add('hidden');
+            document.getElementById('promotionCodeInput').classList.remove('hidden');
+            appliedPromotionId = null;
+
+            // Reset price displays to package price
+            document.getElementById('originalPrice').textContent = new Intl.NumberFormat('vi-VN').format(price) + ' VNĐ';
+            document.getElementById('finalPrice').textContent = new Intl.NumberFormat('vi-VN').format(price) + ' VNĐ';
+
+            // Show modal with animation
+            const modal = document.getElementById('registrationModal');
+            const modalContent = document.getElementById('modalContent');
+            modal.classList.remove('hidden');
+
+            // Animate modal appearance
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        // Remove applied promotion function
+        function removeAppliedPromotion() {
+            // Reset promotion state
+            appliedPromotionId = null;
+
+            // Hide applied promotion display
+            document.getElementById('appliedPromotionDisplay').classList.add('hidden');
+
+            // Show promotion code input
+            document.getElementById('promotionCodeInput').classList.remove('hidden');
+
+            // Clear promotion code input
+            document.getElementById('promotionCode').value = '';
+
+            // Hide price breakdown
+            document.getElementById('priceBreakdown').classList.add('hidden');
+
+            // Reset price display to original
+            document.getElementById('packagePrice').textContent = new Intl.NumberFormat('vi-VN').format(selectedPackagePrice) + ' VNĐ';
+
+            // Clear feedback
+            document.getElementById('promotionFeedback').classList.add('hidden');
+        }
+
+        // Show applied promotion as tag
+        function showAppliedPromotionTag(promotionCode, promotionDescription, discountAmount) {
+            // Update applied promotion display
+            document.getElementById('appliedPromotionCode').textContent = promotionCode;
+            document.getElementById('appliedPromotionDesc').textContent = promotionDescription || `Giảm ${new Intl.NumberFormat('vi-VN').format(discountAmount)} VNĐ`;
+
+            // Show applied promotion display
+            document.getElementById('appliedPromotionDisplay').classList.remove('hidden');
+
+            // Hide promotion code input
+            document.getElementById('promotionCodeInput').classList.add('hidden');
+        }
+
+        // Apply promotion code function
+        async function applyPromotionCode() {
+            const promotionCode = document.getElementById('promotionCode').value.trim();
+            const feedbackDiv = document.getElementById('promotionFeedback');
+            const priceBreakdownDiv = document.getElementById('priceBreakdown');
+
+            if (!promotionCode) {
+                showPromotionFeedback('Vui lòng nhập mã khuyến mãi', 'error');
+                return;
+            }
+
+            try {
+                // Show loading state
+                showPromotionFeedback('Đang kiểm tra mã khuyến mãi...', 'loading');
+
+                const response = await fetch('/api/KhuyenMai/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        promotionCode: promotionCode,
+                        packageId: selectedPackageId,
+                        duration: selectedDuration
+                    })
+                });
+
+                const result = await response.json();
+
+                // 🐛 DEBUG: Log API response
+                console.log('🐛 DEBUG API Response:', result);
+                console.log('🐛 DEBUG selectedPackagePrice:', selectedPackagePrice);
+
+                if (result.success) {
+                    appliedPromotionId = result.promotionId;
+                    const originalPrice = selectedPackagePrice;
+                    const finalPrice = result.finalPrice;
+                    const discountAmount = originalPrice - finalPrice;
+
+                    // 🐛 DEBUG: Log calculation
+                    console.log('🐛 DEBUG Calculation:', {
+                        originalPrice,
+                        finalPrice,
+                        discountAmount,
+                        apiOriginalPrice: result.originalPrice,
+                        apiDiscountAmount: result.discountAmount
+                    });
+
+                    // Update price display
+                    document.getElementById('originalPrice').textContent = new Intl.NumberFormat('vi-VN').format(originalPrice) + ' VNĐ';
+                    document.getElementById('discountAmount').textContent = '-' + new Intl.NumberFormat('vi-VN').format(discountAmount) + ' VNĐ';
+                    document.getElementById('finalPrice').textContent = new Intl.NumberFormat('vi-VN').format(finalPrice) + ' VNĐ';
+                    document.getElementById('packagePrice').textContent = new Intl.NumberFormat('vi-VN').format(finalPrice) + ' VNĐ';
+
+                    // Show applied promotion as tag
+                    showAppliedPromotionTag(promotionCode, result.promotionDescription, discountAmount);
+
+                    // Show price breakdown
+                    priceBreakdownDiv.classList.remove('hidden');
+
+                    // Clear feedback
+                    document.getElementById('promotionFeedback').classList.add('hidden');
+                } else {
+                    appliedPromotionId = null;
+                    showPromotionFeedback(`❌ ${result.message}`, 'error');
+                    priceBreakdownDiv.classList.add('hidden');
+
+                    // Reset price display
+                    document.getElementById('packagePrice').textContent = new Intl.NumberFormat('vi-VN').format(selectedPackagePrice) + ' VNĐ';
+                }
+            } catch (error) {
+                console.error('Error validating promotion code:', error);
+                showPromotionFeedback('❌ Có lỗi xảy ra khi kiểm tra mã khuyến mãi', 'error');
+                appliedPromotionId = null;
+                priceBreakdownDiv.classList.add('hidden');
+            }
+        }
+
+        // Show promotion feedback helper
+        function showPromotionFeedback(message, type) {
+            const feedbackDiv = document.getElementById('promotionFeedback');
+            feedbackDiv.classList.remove('hidden', 'text-green-600', 'text-red-600', 'text-blue-600');
+
+            switch(type) {
+                case 'success':
+                    feedbackDiv.classList.add('text-green-600');
+                    break;
+                case 'error':
+                    feedbackDiv.classList.add('text-red-600');
+                    break;
+                case 'loading':
+                    feedbackDiv.classList.add('text-blue-600');
+                    break;
+            }
+
+            feedbackDiv.textContent = message;
+        }
+
+        // Close modal function
+        function closeModal() {
+            const modal = document.getElementById('registrationModal');
+            const modalContent = document.getElementById('modalContent');
+
+            // Animate modal disappearance
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                selectedPackageId = null;
+                selectedDuration = null;
+                selectedPackageName = null;
+                selectedPackagePrice = null;
+            }, 300);
+        }
+
+        // Confirm registration function
+        function confirmRegistration() {
+            if (selectedPackageId && selectedDuration) {
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+
+                // Show loading state
+                button.innerHTML = `
+                    <span class="flex items-center justify-center">
+                        <svg class="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Đang xử lý thanh toán...
+                    </span>
+                `;
+                button.disabled = true;
+
+                const formData = new FormData();
+                formData.append('goiTapId', selectedPackageId);
+                formData.append('thoiHanThang', selectedDuration);
+                if (appliedPromotionId) {
+                    formData.append('khuyenMaiId', appliedPromotionId);
+                }
+                formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+                fetch('@Url.Action("CreatePackagePayment", "ThanhToan")', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Call VNPay Area to create payment URL
+                        showNotification('✅ Đang tạo thanh toán...', 'success');
+                        
+                        fetch('/VNPayAPI/Home/CreatePayment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                thanhToanId: data.thanhToanId,
+                                returnUrl: data.returnUrl
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(vnpayData => {
+                            if (vnpayData.success) {
+                                showNotification('✅ Đang chuyển đến trang thanh toán...', 'success');
+                                // Redirect trực tiếp đến VNPay thay vì hiển thị modal
+                                setTimeout(() => {
+                                    window.location.href = vnpayData.paymentUrl;
+                                }, 1000);
+                                button.innerHTML = originalText;
+                                button.disabled = false;
+                            } else {
+                                showNotification('❌ ' + vnpayData.message, 'error');
+                                button.innerHTML = originalText;
+                                button.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('VNPay Error:', error);
+                            showNotification('❌ Có lỗi xảy ra khi tạo thanh toán VNPay.', 'error');
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        });
+                    } else {
+                        showNotification('❌ ' + data.message, 'error');
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('❌ Có lỗi xảy ra khi đăng ký gói tập.', 'error');
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                });
+            }
+        }
+
+        // Notification function
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span class="mr-2">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 10);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Package sorting functionality
+        document.getElementById('sortPackages').addEventListener('change', function() {
+            const sortBy = this.value;
+            const grid = document.getElementById('packagesGrid');
+            const cards = Array.from(grid.children);
+
+            cards.sort((a, b) => {
+                const priceA = parseInt(a.dataset.price);
+                const priceB = parseInt(b.dataset.price);
+                const durationA = parseInt(a.dataset.duration);
+                const durationB = parseInt(b.dataset.duration);
+
+                switch(sortBy) {
+                    case 'price-asc':
+                        return priceA - priceB;
+                    case 'price-desc':
+                        return priceB - priceA;
+                    case 'duration-asc':
+                        return durationA - durationB;
+                    case 'duration-desc':
+                        return durationB - durationA;
+                    default:
+                        return 0;
+                }
+            });
+
+            // Animate cards out
+            cards.forEach((card, index) => {
+                card.style.transform = 'translateY(20px)';
+                card.style.opacity = '0';
+            });
+
+            // Reorder and animate cards in
+            setTimeout(() => {
+                cards.forEach(card => grid.appendChild(card));
+                cards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.style.transform = 'translateY(0)';
+                        card.style.opacity = '1';
+                    }, index * 100);
+                });
+            }, 300);
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('registrationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !document.getElementById('registrationModal').classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+
+        // Add smooth transitions to package cards
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.package-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 150);
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        /* Custom animations and transitions */
+        .package-card {
+            transition: all 0.3s ease;
+        }
+
+        .package-card:hover {
+            transform: translateY(-8px);
+        }
+
+        /* Gradient text effect */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom scrollbar for better UX */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+
+        /* Loading animation */
+        @@keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Modal backdrop blur effect */
+        .backdrop-blur-sm {
+            backdrop-filter: blur(4px);
+        }
+
+        /* Smooth transitions for all interactive elements */
+        button, a, select {
+            transition: all 0.3s ease;
+        }
+
+        /* Custom focus styles */
+        button:focus, a:focus, select:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        /* Responsive grid improvements */
+        @@media (max-width: 768px) {
+            .package-card {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Enhanced hover effects for buttons */
+        .btn-gradient:hover {
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Notification styles */
+        .notification-enter {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .notification-enter-active {
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        .notification-exit {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification-exit-active {
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+    </style>
+}
+
+<!-- Anti-forgery token -->
+@Html.AntiForgeryToken()
+
+@* Include QR Payment Modal *@
+@await Html.PartialAsync("_QRPaymentModal")

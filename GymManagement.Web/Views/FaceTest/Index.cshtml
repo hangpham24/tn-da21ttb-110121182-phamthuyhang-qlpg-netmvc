@@ -1,0 +1,1810 @@
+@{
+    ViewData["Title"] = "Face Recognition Testing - Admin";
+    Layout = "_Layout";
+}
+
+@* CSRF Token for AJAX requests *@
+<form id="csrfForm" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">🧪 Face Recognition Testing</h1>
+                <p class="text-gray-600 mt-2">Comprehensive testing suite for face recognition system</p>
+            </div>
+            <div class="flex space-x-3">
+                <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    🔄 Refresh
+                </button>
+                <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📊 Export Results
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    👥
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Members</p>
+                    <p class="text-2xl font-bold text-gray-900" id="totalMembers">@ViewBag.Stats?.TotalMembers</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    👁️
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Registered Faces</p>
+                    <p class="text-2xl font-bold text-gray-900" id="registeredFaces">@ViewBag.Stats?.TotalRegisteredFaces</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    📈
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Registration Rate</p>
+                    <p class="text-2xl font-bold text-gray-900" id="registrationRate">0%</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    ⚡
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">System Status</p>
+                    <p class="text-lg font-bold text-green-600" id="systemStatus">Ready</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Testing Interface -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Face Registration Test -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">📝 Face Registration Test</h2>
+            
+            <!-- Member Selection -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select Member</label>
+                <select id="memberSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Choose a member...</option>
+                    @if (ViewBag.Members != null)
+                    {
+                        @foreach (var member in ViewBag.Members)
+                        {
+                            <option value="@member.NguoiDungId">@member.Ho @member.Ten (@member.Email)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Camera Section -->
+            <div class="mb-4">
+                <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="height: 300px;">
+                    <video id="registerVideo" class="w-full h-full object-cover" autoplay muted></video>
+                    <canvas id="registerCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                    
+                    <!-- Status Overlay -->
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <div class="bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm">
+                            <div id="registerCameraStatus">📷 Camera not started</div>
+                            <div id="registerFaceStatus">👁️ No face detected</div>
+                            <div id="registerQualityStatus">⭐ Quality: Not assessed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex space-x-3 mb-4">
+                <button id="startRegisterCameraBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📷 Start Camera
+                </button>
+                <button id="stopRegisterCameraBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    ⏹️ Stop Camera
+                </button>
+            </div>
+
+            <button id="registerButton" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                ✅ Register Face
+            </button>
+
+            <!-- Results -->
+            <div id="registerResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-medium text-gray-900 mb-2">Registration Results:</h3>
+                    <div id="registerResultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Face Recognition Test -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">🔍 Face Recognition Test</h2>
+            
+            <!-- Camera Section -->
+            <div class="mb-4">
+                <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="height: 300px;">
+                    <video id="recognizeVideo" class="w-full h-full object-cover" autoplay muted></video>
+                    <canvas id="recognizeCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                    
+                    <!-- Status Overlay -->
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <div class="bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm">
+                            <div id="recognizeCameraStatus">📷 Camera not started</div>
+                            <div id="recognizeFaceStatus">👁️ No face detected</div>
+                            <div id="recognizeConfidenceStatus">🎯 Confidence: N/A</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex space-x-3 mb-4">
+                <button id="startRecognizeCameraBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📷 Start Camera
+                </button>
+                <button id="stopRecognizeCameraBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    ⏹️ Stop Camera
+                </button>
+            </div>
+
+            <button id="recognizeButton" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                🔍 Recognize Face
+            </button>
+
+            <!-- Results -->
+            <div id="recognizeResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-medium text-gray-900 mb-2">Recognition Results:</h3>
+                    <div id="recognizeResultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Testing Tools -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Face Similarity Test -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">🔗 Similarity Test</h3>
+            <p class="text-sm text-gray-600 mb-4">Compare two face descriptors</p>
+            
+            <div class="space-y-3">
+                <button id="captureFace1Btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📸 Capture Face 1
+                </button>
+                <button id="captureFace2Btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📸 Capture Face 2
+                </button>
+                <button id="compareFacesBtn" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                    🔗 Compare Faces
+                </button>
+            </div>
+
+            <div id="similarityResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <div id="similarityContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">📊 Performance Metrics</h3>
+            
+            <div class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Avg Processing Time:</span>
+                    <span class="text-sm font-medium" id="avgProcessingTime">N/A</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Success Rate:</span>
+                    <span class="text-sm font-medium" id="successRate">N/A</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Total Tests:</span>
+                    <span class="text-sm font-medium" id="totalTests">0</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-600">Failed Tests:</span>
+                    <span class="text-sm font-medium" id="failedTests">0</span>
+                </div>
+            </div>
+
+            <button id="resetMetricsBtn" class="w-full mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                🔄 Reset Metrics
+            </button>
+        </div>
+
+        <!-- Bulk Testing -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">⚡ Bulk Testing</h3>
+            <p class="text-sm text-gray-600 mb-4">Test multiple faces at once</p>
+            
+            <div class="space-y-3">
+                <button id="startBulkCaptureBtn" class="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📹 Start Bulk Capture
+                </button>
+                <div class="text-sm text-gray-600">
+                    Captured: <span id="bulkCaptureCount">0</span> faces
+                </div>
+                <button id="runBulkTestBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                    🚀 Run Bulk Test
+                </button>
+            </div>
+
+            <div id="bulkResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-3">
+                    <div id="bulkContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registered Faces Management -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-bold text-gray-900">👥 Registered Faces Management</h2>
+            <button id="refreshFacesBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                🔄 Refresh List
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Algorithm</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Embedding Size</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="facesTableBody" class="bg-white divide-y divide-gray-200">
+                    <!-- Dynamic content will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div id="loadingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 max-w-sm mx-auto">
+        <div class="flex items-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-gray-900">Processing...</p>
+                <p class="text-sm text-gray-500" id="loadingMessage">Please wait</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Face-API.js -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <script>
+        // Debug: Check if script is loading
+        console.log('🚀 FaceTest JavaScript is loading...');
+
+        // Global variables
+        let isModelLoaded = false;
+        let errorLog = [];
+        let registerVideo, registerCanvas, recognizeVideo, recognizeCanvas;
+        let registerStream, recognizeStream;
+        let registerDetectionInterval, recognizeDetectionInterval;
+        let currentRegisterDescriptor = null;
+        let currentRecognizeDescriptor = null;
+        let face1Descriptor = null;
+        let face2Descriptor = null;
+        let bulkDescriptors = [];
+        let testMetrics = {
+            totalTests: 0,
+            successfulTests: 0,
+            failedTests: 0,
+            totalProcessingTime: 0
+        };
+
+        // Check browser compatibility
+        function checkBrowserCompatibility() {
+            const issues = [];
+
+            // Check HTTPS
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                issues.push('⚠️ HTTPS required for camera access');
+            }
+
+            // Check getUserMedia support
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                issues.push('❌ Camera not supported in this browser');
+            }
+
+            // Check Face-API.js
+            if (typeof faceapi === 'undefined') {
+                issues.push('❌ Face-API.js not loaded');
+            }
+
+            if (issues.length > 0) {
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4';
+                warningDiv.innerHTML = `
+                    <strong>Browser Compatibility Issues:</strong><br>
+                    ${issues.join('<br>')}
+                `;
+                document.querySelector('.max-w-7xl').insertBefore(warningDiv, document.querySelector('.max-w-7xl').firstChild);
+            }
+
+            return issues.length === 0;
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('DOMContentLoaded event fired');
+
+            try {
+                // Check if Face-API.js is loaded
+                console.log('🔍 Checking Face-API.js availability...');
+                if (typeof faceapi === 'undefined') {
+                    console.error('❌ Face-API.js is not loaded!');
+                    updateSystemStatus('Face-API.js not loaded', 'text-red-600');
+                    return;
+                }
+                console.log('✅ Face-API.js is available:', faceapi);
+
+                // Check browser compatibility first
+                checkBrowserCompatibility();
+
+                // Initialize video elements
+                registerVideo = document.getElementById('registerVideo');
+                registerCanvas = document.getElementById('registerCanvas');
+                recognizeVideo = document.getElementById('recognizeVideo');
+                recognizeCanvas = document.getElementById('recognizeCanvas');
+
+                console.log('Video elements initialized:', {
+                    registerVideo: !!registerVideo,
+                    registerCanvas: !!registerCanvas,
+                    recognizeVideo: !!recognizeVideo,
+                    recognizeCanvas: !!recognizeCanvas
+                });
+
+                // Add event listeners for buttons
+                setupEventListeners();
+                console.log('Event listeners setup completed');
+
+                // Load Face-API.js models
+                console.log('Starting to load models...');
+                await loadModels();
+                console.log('Models loaded successfully');
+
+                // Load initial data
+                console.log('Loading initial data...');
+                await loadAllFaces();
+                await updatePerformanceMetrics();
+                console.log('Initial data loaded successfully');
+
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                showError('Initialization failed: ' + error.message);
+            }
+        });
+
+        function setupEventListeners() {
+            console.log('Setting up event listeners...');
+
+            // Helper function to safely add event listener
+            function safeAddEventListener(id, event, handler) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener(event, handler);
+                    console.log(`Event listener added for ${id}`);
+                } else {
+                    console.error(`Element not found: ${id}`);
+                }
+            }
+
+            // Face Registration buttons
+            safeAddEventListener('startRegisterCameraBtn', 'click', startRegisterCamera);
+            safeAddEventListener('stopRegisterCameraBtn', 'click', stopRegisterCamera);
+            safeAddEventListener('registerButton', 'click', testRegisterFace);
+
+            // Face Recognition buttons
+            safeAddEventListener('startRecognizeCameraBtn', 'click', startRecognizeCamera);
+            safeAddEventListener('stopRecognizeCameraBtn', 'click', stopRecognizeCamera);
+            safeAddEventListener('recognizeButton', 'click', testRecognizeFace);
+
+            // Similarity Test buttons
+            safeAddEventListener('captureFace1Btn', 'click', captureFace1);
+            safeAddEventListener('captureFace2Btn', 'click', captureFace2);
+            safeAddEventListener('compareFacesBtn', 'click', testSimilarity);
+
+            // Bulk Testing buttons
+            safeAddEventListener('startBulkCaptureBtn', 'click', startBulkCapture);
+            safeAddEventListener('runBulkTestBtn', 'click', runBulkTest);
+
+            // Management buttons
+            safeAddEventListener('refreshBtn', 'click', refreshDashboard);
+            safeAddEventListener('exportBtn', 'click', exportTestResults);
+            safeAddEventListener('resetMetricsBtn', 'click', resetMetrics);
+            safeAddEventListener('refreshFacesBtn', 'click', loadAllFaces);
+
+            console.log('Event listeners setup completed');
+        }
+
+        async function loadModels() {
+            try {
+                updateSystemStatus('Loading AI models...', 'text-yellow-600');
+
+                // Use controller endpoint for HTTPS tunnel compatibility
+                const baseUrl = window.location.origin;
+                const modelsPath = `${baseUrl}/FaceTest/models`;
+
+                console.log('Loading models from:', modelsPath);
+
+                // Load models theo đúng cách của Face-API.js documentation
+                console.log('Loading TinyFaceDetector...');
+                await faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath);
+                console.log('✅ TinyFaceDetector loaded');
+
+                console.log('Loading FaceLandmark68Net...');
+                await faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath);
+                console.log('✅ FaceLandmark68Net loaded');
+
+                console.log('Loading FaceRecognitionNet...');
+                await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
+                console.log('✅ FaceRecognitionNet loaded');
+
+                // Verify all models are loaded theo Face-API.js best practices
+                if (!faceapi.nets.tinyFaceDetector.isLoaded) {
+                    throw new Error('TinyFaceDetector failed to load');
+                }
+                if (!faceapi.nets.faceLandmark68Net.isLoaded) {
+                    throw new Error('FaceLandmark68Net failed to load');
+                }
+                if (!faceapi.nets.faceRecognitionNet.isLoaded) {
+                    throw new Error('FaceRecognitionNet failed to load');
+                }
+
+                isModelLoaded = true;
+                updateSystemStatus('Ready', 'text-green-600');
+                console.log('✅ All models loaded and verified successfully');
+
+            } catch (error) {
+                console.error('Error loading models:', error);
+                console.error('Error details:', error.message);
+                updateSystemStatus(`Model Load Error: ${error.message}`, 'text-red-600');
+
+                // Show detailed error in UI
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+                errorDiv.innerHTML = `
+                    <strong>Model Loading Failed:</strong><br>
+                    ${error.message}<br>
+                    <small>Check browser console for details</small>
+                `;
+                document.querySelector('.max-w-7xl').insertBefore(errorDiv, document.querySelector('.max-w-7xl').firstChild);
+            }
+        }
+
+        function updateSystemStatus(status, colorClass) {
+            const statusElement = document.getElementById('systemStatus');
+            statusElement.textContent = status;
+            statusElement.className = `text-lg font-bold ${colorClass}`;
+        }
+
+        // Error logging utility
+        function _logError(category, details) {
+            const errorEntry = {
+                category: category,
+                details: details,
+                timestamp: new Date().toISOString(),
+                userAgent: navigator.userAgent,
+                url: window.location.href
+            };
+
+            errorLog.push(errorEntry);
+            console.error(`[${category}]`, errorEntry);
+
+            // Keep only last 50 errors to prevent memory issues
+            if (errorLog.length > 50) {
+                errorLog = errorLog.slice(-50);
+            }
+        }
+
+        // Camera Management Functions
+        async function startRegisterCamera() {
+            try {
+                // Check HTTPS requirement
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                    showError('Camera requires HTTPS connection. Please use HTTPS URL.');
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    showError('AI models not loaded yet. Please wait.');
+                    return;
+                }
+
+                // Check if getUserMedia is available
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showError('Camera not supported in this browser.');
+                    return;
+                }
+
+                console.log('Requesting camera access...');
+                registerStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    }
+                });
+                registerVideo.srcObject = registerStream;
+
+                updateStatus('registerCameraStatus', '✅ Camera active');
+                startRegisterDetection();
+
+            } catch (error) {
+                console.error('Error starting register camera:', error);
+                let errorMessage = 'Camera error';
+
+                if (error.name === 'NotAllowedError') {
+                    errorMessage = 'Camera permission denied';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage = 'No camera found';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMessage = 'Camera not supported';
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage = 'Camera in use by another app';
+                }
+
+                updateStatus('registerCameraStatus', `❌ ${errorMessage}`);
+                showError(`Camera Error: ${errorMessage}. ${error.message}`);
+            }
+        }
+
+        async function stopRegisterCamera() {
+            if (registerStream) {
+                registerStream.getTracks().forEach(track => track.stop());
+                registerStream = null;
+            }
+            if (registerDetectionInterval) {
+                clearInterval(registerDetectionInterval);
+                registerDetectionInterval = null;
+            }
+            updateStatus('registerCameraStatus', '📷 Camera stopped');
+            updateStatus('registerFaceStatus', '👁️ No face detected');
+            updateStatus('registerQualityStatus', '⭐ Quality: Not assessed');
+            document.getElementById('registerButton').disabled = true;
+        }
+
+        async function startRecognizeCamera() {
+            try {
+                // Check HTTPS requirement
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                    showError('Camera requires HTTPS connection. Please use HTTPS URL.');
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    showError('AI models not loaded yet. Please wait.');
+                    return;
+                }
+
+                // Check if getUserMedia is available
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showError('Camera not supported in this browser.');
+                    return;
+                }
+
+                console.log('Requesting camera access for recognition...');
+                recognizeStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    }
+                });
+                recognizeVideo.srcObject = recognizeStream;
+
+                updateStatus('recognizeCameraStatus', '✅ Camera active');
+                startRecognizeDetection();
+
+            } catch (error) {
+                console.error('Error starting recognize camera:', error);
+                let errorMessage = 'Camera error';
+
+                if (error.name === 'NotAllowedError') {
+                    errorMessage = 'Camera permission denied';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage = 'No camera found';
+                } else if (error.name === 'NotSupportedError') {
+                    errorMessage = 'Camera not supported';
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage = 'Camera in use by another app';
+                }
+
+                updateStatus('recognizeCameraStatus', `❌ ${errorMessage}`);
+                showError(`Camera Error: ${errorMessage}. ${error.message}`);
+            }
+        }
+
+        async function stopRecognizeCamera() {
+            if (recognizeStream) {
+                recognizeStream.getTracks().forEach(track => track.stop());
+                recognizeStream = null;
+            }
+            if (recognizeDetectionInterval) {
+                clearInterval(recognizeDetectionInterval);
+                recognizeDetectionInterval = null;
+            }
+            updateStatus('recognizeCameraStatus', '📷 Camera stopped');
+            updateStatus('recognizeFaceStatus', '👁️ No face detected');
+            updateStatus('recognizeConfidenceStatus', '🎯 Confidence: N/A');
+            document.getElementById('recognizeButton').disabled = true;
+        }
+
+        // Face Detection Functions
+        function startRegisterDetection() {
+            console.log('🔍 Starting register detection...');
+            console.log('📹 Video dimensions:', registerVideo.videoWidth, 'x', registerVideo.videoHeight);
+            console.log('🤖 Models loaded:', isModelLoaded);
+
+            registerDetectionInterval = setInterval(async () => {
+                if (!registerVideo.videoWidth || !registerVideo.videoHeight) {
+                    console.log('⚠️ Video not ready:', registerVideo.videoWidth, registerVideo.videoHeight);
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    console.log('⚠️ Models not loaded yet');
+                    updateStatus('registerFaceStatus', '🔄 Loading models...');
+                    return;
+                }
+
+                try {
+                    console.log('🔍 Attempting face detection...');
+                    console.log('📹 Video element:', registerVideo);
+                    console.log('📹 Video ready state:', registerVideo.readyState);
+                    console.log('📹 Video dimensions:', registerVideo.videoWidth, 'x', registerVideo.videoHeight);
+
+                    // Check if Face-API.js is available
+                    if (typeof faceapi === 'undefined') {
+                        throw new Error('Face-API.js is not loaded');
+                    }
+
+                    // Check if models are loaded
+                    if (!faceapi.nets.tinyFaceDetector.isLoaded) {
+                        throw new Error('TinyFaceDetector model is not loaded');
+                    }
+
+                    if (!faceapi.nets.faceLandmark68Net.isLoaded) {
+                        throw new Error('FaceLandmark68Net model is not loaded');
+                    }
+
+                    if (!faceapi.nets.faceRecognitionNet.isLoaded) {
+                        throw new Error('FaceRecognitionNet model is not loaded');
+                    }
+
+                    // Use more sensitive detection options
+                    const detectionOptions = new faceapi.TinyFaceDetectorOptions({
+                        inputSize: 416,
+                        scoreThreshold: 0.3
+                    });
+
+                    console.log('🔧 Detection options:', detectionOptions);
+
+                    // Theo Face-API.js documentation: cần withFaceLandmarks() trước withFaceDescriptor()
+                    const detection = await faceapi
+                        .detectSingleFace(registerVideo, detectionOptions)
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (detection) {
+                        console.log('✅ Face detected!', detection);
+                        updateStatus('registerFaceStatus', '✅ Face detected');
+
+                        // Evaluate quality
+                        const quality = evaluateFaceQuality(detection);
+                        updateStatus('registerQualityStatus', quality.message);
+
+                        currentRegisterDescriptor = detection.descriptor;
+                        const registerBtn = document.getElementById('registerButton');
+                        registerBtn.disabled = false;
+                        console.log('🔓 Register button enabled, descriptor length:', detection.descriptor.length);
+
+                        // Draw face box
+                        drawFaceBox(registerCanvas, detection.detection.box);
+                    } else {
+                        console.log('👁️ No face detected');
+                        updateStatus('registerFaceStatus', '👁️ No face detected');
+                        updateStatus('registerQualityStatus', '⭐ Quality: Not assessed');
+                        currentRegisterDescriptor = null;
+                        document.getElementById('registerButton').disabled = true;
+                        clearCanvas(registerCanvas);
+                    }
+                } catch (error) {
+                    console.error('❌ Register detection error:', error);
+                    console.error('Error details:', {
+                        message: error.message,
+                        stack: error.stack,
+                        name: error.name
+                    });
+                    updateStatus('registerFaceStatus', `❌ Detection error: ${error.message}`);
+
+                    // Show detailed error in UI
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4';
+                    errorDiv.innerHTML = `
+                        <strong>Face Detection Error:</strong><br>
+                        ${error.message}<br>
+                        <small>Check browser console for details</small>
+                    `;
+                    document.querySelector('.max-w-7xl').insertBefore(errorDiv, document.querySelector('.max-w-7xl').firstChild);
+                }
+            }, 500);
+        }
+
+        function startRecognizeDetection() {
+            recognizeDetectionInterval = setInterval(async () => {
+                if (!recognizeVideo.videoWidth || !recognizeVideo.videoHeight) return;
+
+                try {
+                    // Use more sensitive detection options
+                    const detectionOptions = new faceapi.TinyFaceDetectorOptions({
+                        inputSize: 416,
+                        scoreThreshold: 0.3
+                    });
+
+                    // Theo Face-API.js documentation: cần withFaceLandmarks() trước withFaceDescriptor()
+                    const detection = await faceapi
+                        .detectSingleFace(recognizeVideo, detectionOptions)
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (detection) {
+                        updateStatus('recognizeFaceStatus', '✅ Face detected');
+                        currentRecognizeDescriptor = detection.descriptor;
+                        document.getElementById('recognizeButton').disabled = false;
+
+                        // Draw face box
+                        drawFaceBox(recognizeCanvas, detection.detection.box);
+                    } else {
+                        updateStatus('recognizeFaceStatus', '👁️ Searching for face...');
+                        updateStatus('recognizeConfidenceStatus', '🎯 Confidence: N/A');
+                        currentRecognizeDescriptor = null;
+                        document.getElementById('recognizeButton').disabled = true;
+                        clearCanvas(recognizeCanvas);
+                    }
+                } catch (error) {
+                    console.error('Recognize detection error:', error);
+                }
+            }, 500);
+        }
+
+        // Test Functions
+        async function testRegisterFace() {
+            console.log('🔥 testRegisterFace() called!');
+
+            const memberId = document.getElementById('memberSelect').value;
+            console.log('👤 Selected member ID:', memberId);
+
+            if (!memberId) {
+                console.log('❌ No member selected');
+                showError('Please select a member first.');
+                return;
+            }
+
+            console.log('🧠 Current descriptor:', currentRegisterDescriptor);
+            if (!currentRegisterDescriptor) {
+                console.log('❌ No face descriptor available');
+                showError('No face detected. Please ensure your face is visible.');
+                return;
+            }
+
+            console.log('✅ All checks passed, proceeding with registration...');
+
+            showLoading('Registering face...');
+
+            try {
+                console.log('📡 Sending registration request...');
+                console.log('🎯 URL:', '@Url.Action("TestRegisterFace")');
+                console.log('📦 Payload:', {
+                    memberId: parseInt(memberId),
+                    descriptorLength: currentRegisterDescriptor.length
+                });
+
+                // Get CSRF token
+                const csrfToken = document.querySelector('#csrfForm input[name="__RequestVerificationToken"]')?.value;
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found');
+                }
+
+                const response = await fetch('@Url.Action("TestRegisterFace")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'RequestVerificationToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        memberId: parseInt(memberId),
+                        descriptor: Array.from(currentRegisterDescriptor)
+                    })
+                });
+
+                console.log('📨 Response status:', response.status);
+                console.log('📨 Response ok:', response.ok);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('📋 Response result:', result);
+                hideLoading();
+
+                // Update metrics
+                testMetrics.totalTests++;
+                testMetrics.totalProcessingTime += result.processingTime || 0;
+                if (result.success) {
+                    testMetrics.successfulTests++;
+                } else {
+                    testMetrics.failedTests++;
+                }
+
+                // Show results
+                showRegisterResults(result);
+                updatePerformanceMetrics();
+
+                if (result.success) {
+                    showSuccess(result.message);
+                    await loadAllFaces(); // Refresh the faces list
+                } else {
+                    showError(result.message);
+                }
+
+            } catch (error) {
+                hideLoading();
+                console.error('❌ Error registering face:', error);
+                console.error('❌ Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+
+                // Detailed error handling
+                let errorMessage = 'Đăng ký khuôn mặt thất bại';
+                if (error.message.includes('CSRF')) {
+                    errorMessage = 'Lỗi bảo mật. Vui lòng refresh trang và thử lại.';
+                } else if (error.message.includes('Network')) {
+                    errorMessage = 'Lỗi kết nối mạng. Vui lòng kiểm tra internet.';
+                } else if (error.message.includes('HTTP error')) {
+                    errorMessage = 'Lỗi server. Vui lòng thử lại sau.';
+                }
+
+                showError(errorMessage);
+
+                // Log error for debugging
+                _logError('Face Registration Error', {
+                    error: error.message,
+                    memberId: memberId,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+
+        async function testRecognizeFace() {
+            if (!currentRecognizeDescriptor) {
+                showError('No face detected. Please ensure your face is visible.');
+                return;
+            }
+
+            showLoading('Recognizing face...');
+
+            try {
+                const response = await fetch('@Url.Action("TestRecognizeFace")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        descriptor: Array.from(currentRecognizeDescriptor)
+                    })
+                });
+
+                const result = await response.json();
+                hideLoading();
+
+                // Update metrics
+                testMetrics.totalTests++;
+                testMetrics.totalProcessingTime += result.processingTime || 0;
+                if (result.success) {
+                    testMetrics.successfulTests++;
+                } else {
+                    testMetrics.failedTests++;
+                }
+
+                // Show results
+                showRecognizeResults(result);
+                updatePerformanceMetrics();
+
+                // Update confidence status
+                if (result.success) {
+                    updateStatus('recognizeConfidenceStatus', `🎯 Confidence: ${(result.confidence * 100).toFixed(1)}%`);
+                    showSuccess(`Recognized: ${result.memberName}`);
+                } else {
+                    updateStatus('recognizeConfidenceStatus', `🎯 Confidence: ${(result.confidence * 100).toFixed(1)}% (Below threshold)`);
+                    showWarning(result.message);
+                }
+
+            } catch (error) {
+                hideLoading();
+                console.error('Error recognizing face:', error);
+                showError('Network error occurred.');
+            }
+        }
+
+        // Similarity Testing
+        async function captureFace1() {
+            if (!currentRegisterDescriptor && !currentRecognizeDescriptor) {
+                showError('No face detected. Please start a camera first.');
+                return;
+            }
+
+            face1Descriptor = currentRegisterDescriptor || currentRecognizeDescriptor;
+            showSuccess('Face 1 captured successfully!');
+            checkSimilarityButton();
+        }
+
+        async function captureFace2() {
+            if (!currentRegisterDescriptor && !currentRecognizeDescriptor) {
+                showError('No face detected. Please start a camera first.');
+                return;
+            }
+
+            face2Descriptor = currentRegisterDescriptor || currentRecognizeDescriptor;
+            showSuccess('Face 2 captured successfully!');
+            checkSimilarityButton();
+        }
+
+        function checkSimilarityButton() {
+            document.getElementById('compareFacesBtn').disabled = !(face1Descriptor && face2Descriptor);
+        }
+
+        async function testSimilarity() {
+            if (!face1Descriptor || !face2Descriptor) {
+                showError('Please capture both faces first.');
+                return;
+            }
+
+            showLoading('Calculating similarity...');
+
+            try {
+                const response = await fetch('@Url.Action("TestFaceSimilarity")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        descriptor1: Array.from(face1Descriptor),
+                        descriptor2: Array.from(face2Descriptor)
+                    })
+                });
+
+                const result = await response.json();
+                hideLoading();
+
+                showSimilarityResults(result);
+
+            } catch (error) {
+                hideLoading();
+                console.error('Error calculating similarity:', error);
+                showError('Network error occurred.');
+            }
+        }
+
+        // Bulk Testing
+        let bulkCaptureInterval;
+        async function startBulkCapture() {
+            if (!isModelLoaded) {
+                showError('AI models not loaded yet. Please wait.');
+                return;
+            }
+
+            bulkDescriptors = [];
+            document.getElementById('bulkCaptureCount').textContent = '0';
+
+            // Use whichever camera is active
+            const activeVideo = registerStream ? registerVideo : recognizeVideo;
+            if (!activeVideo || !activeVideo.srcObject) {
+                showError('Please start a camera first.');
+                return;
+            }
+
+            showInfo('Bulk capture started. Move your face around for variety.');
+
+            bulkCaptureInterval = setInterval(async () => {
+                try {
+                    // Theo Face-API.js documentation: cần withFaceLandmarks() trước withFaceDescriptor()
+                    const detection = await faceapi
+                        .detectSingleFace(activeVideo, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (detection && bulkDescriptors.length < 10) {
+                        bulkDescriptors.push(detection.descriptor);
+                        document.getElementById('bulkCaptureCount').textContent = bulkDescriptors.length;
+
+                        if (bulkDescriptors.length >= 10) {
+                            clearInterval(bulkCaptureInterval);
+                            document.getElementById('bulkTestButton').disabled = false;
+                            showSuccess('Bulk capture completed! 10 faces captured.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Bulk capture error:', error);
+                }
+            }, 1000);
+
+            // Auto-stop after 30 seconds
+            setTimeout(() => {
+                if (bulkCaptureInterval) {
+                    clearInterval(bulkCaptureInterval);
+                    if (bulkDescriptors.length > 0) {
+                        document.getElementById('bulkTestButton').disabled = false;
+                        showInfo(`Bulk capture stopped. ${bulkDescriptors.length} faces captured.`);
+                    } else {
+                        showWarning('No faces captured during bulk capture.');
+                    }
+                }
+            }, 30000);
+        }
+
+        async function runBulkTest() {
+            if (bulkDescriptors.length === 0) {
+                showError('No faces captured for bulk testing.');
+                return;
+            }
+
+            showLoading(`Running bulk test on ${bulkDescriptors.length} faces...`);
+
+            try {
+                const response = await fetch('@Url.Action("BulkTestRecognition")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        descriptors: bulkDescriptors.map(desc => Array.from(desc))
+                    })
+                });
+
+                const result = await response.json();
+                hideLoading();
+
+                showBulkResults(result);
+
+            } catch (error) {
+                hideLoading();
+                console.error('Error in bulk test:', error);
+                showError('Network error occurred.');
+            }
+        }
+
+        // Data Management Functions
+        async function loadAllFaces() {
+            try {
+                const response = await fetch('@Url.Action("GetAllFaces")');
+                const result = await response.json();
+
+                if (result.success) {
+                    displayFacesList(result.faces);
+                    updateDashboardStats(result.faces);
+                } else {
+                    showError('Failed to load faces list.');
+                }
+            } catch (error) {
+                console.error('Error loading faces:', error);
+                showError('Network error occurred.');
+            }
+        }
+
+        async function deleteFace(faceId, memberName) {
+            if (!confirm(`Are you sure you want to delete the face data for ${memberName}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`@Url.Action("DeleteFace")?mauMatId=${faceId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess(result.message);
+                    await loadAllFaces(); // Refresh the list
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting face:', error);
+                showError('Network error occurred.');
+            }
+        }
+
+        // UI Helper Functions
+        function updateStatus(elementId, message) {
+            document.getElementById(elementId).textContent = message;
+        }
+
+        function evaluateFaceQuality(detection) {
+            const box = detection.detection.box;
+            const score = detection.detection.score;
+
+            // Simple quality assessment based on face size and detection confidence
+            const faceSize = box.width * box.height;
+            const minSize = 10000; // Minimum face area
+            const minScore = 0.7;   // Minimum detection confidence
+
+            if (faceSize < minSize) {
+                return { message: '⭐ Quality: Too small - move closer', color: 'text-red-600' };
+            } else if (score < minScore) {
+                return { message: '⭐ Quality: Low confidence - improve lighting', color: 'text-yellow-600' };
+            } else {
+                return { message: '⭐ Quality: Good', color: 'text-green-600' };
+            }
+        }
+
+        function drawFaceBox(canvas, box) {
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size to match its display size
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            // Get the video element to calculate scaling
+            const video = canvas.previousElementSibling; // video is the previous sibling
+            if (!video || !video.videoWidth || !video.videoHeight) {
+                console.log('⚠️ Video not ready for drawing');
+                return;
+            }
+
+            // Calculate scaling factors
+            const scaleX = canvas.width / video.videoWidth;
+            const scaleY = canvas.height / video.videoHeight;
+
+            console.log('🎨 Drawing face box:', {
+                box: box,
+                canvasSize: { width: canvas.width, height: canvas.height },
+                videoSize: { width: video.videoWidth, height: video.videoHeight },
+                scale: { x: scaleX, y: scaleY }
+            });
+
+            // Draw the face box
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(
+                box.x * scaleX,
+                box.y * scaleY,
+                box.width * scaleX,
+                box.height * scaleY
+            );
+        }
+
+        function clearCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Results Display Functions
+        function showRegisterResults(result) {
+            const resultsDiv = document.getElementById('registerResults');
+            const contentDiv = document.getElementById('registerResultContent');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Status:</span>
+                        <span class="${result.success ? 'text-green-600' : 'text-red-600'}">${result.success ? 'Success' : 'Failed'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Message:</span>
+                        <span class="text-gray-700">${result.message}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Processing Time:</span>
+                        <span class="text-blue-600">${result.processingTime?.toFixed(2) || 'N/A'}ms</span>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function showRecognizeResults(result) {
+            const resultsDiv = document.getElementById('recognizeResults');
+            const contentDiv = document.getElementById('recognizeResultContent');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Status:</span>
+                        <span class="${result.success ? 'text-green-600' : 'text-red-600'}">${result.success ? 'Recognized' : 'Not Recognized'}</span>
+                    </div>
+                    ${result.success ? `
+                    <div class="flex justify-between">
+                        <span class="font-medium">Member:</span>
+                        <span class="text-gray-700">${result.memberName}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Member ID:</span>
+                        <span class="text-gray-700">${result.memberId}</span>
+                    </div>
+                    ` : ''}
+                    <div class="flex justify-between">
+                        <span class="font-medium">Confidence:</span>
+                        <span class="text-blue-600">${(result.confidence * 100).toFixed(2)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Threshold:</span>
+                        <span class="text-gray-600">${(result.threshold * 100).toFixed(0)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Processing Time:</span>
+                        <span class="text-blue-600">${result.processingTime?.toFixed(2) || 'N/A'}ms</span>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function showSimilarityResults(result) {
+            const resultsDiv = document.getElementById('similarityResults');
+            const contentDiv = document.getElementById('similarityContent');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Similarity:</span>
+                        <span class="text-blue-600 font-bold">${(result.similarity * 100).toFixed(2)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Match:</span>
+                        <span class="${result.isMatch ? 'text-green-600' : 'text-red-600'}">${result.isMatch ? 'Yes' : 'No'}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Threshold:</span>
+                        <span class="text-gray-600">${(result.threshold * 100).toFixed(0)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Processing Time:</span>
+                        <span class="text-blue-600">${result.processingTime?.toFixed(2) || 'N/A'}ms</span>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function showBulkResults(result) {
+            const resultsDiv = document.getElementById('bulkResults');
+            const contentDiv = document.getElementById('bulkContent');
+
+            if (result.success) {
+                contentDiv.innerHTML = `
+                    <div class="space-y-3">
+                        <h4 class="font-medium text-gray-900">Bulk Test Summary:</h4>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="flex justify-between">
+                                <span>Total Tests:</span>
+                                <span class="font-medium">${result.summary.totalTests}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Successful:</span>
+                                <span class="font-medium text-green-600">${result.summary.successfulRecognitions}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Failed:</span>
+                                <span class="font-medium text-red-600">${result.summary.failedRecognitions}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Success Rate:</span>
+                                <span class="font-medium text-blue-600">${result.summary.successRate}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Total Time:</span>
+                                <span class="font-medium">${result.summary.totalTime.toFixed(2)}ms</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Avg Time:</span>
+                                <span class="font-medium">${result.summary.averageTime}ms</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                contentDiv.innerHTML = `<div class="text-red-600">${result.message}</div>`;
+            }
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        function displayFacesList(faces) {
+            const tbody = document.getElementById('facesTableBody');
+
+            if (faces.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                            No registered faces found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = faces.map(face => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${face.memberName}</div>
+                        <div class="text-sm text-gray-500">ID: ${face.nguoiDungId}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${face.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                            ${face.algorithm}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${face.registrationDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${face.embeddingSize} bytes</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button onclick="deleteFace(${face.mauMatId}, '${face.memberName}')"
+                                class="text-red-600 hover:text-red-900 transition-colors">
+                            🗑️ Delete
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateDashboardStats(faces) {
+            const totalMembers = parseInt(document.getElementById('totalMembers').textContent) || 0;
+            const registeredFaces = faces.length;
+            const registrationRate = totalMembers > 0 ? Math.round((registeredFaces / totalMembers) * 100) : 0;
+
+            document.getElementById('registeredFaces').textContent = registeredFaces;
+            document.getElementById('registrationRate').textContent = `${registrationRate}%`;
+        }
+
+        async function updatePerformanceMetrics() {
+            try {
+                const response = await fetch('@Url.Action("GetPerformanceMetrics")');
+                const result = await response.json();
+
+                if (result.success) {
+                    const metrics = result.metrics;
+
+                    // Update dashboard cards
+                    document.getElementById('totalMembers').textContent = metrics.totalMembers;
+                    document.getElementById('registeredFaces').textContent = metrics.totalFaces;
+                    document.getElementById('registrationRate').textContent = `${metrics.registrationRate}%`;
+                }
+
+                // Update test metrics
+                const avgTime = testMetrics.totalTests > 0 ?
+                    (testMetrics.totalProcessingTime / testMetrics.totalTests).toFixed(2) : 'N/A';
+                const successRate = testMetrics.totalTests > 0 ?
+                    ((testMetrics.successfulTests / testMetrics.totalTests) * 100).toFixed(1) : 'N/A';
+
+                document.getElementById('avgProcessingTime').textContent = `${avgTime}ms`;
+                document.getElementById('successRate').textContent = `${successRate}%`;
+                document.getElementById('totalTests').textContent = testMetrics.totalTests;
+                document.getElementById('failedTests').textContent = testMetrics.failedTests;
+
+            } catch (error) {
+                console.error('Error updating performance metrics:', error);
+            }
+        }
+
+        function resetMetrics() {
+            testMetrics = {
+                totalTests: 0,
+                successfulTests: 0,
+                failedTests: 0,
+                totalProcessingTime: 0
+            };
+            updatePerformanceMetrics();
+            showInfo('Test metrics have been reset.');
+        }
+
+        async function refreshDashboard() {
+            showLoading('Refreshing dashboard...');
+            await loadAllFaces();
+            await updatePerformanceMetrics();
+            hideLoading();
+            showSuccess('Dashboard refreshed successfully!');
+        }
+
+        function exportTestResults() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                metrics: testMetrics,
+                systemInfo: {
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString()
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `face-recognition-test-results-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showSuccess('Test results exported successfully!');
+        }
+
+        // Alias for compatibility
+        function exportResults() {
+            exportTestResults();
+        }
+
+        // Notification Functions
+        function showLoading(message = 'Processing...') {
+            document.getElementById('loadingMessage').textContent = message;
+            document.getElementById('loadingModal').classList.remove('hidden');
+            document.getElementById('loadingModal').classList.add('flex');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingModal').classList.add('hidden');
+            document.getElementById('loadingModal').classList.remove('flex');
+        }
+
+        function showSuccess(message) {
+            showNotification(message, 'success');
+        }
+
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+
+        function showWarning(message) {
+            showNotification(message, 'warning');
+        }
+
+        function showInfo(message) {
+            showNotification(message, 'info');
+        }
+
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 max-w-sm w-full bg-white border-l-4 p-4 shadow-lg rounded-lg transform transition-all duration-300 translate-x-full`;
+
+            const colors = {
+                success: 'border-green-500 text-green-700',
+                error: 'border-red-500 text-red-700',
+                warning: 'border-yellow-500 text-yellow-700',
+                info: 'border-blue-500 text-blue-700'
+            };
+
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            notification.className += ` ${colors[type]}`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-lg mr-2">${icons[type]}</span>
+                    <span class="text-sm font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-auto text-gray-400 hover:text-gray-600">
+                        ✕
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Additional Functions
+        async function refreshData() {
+            showLoading('Refreshing data...');
+            try {
+                await loadAllFaces();
+                await updatePerformanceMetrics();
+                showSuccess('Data refreshed successfully!');
+            } catch (error) {
+                showError('Failed to refresh data: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function resetMetrics() {
+            if (confirm('Are you sure you want to reset all performance metrics?')) {
+                showLoading('Resetting metrics...');
+                try {
+                    // Reset local metrics
+                    performanceMetrics = {
+                        totalTests: 0,
+                        successfulTests: 0,
+                        failedTests: 0,
+                        totalProcessingTime: 0,
+                        averageProcessingTime: 0,
+                        successRate: 0
+                    };
+
+                    await updatePerformanceMetrics();
+                    showSuccess('Performance metrics reset successfully!');
+                } catch (error) {
+                    showError('Failed to reset metrics: ' + error.message);
+                } finally {
+                    hideLoading();
+                }
+            }
+        }
+
+        // Similarity Test Functions
+        let capturedFaces = { face1: null, face2: null };
+
+        async function captureFace(faceNumber) {
+            try {
+                if (!isModelLoaded) {
+                    showError('AI models not loaded yet. Please wait.');
+                    return;
+                }
+
+                // For now, use register camera if available
+                if (!registerStream) {
+                    showError('Please start camera first in Face Registration section.');
+                    return;
+                }
+
+                const detections = await faceapi.detectAllFaces(registerVideo, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                if (detections.length === 0) {
+                    showError('No face detected. Please position your face in front of the camera.');
+                    return;
+                }
+
+                if (detections.length > 1) {
+                    showWarning('Multiple faces detected. Using the first one.');
+                }
+
+                capturedFaces[`face${faceNumber}`] = detections[0].descriptor;
+                document.getElementById(`captureFace${faceNumber}Btn`).textContent = `✅ Face ${faceNumber} Captured`;
+                showSuccess(`Face ${faceNumber} captured successfully!`);
+
+            } catch (error) {
+                console.error(`Error capturing face ${faceNumber}:`, error);
+                showError(`Failed to capture face ${faceNumber}: ${error.message}`);
+            }
+        }
+
+        async function compareFaces() {
+            try {
+                if (!capturedFaces.face1 || !capturedFaces.face2) {
+                    showError('Please capture both faces first.');
+                    return;
+                }
+
+                const distance = faceapi.euclideanDistance(capturedFaces.face1, capturedFaces.face2);
+                const similarity = Math.max(0, (1 - distance) * 100);
+
+                let resultText = '';
+                let resultClass = '';
+
+                if (similarity > 70) {
+                    resultText = `High similarity: ${similarity.toFixed(1)}% - Likely same person`;
+                    resultClass = 'text-green-600';
+                } else if (similarity > 50) {
+                    resultText = `Medium similarity: ${similarity.toFixed(1)}% - Possibly same person`;
+                    resultClass = 'text-yellow-600';
+                } else {
+                    resultText = `Low similarity: ${similarity.toFixed(1)}% - Likely different people`;
+                    resultClass = 'text-red-600';
+                }
+
+                // Update UI with result
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `mt-4 p-4 bg-gray-50 rounded-lg border`;
+                resultDiv.innerHTML = `
+                    <h4 class="font-semibold mb-2">Comparison Result:</h4>
+                    <p class="${resultClass} font-medium">${resultText}</p>
+                    <p class="text-sm text-gray-600 mt-2">Distance: ${distance.toFixed(4)}</p>
+                `;
+
+                const compareSection = document.querySelector('#compareFacesBtn').parentElement;
+                const existingResult = compareSection.querySelector('.mt-4');
+                if (existingResult) {
+                    existingResult.remove();
+                }
+                compareSection.appendChild(resultDiv);
+
+                showSuccess('Face comparison completed!');
+
+            } catch (error) {
+                console.error('Error comparing faces:', error);
+                showError('Failed to compare faces: ' + error.message);
+            }
+        }
+
+        // Bulk Testing Functions
+        let bulkCaptureActive = false;
+        let capturedBulkFaces = [];
+
+        async function startBulkCapture() {
+            if (!isModelLoaded) {
+                showError('AI models not loaded yet. Please wait.');
+                return;
+            }
+
+            if (!registerStream) {
+                showError('Please start camera first in Face Registration section.');
+                return;
+            }
+
+            bulkCaptureActive = !bulkCaptureActive;
+            const btn = document.getElementById('startBulkCaptureBtn');
+
+            if (bulkCaptureActive) {
+                btn.textContent = '⏹️ Stop Bulk Capture';
+                btn.className = btn.className.replace('bg-blue-600', 'bg-red-600');
+                capturedBulkFaces = [];
+                startBulkCaptureLoop();
+                showInfo('Bulk capture started. Move around to capture different angles.');
+            } else {
+                btn.textContent = '📹 Start Bulk Capture';
+                btn.className = btn.className.replace('bg-red-600', 'bg-blue-600');
+                showInfo(`Bulk capture stopped. Captured ${capturedBulkFaces.length} faces.`);
+            }
+        }
+
+        async function startBulkCaptureLoop() {
+            if (!bulkCaptureActive) return;
+
+            try {
+                const detections = await faceapi.detectAllFaces(registerVideo, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                if (detections.length > 0) {
+                    capturedBulkFaces.push({
+                        descriptor: detections[0].descriptor,
+                        timestamp: Date.now()
+                    });
+
+                    document.querySelector('.text-sm').textContent = `Captured: ${capturedBulkFaces.length} faces`;
+                }
+
+            } catch (error) {
+                console.error('Error in bulk capture:', error);
+            }
+
+            if (bulkCaptureActive) {
+                setTimeout(startBulkCaptureLoop, 1000); // Capture every second
+            }
+        }
+
+        async function runBulkTest() {
+            if (capturedBulkFaces.length === 0) {
+                showError('No faces captured. Please run bulk capture first.');
+                return;
+            }
+
+            showLoading(`Testing ${capturedBulkFaces.length} captured faces...`);
+
+            try {
+                const results = [];
+
+                for (let i = 0; i < capturedBulkFaces.length; i++) {
+                    for (let j = i + 1; j < capturedBulkFaces.length; j++) {
+                        const distance = faceapi.euclideanDistance(
+                            capturedBulkFaces[i].descriptor,
+                            capturedBulkFaces[j].descriptor
+                        );
+                        const similarity = Math.max(0, (1 - distance) * 100);
+
+                        results.push({
+                            face1: i + 1,
+                            face2: j + 1,
+                            similarity: similarity,
+                            distance: distance
+                        });
+                    }
+                }
+
+                // Display results
+                const avgSimilarity = results.reduce((sum, r) => sum + r.similarity, 0) / results.length;
+                const maxSimilarity = Math.max(...results.map(r => r.similarity));
+                const minSimilarity = Math.min(...results.map(r => r.similarity));
+
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'mt-4 p-4 bg-gray-50 rounded-lg border';
+                resultDiv.innerHTML = `
+                    <h4 class="font-semibold mb-2">Bulk Test Results:</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>Total Comparisons: ${results.length}</div>
+                        <div>Average Similarity: ${avgSimilarity.toFixed(1)}%</div>
+                        <div>Max Similarity: ${maxSimilarity.toFixed(1)}%</div>
+                        <div>Min Similarity: ${minSimilarity.toFixed(1)}%</div>
+                    </div>
+                `;
+
+                const bulkSection = document.querySelector('#runBulkTestBtn').parentElement;
+                const existingResult = bulkSection.querySelector('.mt-4');
+                if (existingResult) {
+                    existingResult.remove();
+                }
+                bulkSection.appendChild(resultDiv);
+
+                showSuccess('Bulk testing completed!');
+
+            } catch (error) {
+                console.error('Error in bulk test:', error);
+                showError('Bulk test failed: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+    </script>
+}

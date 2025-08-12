@@ -1,0 +1,157 @@
+@{
+    ViewData["Title"] = "Lỗi hệ thống";
+    Layout = "_Layout";
+    var errorMessage = ViewBag.ErrorMessage as string ?? TempData["ErrorMessage"] as string ?? Context.Request.Query["message"].ToString();
+}
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <!-- Error Icon -->
+            <div class="mx-auto h-24 w-24 text-red-500 mb-6">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                Oops! Có lỗi xảy ra
+            </h2>
+            
+            <div class="mt-4">
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p class="text-lg text-gray-600 mb-4">@errorMessage</p>
+                }
+                else
+                {
+                    <p class="text-lg text-gray-600 mb-4">
+                        Đã xảy ra lỗi không mong muốn. Chúng tôi đang khắc phục vấn đề này.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <!-- Error Details (only in development) -->
+        @if (ViewBag.ShowDetails == true)
+        {
+            <div class="mt-6 bg-red-50 border border-red-200 rounded-md p-4">
+                <h3 class="text-sm font-medium text-red-800 mb-2">Chi tiết lỗi (Development Mode):</h3>
+                <div class="text-sm text-red-700">
+                    @if (ViewBag.ExceptionMessage != null)
+                    {
+                        <p><strong>Message:</strong> @ViewBag.ExceptionMessage</p>
+                    }
+                    @if (ViewBag.StackTrace != null)
+                    {
+                        <details class="mt-2">
+                            <summary class="cursor-pointer font-medium">Stack Trace</summary>
+                            <pre class="mt-2 text-xs overflow-auto">@ViewBag.StackTrace</pre>
+                        </details>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Action Buttons -->
+        <div class="mt-8 space-y-4">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button onclick="history.back()" 
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                    ← Quay lại
+                </button>
+                <a href="@Url.Action("Index", "Home")"
+                   class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md text-center transition-colors">
+                    🏠 Trang chủ
+                </a>
+            </div>
+            
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <a href="@Url.Action("Login", "Auth")"
+                   class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md text-center block transition-colors">
+                    🔐 Đăng nhập
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("Logout", "Auth")" 
+                   class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md text-center block transition-colors">
+                    🚪 Đăng xuất và đăng nhập lại
+                </a>
+            }
+        </div>
+
+        <!-- Help Section -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                Nếu vấn đề vẫn tiếp tục, vui lòng liên hệ với quản trị viên hệ thống.
+            </p>
+            <div class="mt-4 flex justify-center space-x-4 text-sm">
+                <button onclick="reportError()" class="text-blue-600 hover:text-blue-800 underline">
+                    📧 Báo cáo lỗi
+                </button>
+                <button onclick="refreshPage()" class="text-green-600 hover:text-green-800 underline">
+                    🔄 Thử lại
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function reportError() {
+            const errorInfo = {
+                message: '@Html.Raw(Html.Encode(errorMessage))',
+                url: window.location.href,
+                userAgent: navigator.userAgent,
+                timestamp: new Date().toISOString()
+            };
+            
+            // You can implement error reporting here
+            // For now, just copy to clipboard
+            navigator.clipboard.writeText(JSON.stringify(errorInfo, null, 2)).then(() => {
+                alert('Thông tin lỗi đã được sao chép vào clipboard. Vui lòng gửi cho quản trị viên.');
+            }).catch(() => {
+                alert('Không thể sao chép thông tin lỗi. Vui lòng chụp màn hình và gửi cho quản trị viên.');
+            });
+        }
+        
+        function refreshPage() {
+            window.location.reload();
+        }
+        
+        // Auto-refresh after 30 seconds if it's a temporary error
+        @if (errorMessage?.Contains("hết hạn") == true || errorMessage?.Contains("session") == true)
+        {
+            <text>
+            setTimeout(() => {
+                if (confirm('Tự động làm mới trang sau 30 giây. Bạn có muốn làm mới ngay không?')) {
+                    window.location.href = '@Url.Action("Login", "Auth")';
+                }
+            }, 30000);
+            </text>
+        }
+    </script>
+}
+
+<style>
+    /* Custom styles for error page */
+    .error-animation {
+        animation: shake 0.5s ease-in-out;
+    }
+    
+    @@keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 640px) {
+        .flex-col {
+            flex-direction: column;
+        }
+    }
+</style>

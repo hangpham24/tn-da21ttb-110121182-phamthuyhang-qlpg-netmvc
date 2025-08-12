@@ -1,0 +1,197 @@
+@model GymManagement.Web.Models.DTOs.NguoiDungDto
+@{
+    ViewData["Title"] = "Chi tiết người dùng";
+    Layout = "_Layout";
+    var genderText = Model.GioiTinh == "Nam" ? "Nam" : (Model.GioiTinh == "Nữ" ? "Nữ" : "Không xác định");
+    var statusText = Model.TrangThai == "ACTIVE" ? "Hoạt động" : "Ngừng hoạt động";
+    var typeText = Model.LoaiNguoiDung switch
+    {
+        "THANHVIEN" => "Thành viên",
+        "HLV" => "Huấn luyện viên", 
+                        "ADMIN" => "Quản trị viên",
+        "VANGLAI" => "Khách vãng lai",
+        _ => "Không xác định"
+    };
+}
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-6">
+                <div class="flex items-center space-x-4">
+                    <a href="@Url.Action("Index")" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Quay lại danh sách
+                    </a>
+                    <span class="text-gray-300">/</span>
+                    <h1 class="text-2xl font-bold text-gray-900">Chi tiết người dùng</h1>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="@Url.Action("Edit", new { id = Model.NguoiDungId })" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                        Chỉnh sửa
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Profile Card -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 text-center">
+                        <div class="mx-auto h-32 w-32 rounded-full overflow-hidden bg-gray-100 mb-4">
+                            @if (!string.IsNullOrEmpty(Model.AnhDaiDien))
+                            {
+                                <img src="@Model.AnhDaiDien" 
+                                     alt="@Model.HoTen" 
+                                     class="h-full w-full object-cover">
+                            }
+                            else
+                            {
+                                <div class="h-full w-full flex items-center justify-center bg-indigo-100">
+                                    <svg class="h-16 w-16 text-indigo-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                    </svg>
+                                </div>
+                            }
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-1">@Model.HoTen</h3>
+                        <p class="text-sm text-gray-500 mb-2">@typeText</p>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @(Model.TrangThai == "ACTIVE" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                            @statusText
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Card -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Thông tin chi tiết</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Thông tin cơ bản -->
+                            <div class="space-y-4">
+                                <h4 class="text-sm font-medium text-gray-900 uppercase tracking-wide">Thông tin cơ bản</h4>
+                                
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Mã người dùng</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 font-mono bg-gray-50 px-2 py-1 rounded">#@Model.NguoiDungId.ToString("D4")</dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Họ và tên</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">@Model.HoTen</dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">
+                                        @if (!string.IsNullOrEmpty(Model.Email))
+                                        {
+                                            <a href="mailto:@Model.Email" class="text-indigo-600 hover:text-indigo-500">@Model.Email</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400 italic">Chưa cập nhật</span>
+                                        }
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Số điện thoại</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">
+                                        @if (!string.IsNullOrEmpty(Model.SoDienThoai))
+                                        {
+                                            <a href="tel:@Model.SoDienThoai" class="text-indigo-600 hover:text-indigo-500">@Model.SoDienThoai</a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400 italic">Chưa cập nhật</span>
+                                        }
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Giới tính</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">@genderText</dd>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin bổ sung -->
+                            <div class="space-y-4">
+                                <h4 class="text-sm font-medium text-gray-900 uppercase tracking-wide">Thông tin bổ sung</h4>
+                                
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Ngày sinh</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">
+                                        @if (Model.NgaySinh.HasValue)
+                                        {
+                                            @Model.NgaySinh.Value.ToString("dd/MM/yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400 italic">Chưa cập nhật</span>
+                                        }
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Loại người dùng</dt>
+                                    <dd class="mt-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @(Model.LoaiNguoiDung switch {
+                                            "THANHVIEN" => "bg-blue-100 text-blue-800",
+                                            "HLV" => "bg-purple-100 text-purple-800", 
+                                            "ADMIN" => "bg-green-100 text-green-800",
+                                            "VANGLAI" => "bg-gray-100 text-gray-800",
+                                            _ => "bg-gray-100 text-gray-800"
+                                        })">
+                                            @typeText
+                                        </span>
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Trạng thái</dt>
+                                    <dd class="mt-1">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @(Model.TrangThai == "ACTIVE" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800")">
+                                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full @(Model.TrangThai == "ACTIVE" ? "bg-green-400" : "bg-red-400")"></span>
+                                            @statusText
+                                        </span>
+                                    </dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Ngày tham gia</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">@Model.NgayThamGia.ToString("dd/MM/yyyy")</dd>
+                                </div>
+
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Ngày tạo</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tailwindcss.com"></script>
+}
+

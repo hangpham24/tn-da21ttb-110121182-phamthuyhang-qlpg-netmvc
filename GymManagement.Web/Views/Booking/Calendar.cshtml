@@ -1,0 +1,866 @@
+@{
+    ViewData["Title"] = "Lịch đặt chỗ";
+    Layout = "_MemberLayout";
+    var classes = ViewBag.Classes as IEnumerable<GymManagement.Web.Data.Models.LopHoc>;
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="p-6">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">📅 Lịch đặt chỗ</h1>
+                    <p class="text-gray-600">Xem và quản lý lịch đặt chỗ tổng quan</p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="@Url.Action("MyBookings")" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        📋 Đặt lịch của tôi
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Controls -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <button id="prevMonth" class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <h2 id="currentMonth" class="text-xl font-semibold text-gray-900"></h2>
+                    <button id="nextMonth" class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button id="todayBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                        Hôm nay
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <label for="viewSelect" class="text-sm font-medium text-gray-700">Chế độ xem:</label>
+                        <select id="viewSelect" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="timeGridWeek" selected>⏰ Lịch tuần</option>
+                            <option value="dayGridMonth">📅 Lịch tháng</option>
+                            <option value="listWeek">📋 Danh sách tuần</option>
+                            <option value="listMonth">📋 Danh sách tháng</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label for="classFilter" class="text-sm font-medium text-gray-700">Lọc lớp:</label>
+                        <select id="classFilter" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Tất cả lớp</option>
+                            @if (classes != null)
+                            {
+                                @foreach (var lopHoc in classes)
+                                {
+                                    <option value="@lopHoc.LopHocId">@lopHoc.TenLop</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div id="calendar" style="max-width: 100%; overflow-x: auto;"></div>
+        </div>
+        
+        <!-- Custom Calendar CSS -->
+        <style>
+            /* Month/Week Grid View Styles */
+            .fc-daygrid-event,
+            .fc-timegrid-event {
+                font-size: 11px !important;
+                padding: 2px 4px !important;
+                border-radius: 4px !important;
+                border: none !important;
+                margin: 1px 0 !important;
+                position: relative !important;
+            }
+            
+            .fc-event-title {
+                font-weight: 500 !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            
+            .fc-day-today {
+                background-color: #EBF8FF !important;
+            }
+            
+            .fc-col-header-cell {
+                background-color: #F8FAFC !important;
+                font-weight: 600 !important;
+                border-bottom: 2px solid #E5E7EB !important;
+            }
+            
+            .fc-daygrid-day-number {
+                color: #374151 !important;
+                font-weight: 500 !important;
+            }
+            
+            /* List View Styles */
+            .fc-list-event {
+                border-left: 4px solid transparent !important;
+                padding: 12px 16px !important;
+                margin-bottom: 2px !important;
+                background: white !important;
+                border-radius: 8px !important;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+                position: relative !important;
+            }
+            
+            .fc-list-event:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                transform: translateY(-1px) !important;
+                transition: all 0.2s ease !important;
+            }
+            
+            .fc-list-event-title {
+                font-size: 14px !important;
+                font-weight: 600 !important;
+                color: #1F2937 !important;
+                margin-bottom: 4px !important;
+            }
+            
+            .fc-list-event-time {
+                font-size: 12px !important;
+                color: #6B7280 !important;
+                font-weight: 500 !important;
+            }
+            
+            .fc-list-day-side-text {
+                font-size: 14px !important;
+                font-weight: 600 !important;
+                color: #2563EB !important;
+            }
+            
+            .fc-list-day-text {
+                color: #374151 !important;
+            }
+            
+            /* Quick Register Button Styles */
+            .quick-register-container {
+                position: absolute !important;
+                top: 2px !important;
+                right: 2px !important;
+                z-index: 10 !important;
+            }
+            
+            .quick-register-btn {
+                background: #10B981 !important;
+                color: white !important;
+                border: none !important;
+                border-radius: 50% !important;
+                width: 20px !important;
+                height: 20px !important;
+                font-size: 10px !important;
+                cursor: pointer !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                transition: all 0.2s ease !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+            }
+            
+            .quick-register-btn:hover {
+                background: #059669 !important;
+                transform: scale(1.1) !important;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+            }
+            
+            /* List view quick register button positioning */
+            .fc-list-event .quick-register-container {
+                position: absolute !important;
+                top: 50% !important;
+                right: 16px !important;
+                transform: translateY(-50%) !important;
+            }
+            
+            .fc-list-event .quick-register-btn {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 14px !important;
+                border-radius: 6px !important;
+            }
+            
+            /* Event color overrides for list view */
+            .fc-list-event[data-event-type="booking"] {
+                border-left-color: #2563EB !important;
+                background: linear-gradient(135deg, #EBF4FF 0%, #DBEAFE 100%) !important;
+            }
+            
+            .fc-list-event[data-event-type="class"],
+            .fc-list-event[data-event-type="weekly_class"] {
+                border-left-color: #059669 !important;
+                background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
+            }
+            
+            .fc-list-event[data-event-type="admin_class"] {
+                border-left-color: #6B7280 !important;
+                background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%) !important;
+            }
+            
+            /* Remove default FullCalendar styles we don't want */
+            .fc-list-table {
+                border: none !important;
+            }
+            
+            .fc-list-day-frame {
+                background: #F8FAFC !important;
+                border-radius: 6px !important;
+                margin-bottom: 8px !important;
+                padding: 8px 12px !important;
+            }
+            
+            /* Responsive improvements */
+            @@media (max-width: 768px) {
+                .fc-list-event {
+                    padding: 8px 12px !important;
+                }
+                
+                .fc-list-event-title {
+                    font-size: 13px !important;
+                }
+                
+                .quick-register-btn {
+                    width: 24px !important;
+                    height: 24px !important;
+                }
+            }
+        </style>
+
+        <!-- Legend and Stats -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <!-- Legend -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">🎨 Chú thích</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                        <span class="text-sm text-gray-700">Đặt lịch của tôi</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-green-500 rounded"></div>
+                        <span class="text-sm text-gray-700">Lớp học khả dụng</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                        <span class="text-sm text-gray-700">Sắp đầy (>80%)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-red-500 rounded"></div>
+                        <span class="text-sm text-gray-700">Đã đầy</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-gray-500 rounded"></div>
+                        <span class="text-sm text-gray-700">Đã hủy</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-purple-500 rounded"></div>
+                        <span class="text-sm text-gray-700">Đã tham gia</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Thống kê nhanh</h3>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600" id="totalBookings">-</div>
+                        <div class="text-sm text-gray-600">Tổng đặt lịch</div>
+                    </div>
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600" id="thisWeekBookings">-</div>
+                        <div class="text-sm text-gray-600">Tuần này</div>
+                    </div>
+                    <div class="text-center p-3 bg-yellow-50 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-600" id="upcomingBookings">-</div>
+                        <div class="text-sm text-gray-600">Sắp tới</div>
+                    </div>
+                    <div class="text-center p-3 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-600" id="completedBookings">-</div>
+                        <div class="text-sm text-gray-600">Đã hoàn thành</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Schedule -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">📋 Lịch hôm nay</h3>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <button onclick="showQuickRegister()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        ➕ Đăng ký nhanh
+                    </button>
+                }
+            </div>
+            <div id="todaySchedule">
+                <div class="text-center py-4 text-gray-500">
+                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <p>Đang tải lịch hôm nay...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div id="eventModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Chi tiết sự kiện</h3>
+                    <button onclick="closeEventModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="eventDetails">
+                    <!-- Event details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Booking Modal -->
+<div id="quickBookingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Đặt lịch nhanh</h3>
+                    <button onclick="closeQuickBookingModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="quickBookingContent">
+                    <!-- Quick booking content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Register Modal -->
+<div id="quickRegisterModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">🚀 Đăng ký nhanh</h3>
+                    <button onclick="closeQuickRegisterModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-center">
+                        <p class="text-gray-600">Chọn loại đăng ký bạn muốn thực hiện</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <a href="@Url.Action("Packages", "Member")" class="block p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors text-center">
+                            <div class="text-2xl mb-2">💳</div>
+                            <div class="font-medium text-gray-900">Gói tập</div>
+                            <div class="text-sm text-gray-500">Đăng ký gói tập mới</div>
+                        </a>
+                        <a href="@Url.Action("Classes", "Member")" class="block p-4 border-2 border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors text-center">
+                            <div class="text-2xl mb-2">🎓</div>
+                            <div class="font-medium text-gray-900">Lớp học</div>
+                            <div class="text-sm text-gray-500">Đăng ký lớp học</div>
+                        </a>
+                    </div>
+                    <div class="border-t pt-4">
+                        <button onclick="showQuickBooking(new Date())" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                            📅 Đặt lịch tập hôm nay
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script>
+        let calendar;
+        let currentClassFilter = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Calendar initializing...');
+            initializeCalendar();
+            loadTodaySchedule();
+            loadQuickStats();
+            
+            // Event listeners
+            document.getElementById('classFilter').addEventListener('change', function() {
+                currentClassFilter = this.value;
+                console.log('Class filter changed to:', currentClassFilter);
+                calendar.refetchEvents();
+            });
+            
+            document.getElementById('viewSelect').addEventListener('change', function() {
+                console.log('View changed to:', this.value);
+                calendar.changeView(this.value);
+            });
+            
+            document.getElementById('todayBtn').addEventListener('click', function() {
+                calendar.today();
+            });
+        });
+
+        function initializeCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'vi',
+                headerToolbar: {
+                    left: '',
+                    center: '',
+                    right: ''
+                },
+                height: 'auto',
+                events: function(info, successCallback, failureCallback) {
+                    console.log('Loading calendar events for:', info.start, 'to', info.end);
+                    loadCalendarEvents(info.start, info.end, successCallback, failureCallback);
+                },
+                eventClick: function(info) {
+                    console.log('Event clicked:', info.event);
+                    if (info.event.extendedProps.type !== 'booking') {
+                        // For available classes, show quick booking instead of details
+                        const date = info.event.start;
+                        showQuickBooking(date, info.event.extendedProps.lopHocId);
+                    } else {
+                        showEventDetails(info.event);
+                    }
+                },
+                dateClick: function(info) {
+                    console.log('Date clicked:', info.date);
+                    showQuickBooking(info.date);
+                },
+                datesSet: function(info) {
+                    updateMonthDisplay(info.start);
+                },
+                eventDidMount: function(info) {
+                    // Add tooltip
+                    const fullTitle = info.event.extendedProps.fullTitle || info.event.title;
+                    info.el.setAttribute('title', fullTitle);
+                    
+                    // Add quick register button for available classes
+                    if (info.event.extendedProps.type === 'class' || 
+                        info.event.extendedProps.type === 'weekly_class' || 
+                        info.event.extendedProps.type === 'admin_class') {
+                        
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.className = 'quick-register-container';
+                        buttonContainer.innerHTML = `
+                            <button class="quick-register-btn" 
+                                    onclick="quickRegisterClass(${info.event.extendedProps.lopHocId}, '${info.event.start.toISOString().split('T')[0]}')"
+                                    title="Đăng ký nhanh">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        `;
+                        
+                        // Append button to event element
+                        info.el.appendChild(buttonContainer);
+                    }
+                },
+                loading: function(isLoading) {
+                    console.log('Calendar loading:', isLoading);
+                    if (isLoading) {
+                        document.getElementById('calendar').style.opacity = '0.7';
+                    } else {
+                        document.getElementById('calendar').style.opacity = '1';
+                    }
+                },
+                eventDisplay: 'block',
+                displayEventTime: true,
+                dayMaxEventRows: false,
+                eventMouseEnter: function(info) {
+                    const fullTitle = info.event.extendedProps.fullTitle || info.event.title;
+                    info.el.setAttribute('title', fullTitle);
+                },
+                // List view specific settings
+                listDayFormat: { weekday: 'long', month: 'short', day: 'numeric' },
+                listDaySideFormat: false,
+                noEventsContent: 'Không có lịch nào trong khoảng thời gian này'
+            });
+            
+            calendar.render();
+            console.log('Calendar rendered');
+            
+            // Custom navigation
+            document.getElementById('prevMonth').addEventListener('click', () => {
+                console.log('Previous period clicked');
+                calendar.prev();
+            });
+            document.getElementById('nextMonth').addEventListener('click', () => {
+                console.log('Next period clicked');
+                calendar.next();
+            });
+        }
+
+        function loadCalendarEvents(start, end, successCallback, failureCallback) {
+            const url = '@Url.Action("GetCalendarEvents", "Booking")';
+            const params = new URLSearchParams({
+                start: start.toISOString(),
+                end: end.toISOString()
+            });
+            
+            if (currentClassFilter) {
+                params.append('classId', currentClassFilter);
+            }
+            
+            console.log('Fetching events from:', `${url}?${params}`);
+            
+            fetch(`${url}?${params}`)
+                .then(response => {
+                    console.log('API Response status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Events loaded:', data);
+                    if (Array.isArray(data)) {
+                        if (data.length === 0) {
+                            console.log('No events found for this period');
+                            // Show a message or create sample events
+                            showNoEventsMessage();
+                        }
+                        successCallback(data);
+                    } else {
+                        console.error('Invalid data format:', data);
+                        failureCallback(new Error('Invalid data format'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading calendar events:', error);
+                    showErrorMessage(error.message);
+                    failureCallback(error);
+                });
+        }
+
+        function showNoEventsMessage() {
+            // Create a placeholder event to show that calendar is working
+            console.log('Showing no events message');
+            updateTodaySchedule('<div class="text-center py-4 text-gray-500">Không có lịch nào trong khoảng thời gian này</div>');
+        }
+
+        function showErrorMessage(error) {
+            console.error('Calendar error:', error);
+            updateTodaySchedule(`<div class="text-center py-4 text-red-500">Lỗi khi tải dữ liệu: ${error}</div>`);
+        }
+
+        function updateMonthDisplay(date) {
+            const monthNames = [
+                'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+            ];
+            
+            const monthDisplay = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            document.getElementById('currentMonth').textContent = monthDisplay;
+        }
+
+        function showEventDetails(event) {
+            const details = `
+                <div class="space-y-4">
+                    <div class="text-center">
+                        <h4 class="text-xl font-semibold text-gray-900">${event.title}</h4>
+                        <p class="text-gray-600">${event.start.toLocaleString('vi-VN')}</p>
+                    </div>
+                    <div class="border-t pt-4">
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Trạng thái:</span>
+                                <span class="font-medium">${getStatusText(event.extendedProps.status)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Thời gian:</span>
+                                <span class="font-medium">${event.start.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'} )} - ${event.end ? event.end.toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Loại:</span>
+                                <span class="font-medium">${event.extendedProps.type || 'Không xác định'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 pt-4 border-t">
+                        ${event.extendedProps.type === 'booking' ? `
+                            <button onclick="editBooking(${event.id})" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                                Chỉnh sửa
+                            </button>
+                            <button onclick="cancelBooking(${event.id})" class="flex-1 bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700">
+                                Hủy bỏ
+                            </button>
+                        ` : `
+                            <button onclick="bookClass(${event.extendedProps.lopHocId}, '${event.start.toISOString().split('T')[0]}')" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
+                                Đặt lịch
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('eventDetails').innerHTML = details;
+            document.getElementById('eventModal').classList.remove('hidden');
+        }
+
+        function bookClass(lopHocId, date) {
+            console.log('Booking class:', lopHocId, 'for date:', date);
+            // Redirect to booking page or handle booking
+            window.location.href = `@Url.Action("Create")?classId=${lopHocId}&date=${date}`;
+        }
+
+        function showQuickBooking(date, preSelectedClassId = null) {
+            const dateStr = date.toISOString().split('T')[0];
+            const content = `
+                <div class="space-y-4">
+                    <div class="text-center">
+                        <h4 class="text-lg font-semibold text-gray-900">Đặt lịch cho ngày</h4>
+                        <p class="text-gray-600">${date.toLocaleDateString('vi-VN')}</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Chọn lớp học:</label>
+                            <select id="quickBookingClass" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <option value="">-- Chọn lớp học --</option>
+                                @if (classes != null)
+                                {
+                                    @foreach (var lopHoc in classes)
+                                    {
+                                        <option value="@lopHoc.LopHocId">@lopHoc.TenLop (@lopHoc.GioBatDau.ToString("HH:mm")-@lopHoc.GioKetThuc.ToString("HH:mm"))</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ghi chú:</label>
+                            <textarea id="quickBookingNote" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="3" placeholder="Nhập ghi chú (tuỳ chọn)..."></textarea>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 pt-4 border-t">
+                        <button onclick="confirmQuickBooking('${dateStr}')" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
+                            Xác nhận đặt lịch
+                        </button>
+                        <button onclick="closeQuickBookingModal()" class="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-400">
+                            Hủy bỏ
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('quickBookingContent').innerHTML = content;
+            
+            // Pre-select class if provided
+            if (preSelectedClassId) {
+                setTimeout(() => {
+                    const selectElement = document.getElementById('quickBookingClass');
+                    if (selectElement) {
+                        selectElement.value = preSelectedClassId;
+                    }
+                }, 100);
+            }
+            
+            document.getElementById('quickBookingModal').classList.remove('hidden');
+        }
+
+        function confirmQuickBooking(date) {
+            const classId = document.getElementById('quickBookingClass').value;
+            const note = document.getElementById('quickBookingNote').value;
+            
+            if (!classId) {
+                alert('Vui lòng chọn lớp học');
+                return;
+            }
+            
+            // Disable button to prevent double-click
+            const confirmBtn = event.target;
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Đang xử lý...';
+            
+            // Make AJAX request to book class
+            fetch('@Url.Action("BookClass", "Booking")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({
+                    classId: parseInt(classId),
+                    date: date,
+                    note: note
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Đặt lịch thành công!');
+                    closeQuickBookingModal();
+                    // Refresh calendar to show new booking
+                    calendar.refetchEvents();
+                    loadTodaySchedule();
+                    loadQuickStats();
+                } else {
+                    alert(data.message || 'Đã xảy ra lỗi khi đặt lịch');
+                }
+            })
+            .catch(error => {
+                console.error('Error booking class:', error);
+                alert('Lỗi kết nối. Vui lòng thử lại!');
+            })
+            .finally(() => {
+                // Re-enable button
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Xác nhận đặt lịch';
+            });
+        }
+
+        function loadTodaySchedule() {
+            // Load today's schedule from API
+            const today = new Date().toISOString().split('T')[0];
+            const url = '@Url.Action("GetCalendarEvents", "Booking")';
+            const params = new URLSearchParams({
+                start: today + 'T00:00:00',
+                end: today + 'T23:59:59'
+            });
+            
+            fetch(`${url}?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Today schedule loaded:', data);
+                    if (Array.isArray(data) && data.length > 0) {
+                        let html = '<div class="space-y-2">';
+                        data.forEach(event => {
+                            html += `
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <div class="font-medium text-gray-900">${event.title}</div>
+                                        <div class="text-sm text-gray-600">${event.start ? new Date(event.start).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 'N/A'} - ${event.end ? new Date(event.end).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 'N/A'}</div>
+                                    </div>
+                                    <span class="text-xs px-2 py-1 rounded" style="background-color: ${event.backgroundColor}; color: white;">${event.status}</span>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                        updateTodaySchedule(html);
+                    } else {
+                        updateTodaySchedule('<div class="text-center py-4 text-gray-500"><p>Không có lịch nào hôm nay</p></div>');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading today schedule:', error);
+                    updateTodaySchedule('<div class="text-center py-4 text-red-500"><p>Lỗi khi tải lịch hôm nay</p></div>');
+                });
+        }
+
+        function updateTodaySchedule(html) {
+            document.getElementById('todaySchedule').innerHTML = html;
+        }
+
+        function showQuickRegister() {
+            document.getElementById('quickRegisterModal').classList.remove('hidden');
+        }
+
+        function closeQuickRegisterModal() {
+            document.getElementById('quickRegisterModal').classList.add('hidden');
+        }
+
+        function loadQuickStats() {
+            // Load quick stats from API
+            fetch('@Url.Action("MyBookings")')
+                .then(response => response.text())
+                .then(html => {
+                    // Parse HTML to count bookings (simplified approach)
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const rows = doc.querySelectorAll('table tbody tr');
+                    
+                    document.getElementById('totalBookings').textContent = rows.length || '0';
+                    document.getElementById('thisWeekBookings').textContent = '0'; // Would need more logic
+                    document.getElementById('upcomingBookings').textContent = '0'; // Would need more logic
+                    document.getElementById('completedBookings').textContent = '0'; // Would need more logic
+                })
+                .catch(error => {
+                    console.error('Error loading quick stats:', error);
+                    document.getElementById('totalBookings').textContent = '0';
+                    document.getElementById('thisWeekBookings').textContent = '0';
+                    document.getElementById('upcomingBookings').textContent = '0';
+                    document.getElementById('completedBookings').textContent = '0';
+                });
+        }
+
+        function getStatusText(status) {
+            switch(status) {
+                case 'BOOKED': return 'Đã đặt';
+                case 'CANCELED': return 'Đã hủy';
+                case 'ATTENDED': return 'Đã tham gia';
+                case 'AVAILABLE': return 'Khả dụng';
+                default: return status || 'Không xác định';
+            }
+        }
+
+        function editBooking(bookingId) {
+            console.log('Edit booking:', bookingId);
+            alert('Chức năng chỉnh sửa đặt lịch sẽ được triển khai trong phiên bản tiếp theo.');
+        }
+
+        function cancelBooking(bookingId) {
+            if (confirm('Bạn có chắc chắn muốn hủy đặt lịch này không?')) {
+                console.log('Cancel booking:', bookingId);
+                alert('Chức năng hủy đặt lịch sẽ được triển khai trong phiên bản tiếp theo.');
+            }
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.add('hidden');
+        }
+
+        function closeQuickBookingModal() {
+            document.getElementById('quickBookingModal').classList.add('hidden');
+        }
+
+        // New function for quick register from calendar event
+        function quickRegisterClass(lopHocId, date) {
+            console.log('Quick register for class:', lopHocId, 'on date:', date);
+            // Open quick booking with pre-selected class
+            showQuickBooking(new Date(date), lopHocId);
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('eventModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEventModal();
+        });
+
+        document.getElementById('quickBookingModal').addEventListener('click', function(e) {
+            if (e.target === this) closeQuickBookingModal();
+        });
+
+        document.getElementById('quickRegisterModal').addEventListener('click', function(e) {
+            if (e.target === this) closeQuickRegisterModal();
+        });
+    </script>
+}

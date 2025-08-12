@@ -1,0 +1,334 @@
+@model IEnumerable<GymManagement.Web.Data.Models.KhuyenMai>
+@{
+    ViewData["Title"] = "Quản lý khuyến mãi";
+    Layout = "_Layout";
+}
+
+@section Scripts {
+    <script>
+        // Auto refresh page every 5 minutes to update expired promotions
+        setTimeout(function() {
+            location.reload();
+        }, 300000);
+    </script>
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">🎫 Quản lý khuyến mãi</h1>
+            <p class="text-gray-600">Quản lý các mã khuyến mãi và chương trình giảm giá</p>
+        </div>
+        <a href="@Url.Action("Create")" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Tạo khuyến mãi mới
+        </a>
+    </div>
+
+    <!-- Success/Error Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- Search and Filter Section -->
+    <div class="bg-white rounded-lg shadow mb-6 p-6">
+        <form method="get" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Search Input -->
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+                    <input type="text"
+                           id="search"
+                           name="search"
+                           value="@ViewBag.CurrentSearch"
+                           placeholder="Tìm theo mã hoặc mô tả..."
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                    <select id="status"
+                            name="status"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="active" selected="@(ViewBag.CurrentStatus == "active")">Đang hoạt động</option>
+                        <option value="expiring" selected="@(ViewBag.CurrentStatus == "expiring")">Sắp hết hạn</option>
+                        <option value="expired" selected="@(ViewBag.CurrentStatus == "expired")">Đã hết hạn</option>
+                        <option value="upcoming" selected="@(ViewBag.CurrentStatus == "upcoming")">Sắp diễn ra</option>
+                        <option value="disabled" selected="@(ViewBag.CurrentStatus == "disabled")">Đã tắt</option>
+                    </select>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-end space-x-2">
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors">
+                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Tìm kiếm
+                    </button>
+                    <a href="@Url.Action("Index")"
+                       class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-md font-medium transition-colors">
+                        Xóa bộ lọc
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Tổng số mã</p>
+                    <p class="text-2xl font-semibold text-gray-900">@((ViewBag.AllKhuyenMais as IEnumerable<GymManagement.Web.Data.Models.KhuyenMai>)?.Count() ?? 0)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-100 rounded-lg">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Đang hoạt động</p>
+                    <p class="text-2xl font-semibold text-gray-900">@((ViewBag.AllKhuyenMais as IEnumerable<GymManagement.Web.Data.Models.KhuyenMai>)?.Count(k => k.KichHoat && k.NgayBatDau <= DateOnly.FromDateTime(DateTime.Today) && k.NgayKetThuc >= DateOnly.FromDateTime(DateTime.Today)) ?? 0)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-yellow-100 rounded-lg">
+                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Sắp hết hạn</p>
+                    <p class="text-2xl font-semibold text-gray-900">@((ViewBag.AllKhuyenMais as IEnumerable<GymManagement.Web.Data.Models.KhuyenMai>)?.Count(k => k.KichHoat && k.NgayKetThuc >= DateOnly.FromDateTime(DateTime.Today) && k.NgayKetThuc <= DateOnly.FromDateTime(DateTime.Today.AddDays(7))) ?? 0)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-red-100 rounded-lg">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Đã hết hạn</p>
+                    <p class="text-2xl font-semibold text-gray-900">@((ViewBag.AllKhuyenMais as IEnumerable<GymManagement.Web.Data.Models.KhuyenMai>)?.Count(k => k.NgayKetThuc < DateOnly.FromDateTime(DateTime.Today)) ?? 0)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotions Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Danh sách khuyến mãi</h3>
+        </div>
+        
+        @if (Model.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã khuyến mãi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giảm giá</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach (var item in Model)
+                        {
+                            var today = DateOnly.FromDateTime(DateTime.Today);
+                            var isActive = item.KichHoat && item.NgayBatDau <= today && item.NgayKetThuc >= today;
+                            var isExpired = item.NgayKetThuc < today;
+                            var isUpcoming = item.NgayBatDau > today;
+                            
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="text-sm font-medium text-gray-900">@item.MaCode</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">@(item.MoTa ?? "Không có mô tả")</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">@(item.PhanTramGiam?.ToString() ?? "0")%</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        @item.NgayBatDau.ToString("dd/MM/yyyy") - @item.NgayKetThuc.ToString("dd/MM/yyyy")
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (isActive)
+                                    {
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            Đang hoạt động
+                                        </span>
+                                    }
+                                    else if (isExpired)
+                                    {
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            Đã hết hạn
+                                        </span>
+                                    }
+                                    else if (isUpcoming)
+                                    {
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                            Sắp diễn ra
+                                        </span>
+                                    }
+                                    else if (!item.KichHoat)
+                                    {
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                            Đã tắt
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="@Url.Action("Details", new { id = item.KhuyenMaiId })" 
+                                           class="text-blue-600 hover:text-blue-900">Xem</a>
+                                        <a href="@Url.Action("Edit", new { id = item.KhuyenMaiId })" 
+                                           class="text-indigo-600 hover:text-indigo-900">Sửa</a>
+                                        <a href="@Url.Action("Delete", new { id = item.KhuyenMaiId })" 
+                                           class="text-red-600 hover:text-red-900">Xóa</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Chưa có khuyến mãi nào</h3>
+                <p class="mt-1 text-sm text-gray-500">Bắt đầu bằng cách tạo khuyến mãi đầu tiên.</p>
+                <div class="mt-6">
+                    <a href="@Url.Action("Create")" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Tạo khuyến mãi mới
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-lg shadow mt-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+                @if (ViewBag.HasPreviousPage)
+                {
+                    <a href="@Url.Action("Index", new { search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, page = ViewBag.CurrentPage - 1 })"
+                       class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Trước
+                    </a>
+                }
+                @if (ViewBag.HasNextPage)
+                {
+                    <a href="@Url.Action("Index", new { search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, page = ViewBag.CurrentPage + 1 })"
+                       class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Sau
+                    </a>
+                }
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700">
+                        Hiển thị
+                        <span class="font-medium">@((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1)</span>
+                        đến
+                        <span class="font-medium">@Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalItems)</span>
+                        trong tổng số
+                        <span class="font-medium">@ViewBag.TotalItems</span>
+                        kết quả
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        @if (ViewBag.HasPreviousPage)
+                        {
+                            <a href="@Url.Action("Index", new { search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, page = ViewBag.CurrentPage - 1 })"
+                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        }
+
+                        @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                        {
+                            @if (i == ViewBag.CurrentPage)
+                            {
+                                <span class="relative inline-flex items-center px-4 py-2 border border-blue-500 bg-blue-50 text-sm font-medium text-blue-600">
+                                    @i
+                                </span>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Index", new { search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, page = i })"
+                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                    @i
+                                </a>
+                            }
+                        }
+
+                        @if (ViewBag.HasNextPage)
+                        {
+                            <a href="@Url.Action("Index", new { search = ViewBag.CurrentSearch, status = ViewBag.CurrentStatus, page = ViewBag.CurrentPage + 1 })"
+                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        }
+                    </nav>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,775 @@
+@{
+    ViewData["Title"] = "Dashboard Báo Cáo - Admin";
+    Layout = "_Layout";
+}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                        📊 Dashboard Báo Cáo
+                    </h1>
+                    <p class="text-gray-600 text-lg">Tổng quan hoạt động và thống kê hệ thống</p>
+                </div>
+                
+                <!-- Real-time Clock -->
+                <div class="bg-white rounded-xl shadow-lg p-4 border border-gray-100">
+                    <div class="text-center">
+                        <div id="currentTime" class="text-2xl font-bold text-gray-900"></div>
+                        <div id="currentDate" class="text-sm text-gray-600"></div>
+                        <div class="text-xs text-green-600 mt-1">
+                            <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
+                            Cập nhật trực tiếp
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Today Revenue -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Doanh thu hôm nay</p>
+                        <p id="todayRevenue" class="text-3xl font-bold text-green-600">0 VNĐ</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="revenueChange" class="text-green-500">+0%</span> so với hôm qua
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Members -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Tổng thành viên</p>
+                        <p id="totalMembers" class="text-3xl font-bold text-blue-600">0</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="memberChange" class="text-blue-500">+0</span> thành viên mới tháng này
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today Attendance -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Điểm danh hôm nay</p>
+                        <p id="todayAttendance" class="text-3xl font-bold text-purple-600">0</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="attendanceChange" class="text-purple-500">+0%</span> so với hôm qua
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Revenue -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Doanh thu tháng này</p>
+                        <p id="monthlyRevenue" class="text-3xl font-bold text-orange-600">0 VNĐ</p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span id="monthlyChange" class="text-orange-500">+0%</span> so với tháng trước
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Revenue Trend Chart -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">📈 Xu hướng doanh thu (30 ngày)</h3>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors">7 ngày</button>
+                        <button class="px-3 py-1 text-xs bg-blue-600 text-white rounded-full">30 ngày</button>
+                        <button class="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-colors">90 ngày</button>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Attendance Trend Chart -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900">👥 Xu hướng điểm danh (7 ngày)</h3>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 text-xs bg-purple-600 text-white rounded-full">7 ngày</button>
+                        <button class="px-3 py-1 text-xs bg-purple-100 text-purple-600 rounded-full hover:bg-purple-200 transition-colors">30 ngày</button>
+                    </div>
+                </div>
+                <div class="h-64">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Navigation -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mb-8">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Báo cáo chi tiết
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Revenue Report -->
+                <a href="@Url.Action("Revenue", "BaoCao")" 
+                   class="group bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:border-green-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                        <svg class="w-5 h-5 text-green-400 group-hover:text-green-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-2">Báo cáo doanh thu</h4>
+                    <p class="text-sm text-gray-600">Phân tích doanh thu theo thời gian và phương thức thanh toán</p>
+                </a>
+
+                <!-- Membership Report -->
+                <a href="@Url.Action("Membership", "BaoCao")" 
+                   class="group bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:border-blue-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <svg class="w-5 h-5 text-blue-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-2">Báo cáo thành viên</h4>
+                    <p class="text-sm text-gray-600">Thống kê đăng ký, retention và demographics</p>
+                </a>
+
+                <!-- Attendance Report -->
+                <a href="@Url.Action("Attendance", "BaoCao")" 
+                   class="group bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:border-purple-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <svg class="w-5 h-5 text-purple-400 group-hover:text-purple-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-2">Báo cáo điểm danh</h4>
+                    <p class="text-sm text-gray-600">Xu hướng điểm danh và engagement của thành viên</p>
+                </a>
+
+                <!-- Classes Report -->
+                <a href="@Url.Action("Classes", "BaoCao")" 
+                   class="group bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 hover:border-orange-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <svg class="w-5 h-5 text-orange-400 group-hover:text-orange-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-2">Báo cáo lớp học</h4>
+                    <p class="text-sm text-gray-600">Tỷ lệ lấp đầy và hiệu quả của các lớp học</p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Hoạt động gần đây
+            </h3>
+            
+            <div id="recentActivity" class="space-y-4">
+                <!-- Activity items will be loaded here -->
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="ml-2 text-gray-600">Đang tải hoạt động...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+
+    <script>
+        // Global variables
+        let revenueChart, attendanceChart;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeClock();
+            loadQuickStats();
+            initializeCharts();
+            loadRecentActivity();
+
+            // Auto refresh every 5 minutes
+            setInterval(loadQuickStats, 5 * 60 * 1000);
+            setInterval(loadRecentActivity, 2 * 60 * 1000);
+        });
+
+        // Clock functionality
+        function initializeClock() {
+            function updateClock() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                const dateString = now.toLocaleDateString('vi-VN', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                document.getElementById('currentTime').textContent = timeString;
+                document.getElementById('currentDate').textContent = dateString;
+            }
+
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        // Load quick stats
+        function loadQuickStats() {
+            fetch('@Url.Action("GetQuickStats", "BaoCao")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update revenue
+                        document.getElementById('todayRevenue').textContent =
+                            formatCurrency(data.todayRevenue);
+
+                        // Update members
+                        document.getElementById('totalMembers').textContent =
+                            data.totalMembers.toLocaleString('vi-VN');
+
+                        // Update attendance
+                        document.getElementById('todayAttendance').textContent =
+                            data.todayAttendance.toLocaleString('vi-VN');
+
+                        // Update monthly revenue
+                        document.getElementById('monthlyRevenue').textContent =
+                            formatCurrency(data.monthlyRevenue);
+
+                        // Calculate and display changes (mock data for now)
+                        updateChangeIndicators(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading quick stats:', error);
+                    showNotification('Có lỗi khi tải thống kê nhanh', 'error');
+                });
+        }
+
+        // Update change indicators
+        function updateChangeIndicators(data) {
+            // Mock percentage changes - in real app, these would come from API
+            const changes = {
+                revenue: Math.floor(Math.random() * 20) - 5, // -5% to +15%
+                members: Math.floor(Math.random() * 10), // 0 to 10 new members
+                attendance: Math.floor(Math.random() * 30) - 10, // -10% to +20%
+                monthly: Math.floor(Math.random() * 25) - 5 // -5% to +20%
+            };
+
+            updateChangeElement('revenueChange', changes.revenue, '%');
+            updateChangeElement('memberChange', changes.members, ' thành viên mới tháng này');
+            updateChangeElement('attendanceChange', changes.attendance, '%');
+            updateChangeElement('monthlyChange', changes.monthly, '%');
+        }
+
+        function updateChangeElement(elementId, value, suffix) {
+            const element = document.getElementById(elementId);
+            const isPositive = value >= 0;
+            const prefix = isPositive ? '+' : '';
+
+            element.textContent = prefix + value + suffix;
+            element.className = isPositive ? 'text-green-500' : 'text-red-500';
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            initializeRevenueChart();
+            initializeAttendanceChart();
+        }
+
+        function initializeRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+
+            // Generate sample data for last 30 days
+            const labels = [];
+            const data = [];
+            const today = new Date();
+
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' }));
+                data.push(Math.floor(Math.random() * 5000000) + 1000000); // 1M to 6M VND
+            }
+
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: data,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        function initializeAttendanceChart() {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+
+            // Generate sample data for last 7 days
+            const labels = [];
+            const data = [];
+            const today = new Date();
+
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                labels.push(date.toLocaleDateString('vi-VN', { weekday: 'short' }));
+                data.push(Math.floor(Math.random() * 100) + 50); // 50 to 150 people
+            }
+
+            attendanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Số lượng điểm danh',
+                        data: data,
+                        backgroundColor: 'rgba(147, 51, 234, 0.8)',
+                        borderColor: 'rgb(147, 51, 234)',
+                        borderWidth: 1,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load recent activity
+        function loadRecentActivity() {
+            const activities = [
+                {
+                    type: 'payment',
+                    message: 'Thanh toán thành công gói tập Premium',
+                    user: 'Nguyễn Văn A',
+                    time: '5 phút trước',
+                    icon: '💳',
+                    color: 'text-green-600'
+                },
+                {
+                    type: 'registration',
+                    message: 'Đăng ký lớp Yoga buổi sáng',
+                    user: 'Trần Thị B',
+                    time: '12 phút trước',
+                    icon: '📝',
+                    color: 'text-blue-600'
+                },
+                {
+                    type: 'attendance',
+                    message: 'Điểm danh lớp Cardio',
+                    user: 'Lê Văn C',
+                    time: '18 phút trước',
+                    icon: '✅',
+                    color: 'text-purple-600'
+                },
+                {
+                    type: 'membership',
+                    message: 'Gia hạn thành viên thành công',
+                    user: 'Phạm Thị D',
+                    time: '25 phút trước',
+                    icon: '🔄',
+                    color: 'text-orange-600'
+                },
+                {
+                    type: 'class',
+                    message: 'Tạo lớp học mới: Pilates nâng cao',
+                    user: 'HLV Minh',
+                    time: '1 giờ trước',
+                    icon: '🏋️',
+                    color: 'text-indigo-600'
+                }
+            ];
+
+            const container = document.getElementById('recentActivity');
+            container.innerHTML = activities.map(activity => `
+                <div class="flex items-center p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200">
+                    <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm mr-4">
+                        <span class="text-lg">${activity.icon}</span>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">${activity.message}</p>
+                        <p class="text-xs text-gray-600">bởi <span class="font-medium">${activity.user}</span></p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs ${activity.color} font-medium">${activity.time}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Utility functions
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span class="mr-2">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 10);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+
+        // Chart period buttons functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.matches('.chart-period-btn')) {
+                // Remove active class from siblings
+                const siblings = e.target.parentElement.children;
+                Array.from(siblings).forEach(btn => {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('bg-blue-100', 'text-blue-600');
+                });
+
+                // Add active class to clicked button
+                e.target.classList.remove('bg-blue-100', 'text-blue-600');
+                e.target.classList.add('bg-blue-600', 'text-white');
+
+                // Update chart based on period (implement as needed)
+                const period = e.target.textContent.trim();
+                console.log('Chart period changed to:', period);
+            }
+        });
+
+        // Add entrance animations
+        function addEntranceAnimations() {
+            const cards = document.querySelectorAll('.bg-white');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
+
+        // Initialize animations after DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(addEntranceAnimations, 100);
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        /* Custom animations and transitions */
+        .bg-white {
+            transition: all 0.3s ease;
+        }
+
+        .bg-white:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Gradient text effect */
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+        }
+
+        /* Loading animation */
+        @@keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Chart containers */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Smooth transitions for all interactive elements */
+        button, a, .group {
+            transition: all 0.3s ease;
+        }
+
+        /* Custom focus styles */
+        button:focus, a:focus {
+            outline: 2px solid #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Enhanced hover effects for cards */
+        .hover-card:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Stats card animations */
+        .stats-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Activity item hover effect */
+        .activity-item:hover {
+            transform: translateX(4px);
+        }
+
+        /* Responsive improvements */
+        @@media (max-width: 768px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .grid {
+                gap: 1rem;
+            }
+
+            .text-4xl {
+                font-size: 2rem;
+            }
+
+            .text-3xl {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Chart period buttons */
+        .chart-period-btn {
+            transition: all 0.2s ease;
+        }
+
+        .chart-period-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Real-time indicator */
+        .realtime-indicator {
+            animation: pulse 2s infinite;
+        }
+
+        /* Navigation cards gradient borders */
+        .nav-card {
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #3b82f6, #6366f1) border-box;
+            border: 2px solid transparent;
+        }
+
+        .nav-card:hover {
+            background: linear-gradient(white, white) padding-box,
+                        linear-gradient(135deg, #2563eb, #4f46e5) border-box;
+        }
+
+        /* Clock styling */
+        .clock-container {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 1) 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Activity timeline */
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #3b82f6, #6366f1);
+        }
+
+        /* Chart tooltips */
+        .chartjs-tooltip {
+            background: rgba(0, 0, 0, 0.8) !important;
+            border-radius: 8px !important;
+            color: white !important;
+        }
+    </style>
+}

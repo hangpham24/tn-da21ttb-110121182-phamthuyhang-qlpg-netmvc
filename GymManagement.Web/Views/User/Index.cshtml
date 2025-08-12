@@ -1,0 +1,1347 @@
+@model IEnumerable<GymManagement.Web.Models.DTOs.NguoiDungDto>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    Layout = "_Layout";
+    var loaiNguoiDung = ViewBag.LoaiNguoiDung as string;
+    var searchTerm = ViewBag.SearchTerm as string;
+
+    string pageTitle = loaiNguoiDung switch
+    {
+        "THANHVIEN" => "Quản lý thành viên",
+        "HLV" => "Quản lý huấn luyện viên",
+        "ADMIN" => "Quản lý quản trị viên",
+        "VANGLAI" => "Quản lý khách vãng lai",
+        _ => "Quản lý người dùng"
+    };
+}
+
+@* CSRF Token for AJAX requests *@
+<form id="csrfForm" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-6">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-3xl font-bold text-gray-900">@pageTitle</h1>
+                    @* <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                        @Model.Count() người dùng
+                    </span> *@
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="openWalkInModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        🚶 Khách Vãng Lai
+                    </button>
+                    <a href="@Url.Action("Create", "User")" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                        Thêm người dùng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @Html.AntiForgeryToken()
+
+        <!-- Filters Card -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+            <div class="p-6">
+                <div class="flex flex-col lg:flex-row lg:items-end gap-4">
+                <div class="flex-1">
+                        <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+                        <input type="text" id="searchInput"
+                               placeholder="Tìm theo tên, email, số điện thoại..."
+                               value="@searchTerm"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div>
+                        <label for="loaiFilter" class="block text-sm font-medium text-gray-700 mb-2">Loại người dùng</label>
+                        <select name="loaiNguoiDung" id="loaiFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Tất cả loại</option>
+                            @if(loaiNguoiDung == "THANHVIEN")
+                        {
+                                <option value="THANHVIEN" selected>👤 Thành viên</option>
+                        }
+                        else
+                        {
+                                <option value="THANHVIEN">👤 Thành viên</option>
+                        }
+                            @if(loaiNguoiDung == "HLV")
+                        {
+                                <option value="HLV" selected>💪 Huấn luyện viên</option>
+                        }
+                        else
+                        {
+                                <option value="HLV">💪 Huấn luyện viên</option>
+                        }
+                                        @if(loaiNguoiDung == "ADMIN")
+            {
+                <option value="ADMIN" selected>👔 Quản trị viên</option>
+            }
+            else
+            {
+                <option value="ADMIN">👔 Quản trị viên</option>
+            }
+                            @if(loaiNguoiDung == "VANGLAI")
+                        {
+                                <option value="VANGLAI" selected>🚶 Vãng lai</option>
+                        }
+                        else
+                        {
+                                <option value="VANGLAI">🚶 Vãng lai</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                        <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                        <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Tất cả</option>
+                            <option value="ACTIVE">✅ Hoạt động</option>
+                            <option value="INACTIVE">❌ Ngừng hoạt động</option>
+                        </select>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="applyFilters()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+                        </svg>
+                        Lọc
+                    </button>
+                        <button onclick="clearFilters()" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4l16 16m0-16L4 20"></path>
+                            </svg>
+                            Xóa bộ lọc
+                        </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+            @if (Model.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Người dùng
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thông tin liên hệ
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Loại & Trạng thái
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Ngày tham gia
+                            </th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Thao tác
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                            @foreach (var nguoiDung in Model)
+                        {
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                            <div class="h-12 w-12 flex-shrink-0">
+                                                @if (!string.IsNullOrEmpty(nguoiDung.AnhDaiDien))
+                                                {
+                                                    <img class="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
+                                                         src="@nguoiDung.AnhDaiDien"
+                                                         alt="@nguoiDung.HoTen">
+                                                }
+                                            else
+                                            {
+                                                    <div class="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-semibold text-lg">
+                                                        @(string.IsNullOrEmpty(nguoiDung.Ho) ? "" : nguoiDung.Ho.Substring(0, 1))@(string.IsNullOrEmpty(nguoiDung.Ten) ? "" : nguoiDung.Ten.Substring(0, 1))
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900">@nguoiDung.HoTen</div>
+                                                <div class="text-sm text-gray-500">#@nguoiDung.NguoiDungId.ToString("D4")</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">
+                                            @if (!string.IsNullOrEmpty(nguoiDung.Email))
+                                            {
+                                                <div class="flex items-center mb-1">
+                                                    <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                    <span class="text-sm text-gray-600">@nguoiDung.Email</span>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(nguoiDung.SoDienThoai))
+                                            {
+                                                <div class="flex items-center">
+                                                    <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                                                    </svg>
+                                                    <span class="text-sm text-gray-600">@nguoiDung.SoDienThoai</span>
+                                                </div>
+                                            }
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="space-y-2">
+                                    @{
+                                                var (badgeClass, displayName, icon) = nguoiDung.LoaiNguoiDung switch
+                                        {
+                                            "THANHVIEN" => ("bg-blue-100 text-blue-800", "Thành viên", "👤"),
+                                                    "HLV" => ("bg-purple-100 text-purple-800", "Huấn luyện viên", "💪"),
+                                                    "ADMIN" => ("bg-green-100 text-green-800", "Quản trị viên", "👔"),
+                                            "VANGLAI" => ("bg-yellow-100 text-yellow-800", "Vãng lai", "🚶"),
+                                                    _ => ("bg-gray-100 text-gray-800", nguoiDung.LoaiNguoiDung, "👤")
+                                        };
+                                    }
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @badgeClass">
+                                        <span class="mr-1">@icon</span>
+                                        @displayName
+                                    </span>
+                                            <br>
+                                            @if (nguoiDung.TrangThai == "ACTIVE")
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-green-400"></span>
+                                            Hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                    <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-red-400"></span>
+                                                    Ngừng hoạt động
+                                        </span>
+                                    }
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <div class="flex flex-col">
+                                            <span>@nguoiDung.NgayThamGia.ToString("dd/MM/yyyy")</span>
+                                            <span class="text-xs text-gray-400">
+                                                @{
+                                                    var daysSinceJoined = DateOnly.FromDateTime(DateTime.Today).DayNumber - nguoiDung.NgayThamGia.DayNumber;
+                                                }
+                                                @daysSinceJoined ngày trước
+                                            </span>
+                                        </div>
+                                </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                        <div class="flex items-center justify-center space-x-2">
+                                            <a href="@Url.Action("Details", new { id = nguoiDung.NguoiDungId })"
+                                               class="text-indigo-600 hover:text-indigo-900 hover:bg-indigo-50 p-2 rounded-lg transition-colors duration-200"
+                                               title="Chi tiết">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </a>
+                                            <a href="@Url.Action("Edit", new { id = nguoiDung.NguoiDungId })"
+                                               class="text-yellow-600 hover:text-yellow-900 hover:bg-yellow-50 p-2 rounded-lg transition-colors duration-200"
+                                               title="Chỉnh sửa">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
+                                        </a>
+                                            <!-- Add Face Button -->
+                                            <button onclick="openFaceRegistrationModal(@nguoiDung.NguoiDungId, '@nguoiDung.HoTen')"
+                                                    class="text-blue-600 hover:text-blue-900 hover:bg-blue-50 p-2 rounded-lg transition-colors duration-200"
+                                                    title="Thêm khuôn mặt">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </button>
+                                            <!-- Delete Dropdown -->
+                                            <div class="relative inline-block text-left">
+                                                <button onclick="toggleDeleteDropdown(@nguoiDung.NguoiDungId)"
+                                                        class="text-red-600 hover:text-red-900 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200"
+                                                        title="Xóa">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
+                                                <div id="deleteDropdown@(nguoiDung.NguoiDungId)" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10">
+                                                    <div class="py-1">
+                                                        <button onclick="deleteFace(@nguoiDung.NguoiDungId, '@nguoiDung.HoTen')"
+                                                                class="block w-full text-left px-4 py-2 text-sm text-orange-700 hover:bg-orange-50">
+                                                            🗑️ Xóa khuôn mặt
+                                                        </button>
+                                                        <button onclick="deleteUser(@nguoiDung.NguoiDungId, '@nguoiDung.HoTen')"
+                                                                class="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                                            ❌ Xóa người dùng
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            @if (ViewBag.HasPreviousPage)
+                            {
+                                <a href="@Url.Action("Index", "User", new { loaiNguoiDung = ViewBag.LoaiNguoiDung, searchTerm = ViewBag.SearchTerm, page = ViewBag.CurrentPage - 1 })"
+                                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Trước
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+                                    Trước
+                                </span>
+                            }
+                            @if (ViewBag.HasNextPage)
+                            {
+                                <a href="@Url.Action("Index", "User", new { loaiNguoiDung = ViewBag.LoaiNguoiDung, searchTerm = ViewBag.SearchTerm, page = ViewBag.CurrentPage + 1 })"
+                                   class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Sau
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-400 bg-gray-100 cursor-not-allowed">
+                                    Sau
+                                </span>
+                            }
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Hiển thị
+                                    <span class="font-medium">@((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1)</span>
+                                    đến
+                                    <span class="font-medium">@Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalItems)</span>
+                                    trong tổng số
+                                    <span class="font-medium">@ViewBag.TotalItems</span>
+                                    người dùng
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    @if (ViewBag.HasPreviousPage)
+                                    {
+                                        <a href="@Url.Action("Index", "User", new { loaiNguoiDung = ViewBag.LoaiNguoiDung, searchTerm = ViewBag.SearchTerm, page = ViewBag.CurrentPage - 1 })"
+                                           class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Trang trước</span>
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    }
+
+                                    @for (int i = Math.Max(1, ViewBag.CurrentPage - 2); i <= Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2); i++)
+                                    {
+                                        if (i == ViewBag.CurrentPage)
+                                        {
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                @i
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <a href="@Url.Action("Index", "User", new { loaiNguoiDung = ViewBag.LoaiNguoiDung, searchTerm = ViewBag.SearchTerm, page = i })"
+                                               class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                @i
+                                            </a>
+                                        }
+                                    }
+
+                                    @if (ViewBag.HasNextPage)
+                                    {
+                                        <a href="@Url.Action("Index", "User", new { loaiNguoiDung = ViewBag.LoaiNguoiDung, searchTerm = ViewBag.SearchTerm, page = ViewBag.CurrentPage + 1 })"
+                                           class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Trang sau</span>
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-400 cursor-not-allowed">
+                                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </span>
+                                    }
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            }
+            else
+            {
+                <div class="text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.196-2.196M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.196-2.196M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                            </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Không có người dùng</h3>
+                    <p class="mt-1 text-sm text-gray-500">Bắt đầu bằng cách tạo một người dùng mới.</p>
+                    <div class="mt-6">
+                        <a href="@Url.Action("Create", "User")" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                            Thêm người dùng
+                                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Face Registration Modal -->
+<div id="faceRegistrationModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">🔍 Đăng Ký Khuôn Mặt</h3>
+                <button onclick="closeFaceRegistrationModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Member Info -->
+            <div id="selectedMemberInfo" class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <div class="text-sm font-medium text-blue-800">Đang đăng ký cho: <span id="selectedMemberName"></span></div>
+            </div>
+
+            <!-- Camera Section -->
+            <div class="mb-4">
+                <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="height: 300px;">
+                    <video id="modalRegisterVideo" class="w-full h-full object-cover" autoplay muted></video>
+                    <canvas id="modalRegisterCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+
+                    <!-- Status Overlay -->
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <div class="bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm">
+                            <div id="modalRegisterCameraStatus">📷 Camera not started</div>
+                            <div id="modalRegisterFaceStatus">👁️ No face detected</div>
+                            <div id="modalRegisterQualityStatus">⭐ Quality: Not assessed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex space-x-3 mb-4">
+                <button id="modalStartRegisterCameraBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📷 Start Camera
+                </button>
+                <button id="modalStopRegisterCameraBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    ⏹️ Stop Camera
+                </button>
+            </div>
+
+            <button id="modalRegisterButton" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                📝 Đăng Ký Khuôn Mặt
+            </button>
+
+            <!-- Results -->
+            <div id="modalRegisterResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Kết quả đăng ký:</h4>
+                    <div id="modalRegisterResultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Walk-in Registration Modal -->
+<div id="walkInModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">🚶 Đăng Ký Khách Vãng Lai</h3>
+                <button onclick="closeWalkInModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Walk-in Form - Step 1: Information -->
+            <div id="walkInStep1" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên *</label>
+                    <input type="text" id="modalGuestName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nguyễn Văn A">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại *</label>
+                    <input type="tel" id="modalGuestPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0123456789">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email (tùy chọn)</label>
+                    <input type="email" id="modalGuestEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="example@email.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                    <textarea id="modalGuestNote" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ghi chú thêm..."></textarea>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-blue-800">Vé tập một buổi</span>
+                        <span class="text-lg font-bold text-blue-900">50,000 VNĐ</span>
+                    </div>
+                    <p class="text-xs text-blue-600">Bao gồm: Sử dụng thiết bị, phòng tập, khăn tắm</p>
+                </div>
+
+                <button id="continueToPaymentBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    💳 Tiếp tục thanh toán
+                </button>
+            </div>
+
+            <!-- Walk-in Form - Step 2: Payment Method -->
+            <div id="walkInStep2" class="space-y-4 hidden">
+                <!-- Customer Info Summary -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Thông tin khách hàng:</h4>
+                    <div class="text-sm text-gray-600">
+                        <div id="customerSummaryName"></div>
+                        <div id="customerSummaryPhone"></div>
+                    </div>
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Chọn phương thức thanh toán *</label>
+                    <div class="space-y-3">
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="paymentMethod" value="CASH" class="mr-3" checked>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">💵</span>
+                                <div>
+                                    <div class="font-medium">Tiền mặt</div>
+                                    <div class="text-sm text-gray-500">Thanh toán trực tiếp tại quầy</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="paymentMethod" value="VNPAY" class="mr-3">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">🏦</span>
+                                <div>
+                                    <div class="font-medium">VNPay</div>
+                                    <div class="text-sm text-gray-500">Thanh toán online qua VNPay</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Price Summary -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-blue-800">Tổng thanh toán</span>
+                        <span class="text-xl font-bold text-blue-900">50,000 VNĐ</span>
+                    </div>
+                    <p class="text-xs text-blue-600">Vé tập một buổi - Bao gồm: Sử dụng thiết bị, phòng tập, khăn tắm</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <button id="backToInfoBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        ← Quay lại
+                    </button>
+                    <button id="processPaymentBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        💳 Thanh toán & Check-in
+                    </button>
+                </div>
+            </div>
+
+            <!-- Walk-in Results -->
+            <div id="modalWalkInResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Kết quả đăng ký:</h4>
+                    <div id="modalWalkInResultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Face Registration Modal variables (học theo FaceTest)
+        let isModelLoaded = false;
+        let modalRegisterStream = null;
+        let modalRegisterDetectionInterval = null;
+        let currentModalRegisterDescriptor = null;
+        let selectedMemberId = null;
+
+        // DOM elements for modal
+        let modalRegisterVideo, modalRegisterCanvas;
+        let modalStartRegisterCameraBtn, modalStopRegisterCameraBtn, modalRegisterButton;
+        let modalRegisterCameraStatus, modalRegisterFaceStatus, modalRegisterQualityStatus;
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const loaiNguoiDung = document.getElementById('loaiFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            const params = new URLSearchParams();
+            if (searchTerm) params.append('searchTerm', searchTerm);
+            if (loaiNguoiDung) params.append('loaiNguoiDung', loaiNguoiDung);
+            if (statusFilter) params.append('status', statusFilter);
+            params.append('page', '1'); // Reset to first page when filtering
+
+            window.location.href = '@Url.Action("Index", "User")' + '?' + params.toString();
+        }
+
+        function clearFilters() {
+            window.location.href = '@Url.Action("Index", "User")';
+        }
+
+        function deleteUser(userId, userName) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa người dùng "${userName}"?\n\nThao tác này không thể hoàn tác.`)) {
+                return;
+            }
+
+            // Get antiforgery token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+            const formData = new FormData();
+            formData.append('id', userId);
+            if (token) {
+                formData.append('__RequestVerificationToken', token);
+            }
+
+            fetch(`@Url.Action("Delete", "User")`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('success', data.message);
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showNotification('error', data.message || 'Không thể xóa người dùng.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', 'Có lỗi xảy ra khi xóa người dùng.');
+            });
+        }
+
+        function showNotification(type, message) {
+            // Tạo notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg ${type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Tự động ẩn sau 3 giây
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+                }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                applyFilters();
+                }
+        });
+
+        // Initialize Face Registration Modal (học theo FaceTest)
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeModalElements();
+
+            // Use global models instead of loading again
+            checkGlobalModels();
+        });
+
+        function initializeModalElements() {
+            // Modal Face Registration elements
+            modalRegisterVideo = document.getElementById('modalRegisterVideo');
+            modalRegisterCanvas = document.getElementById('modalRegisterCanvas');
+            modalStartRegisterCameraBtn = document.getElementById('modalStartRegisterCameraBtn');
+            modalStopRegisterCameraBtn = document.getElementById('modalStopRegisterCameraBtn');
+            modalRegisterButton = document.getElementById('modalRegisterButton');
+            modalRegisterCameraStatus = document.getElementById('modalRegisterCameraStatus');
+            modalRegisterFaceStatus = document.getElementById('modalRegisterFaceStatus');
+            modalRegisterQualityStatus = document.getElementById('modalRegisterQualityStatus');
+
+            // Setup modal event listeners
+            if (modalStartRegisterCameraBtn) modalStartRegisterCameraBtn.addEventListener('click', startModalRegisterCamera);
+            if (modalStopRegisterCameraBtn) modalStopRegisterCameraBtn.addEventListener('click', stopModalRegisterCamera);
+            if (modalRegisterButton) modalRegisterButton.addEventListener('click', testModalRegisterFace);
+
+            // Walk-in modal buttons
+            const continueToPaymentBtn = document.getElementById('continueToPaymentBtn');
+            const backToInfoBtn = document.getElementById('backToInfoBtn');
+            const processPaymentBtn = document.getElementById('processPaymentBtn');
+
+            if (continueToPaymentBtn) continueToPaymentBtn.addEventListener('click', showPaymentStep);
+            if (backToInfoBtn) backToInfoBtn.addEventListener('click', showInfoStep);
+            if (processPaymentBtn) processPaymentBtn.addEventListener('click', processWalkInPayment);
+        }
+
+        // Check Global Models (không load lại)
+        async function checkGlobalModels() {
+            try {
+                console.log('🔍 Checking global Face-API models for User Management...');
+
+                if (window.FaceAPIGlobal) {
+                    if (window.FaceAPIGlobal.isReady()) {
+                        console.log('✅ Global Face-API models already ready!');
+                        isModelLoaded = true;
+                        return;
+                    }
+
+                    console.log('⏳ Waiting for global Face-API models...');
+                    await window.FaceAPIGlobal.waitForModels(30000);
+                    isModelLoaded = true;
+                    console.log('✅ Global Face-API models ready for User Management');
+                } else {
+                    console.log('❌ Global Face-API manager not available');
+                    // Listen for global models loaded event
+                    window.addEventListener('faceapi-models-loaded', () => {
+                        console.log('✅ Global Face-API models loaded via event');
+                        isModelLoaded = true;
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Error checking global models:', error);
+            }
+        }
+
+        // Modal Management Functions
+        function openFaceRegistrationModal(memberId, memberName) {
+            console.log('🔍 Opening face registration modal for:', memberName);
+            selectedMemberId = memberId;
+            document.getElementById('selectedMemberName').textContent = memberName;
+            document.getElementById('faceRegistrationModal').classList.remove('hidden');
+        }
+
+        function closeFaceRegistrationModal() {
+            console.log('❌ Closing face registration modal');
+            document.getElementById('faceRegistrationModal').classList.add('hidden');
+            stopModalRegisterCamera();
+            selectedMemberId = null;
+        }
+
+        function openWalkInModal() {
+            console.log('🚶 Opening walk-in modal');
+            document.getElementById('walkInModal').classList.remove('hidden');
+        }
+
+        function closeWalkInModal() {
+            console.log('❌ Closing walk-in modal');
+            document.getElementById('walkInModal').classList.add('hidden');
+
+            // Reset to step 1
+            showInfoStep();
+
+            // Clear form
+            document.getElementById('modalGuestName').value = '';
+            document.getElementById('modalGuestPhone').value = '';
+            document.getElementById('modalGuestEmail').value = '';
+            document.getElementById('modalGuestNote').value = '';
+
+            // Reset payment method
+            document.querySelector('input[name="paymentMethod"][value="CASH"]').checked = true;
+        }
+
+        // Walk-in Step Navigation
+        function showPaymentStep() {
+            const name = document.getElementById('modalGuestName').value.trim();
+            const phone = document.getElementById('modalGuestPhone').value.trim();
+
+            if (!name || !phone) {
+                showNotification('error', 'Vui lòng nhập đầy đủ họ tên và số điện thoại');
+                return;
+            }
+
+            // Update customer summary
+            document.getElementById('customerSummaryName').textContent = `Họ tên: ${name}`;
+            document.getElementById('customerSummaryPhone').textContent = `SĐT: ${phone}`;
+
+            // Show step 2, hide step 1
+            document.getElementById('walkInStep1').classList.add('hidden');
+            document.getElementById('walkInStep2').classList.remove('hidden');
+        }
+
+        function showInfoStep() {
+            // Show step 1, hide step 2
+            document.getElementById('walkInStep1').classList.remove('hidden');
+            document.getElementById('walkInStep2').classList.add('hidden');
+        }
+
+        // Dropdown Functions
+        function toggleDeleteDropdown(userId) {
+            // Close all other dropdowns first
+            document.querySelectorAll('[id^="deleteDropdown"]').forEach(dropdown => {
+                if (dropdown.id !== `deleteDropdown${userId}`) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            // Toggle current dropdown
+            const dropdown = document.getElementById(`deleteDropdown${userId}`);
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('[id^="deleteDropdown"]') && !event.target.closest('button[onclick*="toggleDeleteDropdown"]')) {
+                document.querySelectorAll('[id^="deleteDropdown"]').forEach(dropdown => {
+                    dropdown.classList.add('hidden');
+                });
+            }
+        });
+
+        // Modal Camera Functions (học theo FaceTest)
+        async function startModalRegisterCamera() {
+            try {
+                if (!isModelLoaded) {
+                    alert('AI models not loaded yet. Please wait.');
+                    return;
+                }
+
+                console.log('Requesting camera access for modal registration...');
+                modalRegisterStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+
+                modalRegisterVideo.srcObject = modalRegisterStream;
+                updateModalStatus('modalRegisterCameraStatus', '📷 Camera running');
+
+                // Start face detection
+                startModalRegisterDetection();
+
+                console.log('✅ Modal registration camera started successfully');
+            } catch (error) {
+                console.error('Modal registration camera error:', error);
+                updateModalStatus('modalRegisterCameraStatus', '📷 Camera error');
+                alert('Failed to access camera. Please check permissions.');
+            }
+        }
+
+        async function stopModalRegisterCamera() {
+            if (modalRegisterStream) {
+                modalRegisterStream.getTracks().forEach(track => track.stop());
+                modalRegisterStream = null;
+            }
+            if (modalRegisterDetectionInterval) {
+                clearInterval(modalRegisterDetectionInterval);
+                modalRegisterDetectionInterval = null;
+            }
+            updateModalStatus('modalRegisterCameraStatus', '📷 Camera stopped');
+            updateModalStatus('modalRegisterFaceStatus', '👁️ No face detected');
+            updateModalStatus('modalRegisterQualityStatus', '⭐ Quality: Not assessed');
+            modalRegisterButton.disabled = true;
+        }
+
+        // Modal Helper Functions
+        function updateModalStatus(elementId, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+            }
+        }
+
+        function clearModalCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawModalFaceBox(canvas, box) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+        }
+
+        // Notification System
+        function showNotification(type, message) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                type === 'info' ? 'bg-blue-500 text-white' :
+                'bg-gray-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span class="mr-2">
+                        ${type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'info' ? 'ℹ️' : '📢'}
+                    </span>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-white hover:text-gray-200">
+                        ✕
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+        // Modal Face Detection and Registration (học theo FaceTest)
+        function startModalRegisterDetection() {
+            console.log('🔍 Starting modal register detection...');
+
+            modalRegisterDetectionInterval = setInterval(async () => {
+                if (!modalRegisterVideo.videoWidth || !modalRegisterVideo.videoHeight) {
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    updateModalStatus('modalRegisterFaceStatus', '🔄 Loading models...');
+                    return;
+                }
+
+                try {
+                    // Detect face with landmarks and descriptor
+                    const detection = await faceapi
+                        .detectSingleFace(modalRegisterVideo, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (detection) {
+                        updateModalStatus('modalRegisterFaceStatus', '✅ Face detected');
+
+                        // Assess face quality
+                        const quality = assessModalFaceQuality(detection);
+                        updateModalStatus('modalRegisterQualityStatus', `⭐ Quality: ${quality.score.toFixed(1)}/10 (${quality.status})`);
+
+                        currentModalRegisterDescriptor = detection.descriptor;
+                        modalRegisterButton.disabled = false;
+
+                        // Draw face box
+                        drawModalFaceBox(modalRegisterCanvas, detection.detection.box);
+                    } else {
+                        updateModalStatus('modalRegisterFaceStatus', '👁️ Searching for face...');
+                        updateModalStatus('modalRegisterQualityStatus', '⭐ Quality: Not assessed');
+                        currentModalRegisterDescriptor = null;
+                        modalRegisterButton.disabled = true;
+                        clearModalCanvas(modalRegisterCanvas);
+                    }
+                } catch (error) {
+                    console.error('Modal register detection error:', error);
+                }
+            }, 500);
+        }
+
+        // Face Quality Assessment (học theo FaceTest)
+        function assessModalFaceQuality(detection) {
+            const box = detection.detection.box;
+            const landmarks = detection.landmarks;
+
+            let score = 10;
+            let issues = [];
+
+            // Check face size
+            const faceArea = box.width * box.height;
+            const videoArea = modalRegisterVideo.videoWidth * modalRegisterVideo.videoHeight;
+            const faceRatio = faceArea / videoArea;
+
+            if (faceRatio < 0.05) {
+                score -= 3;
+                issues.push('Face too small');
+            } else if (faceRatio > 0.5) {
+                score -= 2;
+                issues.push('Face too large');
+            }
+
+            // Check face position
+            const centerX = box.x + box.width / 2;
+            const centerY = box.y + box.height / 2;
+            const videoCenterX = modalRegisterVideo.videoWidth / 2;
+            const videoCenterY = modalRegisterVideo.videoHeight / 2;
+
+            const offsetX = Math.abs(centerX - videoCenterX) / modalRegisterVideo.videoWidth;
+            const offsetY = Math.abs(centerY - videoCenterY) / modalRegisterVideo.videoHeight;
+
+            if (offsetX > 0.2 || offsetY > 0.2) {
+                score -= 2;
+                issues.push('Face not centered');
+            }
+
+            // Determine status
+            let status;
+            if (score >= 8) status = 'Excellent';
+            else if (score >= 6) status = 'Good';
+            else if (score >= 4) status = 'Fair';
+            else status = 'Poor';
+
+            return { score, status, issues };
+        }
+
+        // Modal Face Registration (học theo FaceTest)
+        async function testModalRegisterFace() {
+            console.log('🔥 testModalRegisterFace() called!');
+
+            if (!selectedMemberId) {
+                alert('No member selected.');
+                return;
+            }
+
+            if (!currentModalRegisterDescriptor) {
+                alert('No face detected. Please ensure your face is visible.');
+                return;
+            }
+
+            try {
+                modalRegisterButton.disabled = true;
+                modalRegisterButton.textContent = 'Đang đăng ký...';
+
+                const response = await fetch('/FaceTest/TestRegisterFace', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        memberId: parseInt(selectedMemberId),
+                        descriptor: Array.from(currentModalRegisterDescriptor)
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📡 Modal registration response:', result);
+
+                // Show results
+                showModalRegisterResults(result);
+
+                if (result.success) {
+                    // Show detailed success results
+                    showModalRegisterResults(result);
+                    showNotification('success', 'Đăng ký khuôn mặt thành công!');
+
+                    // Close modal after showing results
+                    setTimeout(() => {
+                        closeFaceRegistrationModal();
+                    }, 3000);
+                } else {
+                    showNotification('error', result.message || 'Đăng ký thất bại');
+                }
+
+            } catch (error) {
+                console.error('❌ Modal registration error:', error);
+                alert('Lỗi mạng khi đăng ký.');
+            } finally {
+                modalRegisterButton.disabled = false;
+                modalRegisterButton.textContent = '📝 Đăng Ký Khuôn Mặt';
+            }
+        }
+
+        // Show modal registration results
+        function showModalRegisterResults(result) {
+            const resultsDiv = document.getElementById('modalRegisterResults');
+            const contentDiv = document.getElementById('modalRegisterResultContent');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Status:</span>
+                        <span class="${result.success ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}">${result.success ? 'Success' : 'Failed'}</span>
+                    </div>
+                    ${result.success ? `
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">User ID:</span>
+                        <span class="text-gray-900 font-medium">${selectedMemberId}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Face ID:</span>
+                        <span class="text-gray-900 font-medium">${result.faceId || 'N/A'}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Processing Time:</span>
+                        <span class="text-gray-900">${result.processingTime || 0}ms</span>
+                    </div>
+                    ` : ''}
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Message:</span>
+                        <span class="text-gray-900">${result.message}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium text-gray-600">Timestamp:</span>
+                        <span class="text-gray-900">${new Date().toLocaleString()}</span>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        // Walk-in Payment Processing
+        async function processWalkInPayment() {
+            const name = document.getElementById('modalGuestName').value.trim();
+            const phone = document.getElementById('modalGuestPhone').value.trim();
+            const email = document.getElementById('modalGuestEmail').value.trim();
+            const note = document.getElementById('modalGuestNote').value.trim();
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+            if (!name || !phone) {
+                showNotification('error', 'Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            const processBtn = document.getElementById('processPaymentBtn');
+            processBtn.disabled = true;
+            processBtn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>Đang xử lý...';
+
+            try {
+                if (paymentMethod === 'CASH') {
+                    // Cash payment - direct registration and check-in
+                    await processCashPayment(name, phone, email, note);
+                } else if (paymentMethod === 'VNPAY') {
+                    // VNPay payment - redirect to payment gateway
+                    await processVNPayPayment(name, phone, email, note);
+                }
+            } catch (error) {
+                console.error('❌ Payment processing error:', error);
+                showNotification('error', 'Có lỗi xảy ra khi xử lý thanh toán');
+            } finally {
+                processBtn.disabled = false;
+                processBtn.innerHTML = '💳 Thanh toán & Check-in';
+            }
+        }
+
+        // Cash Payment Processing
+        async function processCashPayment(name, phone, email, note) {
+            try {
+                const response = await fetch('/Reception/WalkInRegisterWithPayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        fullName: name,
+                        phoneNumber: phone,
+                        email: email,
+                        note: note,
+                        paymentMethod: 'CASH',
+                        amount: 50000
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showNotification('success', 'Thanh toán tiền mặt và check-in thành công!');
+                    closeWalkInModal();
+
+                    // Show payment confirmation
+                    showPaymentConfirmation({
+                        customerName: name,
+                        amount: 50000,
+                        paymentMethod: 'Tiền mặt',
+                        transactionId: result.transactionId || 'CASH_' + Date.now()
+                    });
+                } else {
+                    showNotification('error', result.message || 'Thanh toán thất bại');
+                }
+            } catch (error) {
+                console.error('❌ Cash payment error:', error);
+                throw error;
+            }
+        }
+
+        // VNPay Payment Processing
+        async function processVNPayPayment(name, phone, email, note) {
+            try {
+                const response = await fetch('/Reception/CreateWalkInVNPayPayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        fullName: name,
+                        phoneNumber: phone,
+                        email: email,
+                        note: note,
+                        amount: 50000
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.paymentUrl) {
+                    showNotification('info', 'Đang chuyển hướng đến VNPay...');
+
+                    // Store customer info for after payment return
+                    sessionStorage.setItem('walkInCustomerInfo', JSON.stringify({
+                        name, phone, email, note
+                    }));
+
+                    // Redirect to VNPay
+                    window.location.href = result.paymentUrl;
+                } else {
+                    showNotification('error', result.message || 'Không thể tạo thanh toán VNPay');
+                }
+            } catch (error) {
+                console.error('❌ VNPay payment error:', error);
+                throw error;
+            }
+        }
+
+        // Show Payment Confirmation
+        function showPaymentConfirmation(paymentInfo) {
+            const confirmationHtml = `
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <div class="text-center">
+                            <div class="text-green-500 text-6xl mb-4">✅</div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Thanh toán thành công!</h3>
+
+                            <div class="text-left space-y-2 mb-6">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Khách hàng:</span>
+                                    <span class="font-medium">${paymentInfo.customerName}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Số tiền:</span>
+                                    <span class="font-medium">${paymentInfo.amount.toLocaleString()} VNĐ</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Phương thức:</span>
+                                    <span class="font-medium">${paymentInfo.paymentMethod}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Mã GD:</span>
+                                    <span class="font-medium">${paymentInfo.transactionId}</span>
+                                </div>
+                            </div>
+
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()"
+                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', confirmationHtml);
+        }
+
+        // Delete Functions
+        async function deleteFace(userId, userName) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa tất cả khuôn mặt của ${userName}?`)) {
+                // Close dropdown
+                document.getElementById(`deleteDropdown${userId}`).classList.add('hidden');
+                return;
+            }
+
+            // Show loading spinner
+            showLoadingSpinner('Đang xóa khuôn mặt...');
+
+            try {
+                // Use AdminDeleteAllMemberFaces to delete all faces for this member
+                const response = await fetch(`/FaceManagement/AdminDeleteAllMemberFaces?memberId=${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                hideLoadingSpinner();
+
+                if (result.success) {
+                    showNotification('success', 'Xóa khuôn mặt thành công!');
+                    // Refresh the page after short delay
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showNotification('error', result.message || 'Không thể xóa khuôn mặt');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                hideLoadingSpinner();
+                showNotification('error', 'Có lỗi xảy ra khi xóa khuôn mặt');
+            }
+
+            // Close dropdown
+            document.getElementById(`deleteDropdown${userId}`).classList.add('hidden');
+        }
+
+        // Loading Spinner Functions
+        function showLoadingSpinner(message = 'Đang xử lý...') {
+            const spinner = document.createElement('div');
+            spinner.id = 'loadingSpinner';
+            spinner.className = 'fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50';
+            spinner.innerHTML = `
+                <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span class="text-gray-700 font-medium">${message}</span>
+                </div>
+            `;
+            document.body.appendChild(spinner);
+        }
+
+        function hideLoadingSpinner() {
+            const spinner = document.getElementById('loadingSpinner');
+            if (spinner) {
+                spinner.remove();
+            }
+        }
+    </script>
+}

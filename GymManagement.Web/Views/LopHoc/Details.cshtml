@@ -1,0 +1,424 @@
+@model GymManagement.Web.Data.Models.LopHoc
+@{
+    ViewData["Title"] = "Chi tiết lớp học";
+    Layout = "_Layout";
+}
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between py-6 space-y-4 sm:space-y-0">
+                <div class="flex items-center space-x-4">
+                    <a href="@Url.Action("Index")" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Quay lại danh sách
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">@Model.TenLop</h1>
+                        <p class="text-sm text-gray-600">Chi tiết thông tin lớp học</p>
+                    </div>
+                </div>
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="flex items-center space-x-3">
+                        <a href="@Url.Action("Edit", new { id = Model.LopHocId })"
+                           class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                            Chỉnh sửa
+                        </a>
+                        <button onclick="deleteClass(@Model.LopHocId, '@Model.TenLop')"
+                                class="inline-flex items-center px-4 py-2 border border-red-300 rounded-lg shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Xóa lớp học
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @Html.AntiForgeryToken()
+        
+        <!-- Success/Error Messages -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-green-800">@TempData["SuccessMessage"]</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Info Card - 2 columns -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Class Overview Card -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    <!-- Class Header with Status -->
+                    <div class="bg-blue-600 p-6 text-white">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h2 class="text-2xl font-bold mb-2">@Model.TenLop</h2>
+                                <div class="flex items-center space-x-4 text-blue-100">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                        </svg>
+                                        ID: #@Model.LopHocId
+                                    </div>
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        @Model.ThuTrongTuan
+                                    </div>
+                                </div>
+                            </div>
+                            @{
+                                var (statusClass, statusText) = Model.TrangThai switch
+                                {
+                                    "OPEN" => ("bg-green-500", "Hoạt động"),
+                                    "CLOSED" => ("bg-yellow-500", "Tạm dừng"),
+                                    "CANCELLED" => ("bg-red-500", "Đã hủy"),
+                                    "FULL" => ("bg-blue-500", "Đã đầy"),
+                                    _ => ("bg-gray-500", Model.TrangThai)
+                                };
+                            }
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium @statusClass text-white">
+                                @statusText
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Class Details Grid -->
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Time Info -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Thời gian
+                                </h3>
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Giờ học:</span>
+                                        <span class="font-semibold text-gray-900">@Model.GioBatDau.ToString("HH:mm") - @Model.GioKetThuc.ToString("HH:mm")</span>
+                                    </div>
+                                    @if (Model.ThoiLuong.HasValue)
+                                    {
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-gray-600">Thời lượng:</span>
+                                            <span class="font-semibold text-gray-900">@Model.ThoiLuong phút</span>
+                                        </div>
+                                    }
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Ngày học:</span>
+                                        <span class="font-semibold text-gray-900">@Model.ThuTrongTuan</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Capacity Info -->
+                            <div class="space-y-4">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    Sức chứa & Đăng ký
+                                </h3>
+                                <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Sức chứa:</span>
+                                        <span class="font-semibold text-gray-900">@Model.SucChua người</span>
+                                    </div>
+                                    @{
+                                        var registeredCount = Model.DangKys?.Count(d => d.TrangThai == "ACTIVE") ?? 0;
+                                        var availableSlots = Model.SucChua - registeredCount;
+                                        var capacityPercentage = Model.SucChua > 0 ? (registeredCount * 100.0 / Model.SucChua) : 0;
+                                    }
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Đã đăng ký:</span>
+                                        <span class="font-semibold text-gray-900">@registeredCount người</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600">Còn trống:</span>
+                                        <span class="font-semibold @(availableSlots > 0 ? "text-green-600" : "text-red-600")">@availableSlots chỗ</span>
+                                    </div>
+                                    <!-- Progress Bar -->
+                                    <div class="mt-3">
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="@(capacityPercentage >= 90 ? "bg-red-500" : capacityPercentage >= 70 ? "bg-yellow-500" : "bg-green-500") h-2 rounded-full transition-all duration-300" 
+                                                 style="width: @(capacityPercentage)%"></div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1 text-center">@capacityPercentage.ToString("F0")% đã đầy</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trainer Info -->
+                        <div class="mt-6">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                                Huấn luyện viên
+                            </h3>
+                            @if (Model.Hlv != null)
+                            {
+                                <div class="bg-gray-50 rounded-lg p-4 flex items-center space-x-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900">@Model.Hlv.Ho @Model.Hlv.Ten</p>
+                                        <p class="text-sm text-gray-600">@Model.Hlv.Email</p>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <p class="text-yellow-800">Chưa phân công huấn luyện viên</p>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Description -->
+                        @if (!string.IsNullOrEmpty(Model.MoTa))
+                        {
+                            <div class="mt-6">
+                                <h3 class="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                                    <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                                    </svg>
+                                    Mô tả
+                                </h3>
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <p class="text-gray-700 whitespace-pre-wrap">@Model.MoTa</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Registered Members Card -->
+                @if (Model.DangKys != null && Model.DangKys.Any(d => d.TrangThai == "ACTIVE"))
+                {
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                </svg>
+                                Danh sách học viên đã đăng ký (@registeredCount)
+                            </h3>
+                        </div>
+                        <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Học viên</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày đăng ký</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày hết hạn</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach (var dangKy in Model.DangKys.Where(d => d.TrangThai == "ACTIVE").OrderBy(d => d.NgayDangKy))
+                                        {
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="flex items-center">
+                                                        <div class="flex-shrink-0 h-8 w-8">
+                                                            <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                                                <span class="text-xs font-medium text-gray-600">
+                                                                    @(dangKy.NguoiDung?.Ho?.Substring(0, 1) ?? "")@(dangKy.NguoiDung?.Ten?.Substring(0, 1) ?? "")
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="ml-4">
+                                                            <div class="text-sm font-medium text-gray-900">
+                                                                @(dangKy.NguoiDung?.Ho ?? "") @(dangKy.NguoiDung?.Ten ?? "")
+                                                            </div>
+                                                            <div class="text-sm text-gray-500">
+                                                                @(dangKy.NguoiDung?.Email ?? "")
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    @dangKy.NgayDangKy.ToString("dd/MM/yyyy")
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                    @{
+                                                        var isExpiringSoon = dangKy.NgayKetThuc < DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+                                                    }
+                                                    <span class="@(isExpiringSoon ? "text-red-600 font-medium" : "")">
+                                                        @dangKy.NgayKetThuc.ToString("dd/MM/yyyy")
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        Đang hoạt động
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Quick Stats -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Thống kê nhanh</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <div class="flex items-center">
+                                <svg class="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span class="text-gray-700">Tổng học viên</span>
+                            </div>
+                            <span class="text-2xl font-bold text-blue-600">@registeredCount</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div class="flex items-center">
+                                <svg class="w-8 h-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-gray-700">Còn trống</span>
+                            </div>
+                            <span class="text-2xl font-bold text-green-600">@availableSlots</span>
+                        </div>
+
+                        @if (Model.GiaTuyChinh.HasValue)
+                        {
+                            <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                                <div class="flex items-center">
+                                    <svg class="w-8 h-8 text-yellow-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                    <span class="text-gray-700">Giá</span>
+                                </div>
+                                <span class="text-lg font-bold text-yellow-600">@Model.GiaTuyChinh.Value.ToString("N0") VNĐ</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Thao tác</h3>
+                        <div class="space-y-3">
+                            <button onclick="generateSchedule(@Model.LopHocId)"
+                                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                Tạo lịch học
+                            </button>
+                            
+                            <button onclick="viewSchedule(@Model.LopHocId)"
+                                    class="w-full inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                Xem lịch học
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Delete class function
+        function deleteClass(classId, className) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa lớp học "${className}"?\n\nThao tác này không thể hoàn tác.`)) {
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch(`/LopHoc/DeleteConfirmed`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: `id=${classId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.href = '/LopHoc';
+                } else {
+                    alert(data.message || 'Không thể xóa lớp học.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xóa lớp học.');
+            });
+        }
+
+        // Generate schedule function
+        function generateSchedule(classId) {
+            // TODO: Implement schedule generation modal
+            alert('Chức năng tạo lịch học đang được phát triển');
+        }
+
+        // View schedule function
+        function viewSchedule(classId) {
+            // TODO: Implement schedule view modal
+            alert('Chức năng xem lịch học đang được phát triển');
+        }
+    </script>
+}

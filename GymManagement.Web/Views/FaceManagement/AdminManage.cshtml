@@ -1,0 +1,821 @@
+@{
+    ViewData["Title"] = "Quản lý khuôn mặt - Admin";
+    Layout = "_Layout";
+}
+
+@* CSRF Token for AJAX requests *@
+<form id="csrfForm" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">👨‍💼 Quản lý khuôn mặt - Admin</h1>
+                <p class="text-gray-600 mt-2">Quản lý tất cả khuôn mặt trong hệ thống</p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="refreshFaceList()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    🔄 Làm mới
+                </button>
+                <button onclick="exportFaceData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📤 Xuất dữ liệu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Tổng khuôn mặt</p>
+                    <p class="text-2xl font-bold text-gray-900" id="totalFaces">@ViewBag.Stats?.TotalRegisteredFaces</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Hội viên có khuôn mặt</p>
+                    <p class="text-2xl font-bold text-gray-900" id="membersWithFaces">@ViewBag.Stats?.TotalMembers</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Tỷ lệ thành công</p>
+                    <p class="text-2xl font-bold text-gray-900" id="successRate">@ViewBag.Stats?.SuccessRate%</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Nhận diện hôm nay</p>
+                    <p class="text-2xl font-bold text-gray-900" id="todayRecognitions">@ViewBag.Stats?.TodayRecognitions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face Registration Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-bold text-gray-900 mb-4">📝 Đăng Ký Khuôn Mặt Mới</h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Member Selection & Camera -->
+            <div class="space-y-4">
+                <!-- Member Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Chọn hội viên</label>
+                    <select id="memberSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Chọn hội viên...</option>
+                        @if (ViewBag.Members != null)
+                        {
+                            @foreach (var member in ViewBag.Members)
+                            {
+                                <option value="@member.NguoiDungId">@member.Ho @member.Ten (@member.Email)</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <!-- Camera Section -->
+                <div>
+                    <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="height: 300px;">
+                        <video id="registerVideo" class="w-full h-full object-cover" autoplay muted></video>
+                        <canvas id="registerCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+
+                        <!-- Status Overlay -->
+                        <div class="absolute bottom-4 left-4 right-4">
+                            <div class="bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm">
+                                <div id="registerCameraStatus">📷 Camera not started</div>
+                                <div id="registerFaceStatus">👁️ No face detected</div>
+                                <div id="registerQualityStatus">⭐ Quality: Not assessed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Camera Controls -->
+                <div class="flex space-x-3">
+                    <button id="startRegisterCameraBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        📷 Start Camera
+                    </button>
+                    <button id="stopRegisterCameraBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        ⏹️ Stop Camera
+                    </button>
+                </div>
+
+                <button id="registerButton" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                    📝 Đăng Ký Khuôn Mặt
+                </button>
+            </div>
+
+            <!-- Registration Results -->
+            <div class="space-y-4">
+                <div id="registerResults" class="hidden">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="font-medium text-gray-900 mb-2">Kết quả đăng ký:</h3>
+                        <div id="registerResultContent"></div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="font-medium text-blue-900 mb-2">📋 Hướng dẫn:</h4>
+                    <ul class="text-sm text-blue-800 space-y-1">
+                        <li>• Chọn hội viên từ danh sách</li>
+                        <li>• Bật camera và đưa mặt vào khung hình</li>
+                        <li>• Đảm bảo ánh sáng đủ và mặt thẳng</li>
+                        <li>• Nhấn "Đăng Ký Khuôn Mặt" khi sẵn sàng</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+            <div class="flex-1 max-w-lg">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm theo tên, email..."
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3">
+                <select id="filterSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="all">Tất cả</option>
+                    <option value="recent">Đăng ký gần đây</option>
+                    <option value="old">Đăng ký cũ</option>
+                </select>
+                <button onclick="loadAllFaces()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    🔍 Tìm kiếm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face List -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">📋 Danh sách khuôn mặt</h3>
+        </div>
+        <div id="faceListContainer">
+            <div class="p-8 text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p class="text-gray-500">Đang tải danh sách khuôn mặt...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div id="paginationContainer" class="mt-6 flex justify-center">
+        <!-- Pagination will be inserted here -->
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Face Management variables
+        let allFaces = [];
+        let filteredFaces = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // Face Registration variables (học theo FaceTest)
+        let isModelLoaded = false;
+        let registerStream = null;
+        let registerDetectionInterval = null;
+        let currentRegisterDescriptor = null;
+
+        // DOM elements
+        let registerVideo, registerCanvas;
+        let startRegisterCameraBtn, stopRegisterCameraBtn, registerButton;
+        let registerCameraStatus, registerFaceStatus, registerQualityStatus;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize DOM elements (học theo FaceTest)
+            initializeDOMElements();
+
+            // Load Face-API models
+            loadModels();
+
+            // Setup event listeners
+            setupEventListeners();
+
+            // Load existing faces
+            loadAllFaces();
+        });
+
+        function initializeDOMElements() {
+            // Face Registration elements
+            registerVideo = document.getElementById('registerVideo');
+            registerCanvas = document.getElementById('registerCanvas');
+            startRegisterCameraBtn = document.getElementById('startRegisterCameraBtn');
+            stopRegisterCameraBtn = document.getElementById('stopRegisterCameraBtn');
+            registerButton = document.getElementById('registerButton');
+            registerCameraStatus = document.getElementById('registerCameraStatus');
+            registerFaceStatus = document.getElementById('registerFaceStatus');
+            registerQualityStatus = document.getElementById('registerQualityStatus');
+        }
+
+        function setupEventListeners() {
+            // Face Registration buttons (học theo FaceTest)
+            if (startRegisterCameraBtn) startRegisterCameraBtn.addEventListener('click', startRegisterCamera);
+            if (stopRegisterCameraBtn) stopRegisterCameraBtn.addEventListener('click', stopRegisterCamera);
+            if (registerButton) registerButton.addEventListener('click', testRegisterFace);
+
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', function() {
+                filterFaces();
+            });
+
+            document.getElementById('filterSelect').addEventListener('change', function() {
+                filterFaces();
+            });
+        }
+
+        // Load Face-API models (học theo FaceTest)
+        async function loadModels() {
+            try {
+                console.log('📦 Loading Face-API models...');
+
+                // Use global models manager if available
+                if (window.FaceAPIGlobal) {
+                    if (window.FaceAPIGlobal.isReady()) {
+                        console.log('✅ Global Face-API models already ready!');
+                        isModelLoaded = true;
+                        return;
+                    }
+
+                    console.log('⏳ Waiting for global Face-API models...');
+                    await window.FaceAPIGlobal.waitForModels(30000);
+                    isModelLoaded = true;
+                    console.log('✅ Global Face-API models ready for Face Management');
+                } else {
+                    // Fallback: load models locally
+                    const baseUrl = window.location.origin;
+                    const modelsPath = `${baseUrl}/FaceTest/models`;
+
+                    await faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath);
+                    await faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath);
+                    await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
+
+                    isModelLoaded = true;
+                    console.log('✅ Face-API models loaded locally');
+                }
+            } catch (error) {
+                console.error('❌ Error loading models:', error);
+            }
+        }
+
+        // Helper functions (học theo FaceTest)
+        function updateStatus(elementId, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+            }
+        }
+
+        function showError(message) {
+            console.error('❌ Error:', message);
+            alert(message);
+        }
+
+        function showSuccess(message) {
+            console.log('✅ Success:', message);
+            alert(message);
+        }
+
+        function clearCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawFaceBox(canvas, box) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+        }
+
+        // Camera Functions (học theo FaceTest)
+        async function startRegisterCamera() {
+            try {
+                // Check HTTPS requirement
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                    showError('Camera requires HTTPS connection. Please use HTTPS URL.');
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    showError('AI models not loaded yet. Please wait.');
+                    return;
+                }
+
+                // Check if getUserMedia is available
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showError('Camera not supported in this browser.');
+                    return;
+                }
+
+                console.log('Requesting camera access for registration...');
+                registerStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+
+                registerVideo.srcObject = registerStream;
+                updateStatus('registerCameraStatus', '📷 Camera running');
+
+                // Start face detection
+                startRegisterDetection();
+
+                console.log('✅ Registration camera started successfully');
+            } catch (error) {
+                console.error('Registration camera error:', error);
+                updateStatus('registerCameraStatus', '📷 Camera error');
+                showError('Failed to access camera. Please check permissions.');
+            }
+        }
+
+        async function stopRegisterCamera() {
+            if (registerStream) {
+                registerStream.getTracks().forEach(track => track.stop());
+                registerStream = null;
+            }
+            if (registerDetectionInterval) {
+                clearInterval(registerDetectionInterval);
+                registerDetectionInterval = null;
+            }
+            updateStatus('registerCameraStatus', '📷 Camera stopped');
+            updateStatus('registerFaceStatus', '👁️ No face detected');
+            updateStatus('registerQualityStatus', '⭐ Quality: Not assessed');
+            registerButton.disabled = true;
+        }
+
+        // Face Detection for Registration (học theo FaceTest)
+        function startRegisterDetection() {
+            console.log('🔍 Starting register detection...');
+
+            registerDetectionInterval = setInterval(async () => {
+                if (!registerVideo.videoWidth || !registerVideo.videoHeight) {
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    updateStatus('registerFaceStatus', '🔄 Loading models...');
+                    return;
+                }
+
+                try {
+                    // Detect face with landmarks and descriptor
+                    const detection = await faceapi
+                        .detectSingleFace(registerVideo, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (detection) {
+                        updateStatus('registerFaceStatus', '✅ Face detected');
+
+                        // Assess face quality
+                        const quality = assessFaceQuality(detection);
+                        updateStatus('registerQualityStatus', `⭐ Quality: ${quality.score.toFixed(1)}/10 (${quality.status})`);
+
+                        currentRegisterDescriptor = detection.descriptor;
+                        registerButton.disabled = false;
+
+                        // Draw face box
+                        drawFaceBox(registerCanvas, detection.detection.box);
+                    } else {
+                        updateStatus('registerFaceStatus', '👁️ Searching for face...');
+                        updateStatus('registerQualityStatus', '⭐ Quality: Not assessed');
+                        currentRegisterDescriptor = null;
+                        registerButton.disabled = true;
+                        clearCanvas(registerCanvas);
+                    }
+                } catch (error) {
+                    console.error('Register detection error:', error);
+                }
+            }, 500);
+        }
+
+        // Assess face quality (học theo FaceTest)
+        function assessFaceQuality(detection) {
+            const box = detection.detection.box;
+            const landmarks = detection.landmarks;
+
+            let score = 10;
+            let issues = [];
+
+            // Check face size
+            const faceArea = box.width * box.height;
+            const videoArea = registerVideo.videoWidth * registerVideo.videoHeight;
+            const faceRatio = faceArea / videoArea;
+
+            if (faceRatio < 0.05) {
+                score -= 3;
+                issues.push('Face too small');
+            } else if (faceRatio > 0.5) {
+                score -= 2;
+                issues.push('Face too large');
+            }
+
+            // Check face position
+            const centerX = box.x + box.width / 2;
+            const centerY = box.y + box.height / 2;
+            const videoCenterX = registerVideo.videoWidth / 2;
+            const videoCenterY = registerVideo.videoHeight / 2;
+
+            const offsetX = Math.abs(centerX - videoCenterX) / registerVideo.videoWidth;
+            const offsetY = Math.abs(centerY - videoCenterY) / registerVideo.videoHeight;
+
+            if (offsetX > 0.2 || offsetY > 0.2) {
+                score -= 2;
+                issues.push('Face not centered');
+            }
+
+            // Determine status
+            let status;
+            if (score >= 8) status = 'Excellent';
+            else if (score >= 6) status = 'Good';
+            else if (score >= 4) status = 'Fair';
+            else status = 'Poor';
+
+            return { score, status, issues };
+        }
+
+        // Face Registration Function (học theo FaceTest)
+        async function testRegisterFace() {
+            console.log('🔥 testRegisterFace() called!');
+
+            const memberId = document.getElementById('memberSelect').value;
+            console.log('👤 Selected member ID:', memberId);
+
+            if (!memberId) {
+                console.log('❌ No member selected');
+                showError('Please select a member first.');
+                return;
+            }
+
+            console.log('🧠 Current descriptor:', currentRegisterDescriptor);
+            if (!currentRegisterDescriptor) {
+                console.log('❌ No face descriptor available');
+                showError('No face detected. Please ensure your face is visible.');
+                return;
+            }
+
+            console.log('✅ All checks passed, proceeding with registration...');
+
+            try {
+                registerButton.disabled = true;
+                registerButton.textContent = 'Đang đăng ký...';
+
+                const response = await fetch('/FaceTest/TestRegisterFace', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        memberId: parseInt(memberId),
+                        descriptor: Array.from(currentRegisterDescriptor)
+                    })
+                });
+
+                const result = await response.json();
+                console.log('📡 Registration response:', result);
+
+                // Show results
+                showRegisterResults(result);
+
+                if (result.success) {
+                    showSuccess(`Face registered successfully for member ID: ${memberId}`);
+
+                    // Refresh face list
+                    loadAllFaces();
+
+                    // Reset form
+                    document.getElementById('memberSelect').value = '';
+                    currentRegisterDescriptor = null;
+                    registerButton.disabled = true;
+                } else {
+                    showError(result.message || 'Registration failed');
+                }
+
+            } catch (error) {
+                console.error('❌ Registration error:', error);
+                showError('Network error occurred during registration.');
+            } finally {
+                registerButton.disabled = false;
+                registerButton.textContent = '📝 Đăng Ký Khuôn Mặt';
+            }
+        }
+
+        // Show registration results (học theo FaceTest)
+        function showRegisterResults(result) {
+            const resultsDiv = document.getElementById('registerResults');
+            const contentDiv = document.getElementById('registerResultContent');
+
+            contentDiv.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Status:</span>
+                        <span class="${result.success ? 'text-green-600' : 'text-red-600'}">${result.success ? 'Success' : 'Failed'}</span>
+                    </div>
+                    ${result.success ? `
+                    <div class="flex justify-between">
+                        <span class="font-medium">Member ID:</span>
+                        <span class="text-gray-700">${result.memberId}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Face ID:</span>
+                        <span class="text-gray-700">${result.faceId || 'N/A'}</span>
+                    </div>
+                    ` : ''}
+                    <div class="flex justify-between">
+                        <span class="font-medium">Message:</span>
+                        <span class="text-gray-700">${result.message}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Processing Time:</span>
+                        <span class="text-gray-700">${result.processingTime || 0}ms</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Timestamp:</span>
+                        <span class="text-gray-700">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        async function loadAllFaces() {
+            try {
+                const response = await fetch('@Url.Action("GetAllFaces")');
+                const result = await response.json();
+
+                if (result.success) {
+                    allFaces = result.faces;
+                    filteredFaces = [...allFaces];
+                    displayFaces();
+                    updateStats();
+                } else {
+                    showError('Không thể tải danh sách khuôn mặt: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error loading faces:', error);
+                showError('Có lỗi xảy ra khi tải danh sách khuôn mặt.');
+            }
+        }
+
+        function filterFaces() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filter = document.getElementById('filterSelect').value;
+            
+            filteredFaces = allFaces.filter(face => {
+                const matchesSearch = face.memberName.toLowerCase().includes(searchTerm) ||
+                                    face.memberEmail.toLowerCase().includes(searchTerm);
+                
+                let matchesFilter = true;
+                if (filter === 'recent') {
+                    const faceDate = new Date(face.createdDate.split(' ')[0].split('/').reverse().join('-'));
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    matchesFilter = faceDate >= weekAgo;
+                } else if (filter === 'old') {
+                    const faceDate = new Date(face.createdDate.split(' ')[0].split('/').reverse().join('-'));
+                    const monthAgo = new Date();
+                    monthAgo.setMonth(monthAgo.getMonth() - 1);
+                    matchesFilter = faceDate < monthAgo;
+                }
+                
+                return matchesSearch && matchesFilter;
+            });
+            
+            currentPage = 1;
+            displayFaces();
+        }
+
+        function displayFaces() {
+            const container = document.getElementById('faceListContainer');
+            
+            if (filteredFaces.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Không tìm thấy khuôn mặt nào</h3>
+                        <p class="text-gray-500">Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const facesToShow = filteredFaces.slice(startIndex, endIndex);
+
+            let html = '<div class="divide-y divide-gray-200">';
+            
+            facesToShow.forEach(face => {
+                html += `
+                    <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">${face.memberName}</p>
+                                    <p class="text-sm text-gray-500">${face.memberEmail}</p>
+                                    <p class="text-xs text-gray-400">ID: ${face.id} | Đăng ký: ${face.createdDate}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ✅ Hoạt động
+                                </span>
+                                <div class="flex space-x-1">
+                                    <button onclick="adminDeleteFace(${face.id}, '${face.memberName}')" 
+                                            class="text-red-600 hover:text-red-800 p-2 rounded-md hover:bg-red-50 transition-colors"
+                                            title="Xóa khuôn mặt">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+            
+            // Update pagination
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredFaces.length / itemsPerPage);
+            const container = document.getElementById('paginationContainer');
+            
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '<nav class="flex items-center space-x-2">';
+            
+            // Previous button
+            html += `<button onclick="changePage(${currentPage - 1})" 
+                     ${currentPage === 1 ? 'disabled' : ''} 
+                     class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                     Trước
+                     </button>`;
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    html += `<button class="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md">${i}</button>`;
+                } else {
+                    html += `<button onclick="changePage(${i})" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50">${i}</button>`;
+                }
+            }
+            
+            // Next button
+            html += `<button onclick="changePage(${currentPage + 1})" 
+                     ${currentPage === totalPages ? 'disabled' : ''} 
+                     class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                     Sau
+                     </button>`;
+            
+            html += '</nav>';
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredFaces.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                displayFaces();
+            }
+        }
+
+        async function adminDeleteFace(faceId, memberName) {
+            if (!confirm(`Bạn có chắc chắn muốn xóa khuôn mặt của ${memberName}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`@Url.Action("AdminDeleteFace")?mauMatId=${faceId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showSuccess(result.message);
+                    loadAllFaces(); // Reload the list
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                console.error('Error deleting face:', error);
+                showError('Có lỗi xảy ra khi xóa khuôn mặt.');
+            }
+        }
+
+        function refreshFaceList() {
+            loadAllFaces();
+        }
+
+        function exportFaceData() {
+            // This would implement face data export functionality
+            alert('Tính năng xuất dữ liệu sẽ được triển khai trong phiên bản tiếp theo.');
+        }
+
+        function updateStats() {
+            document.getElementById('totalFaces').textContent = allFaces.length;
+            
+            const uniqueMembers = new Set(allFaces.map(f => f.memberId)).size;
+            document.getElementById('membersWithFaces').textContent = uniqueMembers;
+        }
+
+        function showSuccess(message) {
+            // Simple success notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            notification.textContent = '✅ ' + message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function showError(message) {
+            // Simple error notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            notification.textContent = '❌ ' + message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+    </script>
+}

@@ -1,0 +1,47 @@
+@model GymManagement.Web.Data.Models.ThongBao
+@{
+    ViewData["Title"] = "Chi tiết thông báo";
+}
+
+                     (
+                     (
+ơng cách bố trí như Index.cshtml
+    m các phần tử như tiêu đề, nút bấm theo phong cách đó
+    ng phong cách từ LopHoc khi cần
+<h1 class="text-2xl font-bold text-gray-900">Chi tiết thông báo</h1>
+
+<div>
+    <h4>@Model.TieuDe</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Nội Dung
+        </dt>
+        <dd class="col-sm-10">
+            @Model.NoiDung
+        </dd>
+        <dt class="col-sm-2">
+            Người Dùng
+        </dt>
+        <dd class="col-sm-10">
+            @Model.NguoiDung?.Ho @Model.NguoiDung?.Ten
+        </dd>
+        <dt class="col-sm-2">
+            Kênh
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Kenh
+        </dd>
+        <dt class="col-sm-2">
+            Ngày Tạo
+        </dt>
+        <dd class="col-sm-10">
+            @Model.NgayTao.ToString("dd/MM/yyyy")
+        </dd>
+    </dl>
+    <div>
+        <a asp-action="Edit" asp-route-id="@Model.ThongBaoId" class="btn btn-warning">Sửa</a>
+        <a asp-action="Delete" asp-route-id="@Model.ThongBaoId" class="btn btn-danger">Xóa</a>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+    </div>
+</div>

@@ -1,0 +1,305 @@
+@{
+    ViewData["Title"] = "Quản lý khách vãng lai";
+    Layout = "_Layout";
+}
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">🚶 Quản lý khách vãng lai</h1>
+                <p class="text-gray-600 mt-1">Tổng quan và thống kê khách vãng lai - Giá cố định 15,000 VNĐ/buổi</p>
+            </div>
+            <div class="flex space-x-3">
+                <a asp-controller="Reception" asp-action="Station" 
+                   class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    👁️ Reception Station
+                </a>
+                <a asp-controller="WalkIn" asp-action="History" 
+                   class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                    📋 Lịch sử
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Today Stats -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m3 5.197H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Khách hôm nay</p>
+                    <p class="text-2xl font-bold text-gray-900" id="todaySessions">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today Revenue -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Doanh thu hôm nay</p>
+                    <p class="text-2xl font-bold text-gray-900" id="todayRevenue">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currently Active -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-orange-100 text-orange-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Đang tập</p>
+                    <p class="text-2xl font-bold text-gray-900" id="currentlyActive">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Value -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Giá trị TB</p>
+                    <p class="text-2xl font-bold text-gray-900" id="averageValue">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Weekly Trend Chart -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Xu hướng 7 ngày gần nhất</h3>
+            <div class="h-64">
+                <canvas id="weeklyTrendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Payment Method Breakdown -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">💳 Phương thức thanh toán hôm nay</h3>
+            <div class="h-64">
+                <canvas id="paymentMethodChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Sessions -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">🏋️ Khách đang tập hiện tại</h3>
+            <button onclick="refreshActiveSessions()" 
+                    class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg hover:bg-blue-200 transition-colors">
+                🔄 Làm mới
+            </button>
+        </div>
+        <div id="activeSessionsList" class="space-y-3">
+            <div class="text-center text-gray-500 py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p class="mt-2">Đang tải...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let weeklyTrendChart;
+let paymentMethodChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    loadWeeklyTrend();
+});
+
+async function loadDashboardData() {
+    try {
+        const response = await fetch('/WalkIn/GetDashboardStats');
+        const result = await response.json();
+        
+        if (result.success) {
+            const data = result.data;
+            
+            // Update stats cards
+            document.getElementById('todaySessions').textContent = data.today.sessions;
+            document.getElementById('todayRevenue').textContent = formatCurrency(data.today.revenue);
+            document.getElementById('currentlyActive').textContent = data.currentlyActive;
+            document.getElementById('averageValue').textContent = formatCurrency(data.today.averageValue);
+            
+            // Update active sessions
+            renderActiveSessions(data.activeSessions);
+            
+            // Update payment method chart
+            renderPaymentMethodChart(data.paymentMethodBreakdown);
+        }
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+async function loadWeeklyTrend() {
+    try {
+        const response = await fetch('/WalkIn/GetWeeklyTrend');
+        const result = await response.json();
+        
+        if (result.success) {
+            renderWeeklyTrendChart(result.data);
+        }
+    } catch (error) {
+        console.error('Error loading weekly trend:', error);
+    }
+}
+
+function renderActiveSessions(sessions) {
+    const container = document.getElementById('activeSessionsList');
+    
+    if (sessions.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-gray-500 py-8">
+                <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m3 5.197H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p>Hiện tại không có khách nào đang tập</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const html = sessions.map(session => `
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <span class="text-green-600 font-semibold">${session.guestName.charAt(0)}</span>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">${session.guestName}</p>
+                    <p class="text-sm text-gray-600">${session.phoneNumber || 'Không có SĐT'} • ${session.packageName}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-sm font-medium text-gray-900">Vào lúc: ${session.checkInTime}</p>
+                <p class="text-sm text-gray-600">Đã tập: ${session.duration}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+function renderWeeklyTrendChart(data) {
+    const ctx = document.getElementById('weeklyTrendChart').getContext('2d');
+    
+    if (weeklyTrendChart) {
+        weeklyTrendChart.destroy();
+    }
+    
+    weeklyTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.dayName),
+            datasets: [{
+                label: 'Số khách',
+                data: data.map(d => d.sessions),
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Doanh thu (k VNĐ)',
+                data: data.map(d => d.revenue / 1000),
+                borderColor: 'rgb(16, 185, 129)',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            }
+        }
+    });
+}
+
+function renderPaymentMethodChart(data) {
+    const ctx = document.getElementById('paymentMethodChart').getContext('2d');
+    
+    if (paymentMethodChart) {
+        paymentMethodChart.destroy();
+    }
+    
+    const labels = Object.keys(data);
+    const values = Object.values(data);
+    
+    paymentMethodChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels.map(label => label === 'CASH' ? 'Tiền mặt' : 'Chuyển khoản'),
+            datasets: [{
+                data: values,
+                backgroundColor: [
+                    'rgb(34, 197, 94)',
+                    'rgb(59, 130, 246)',
+                    'rgb(249, 115, 22)',
+                    'rgb(168, 85, 247)'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+async function refreshActiveSessions() {
+    await loadDashboardData();
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+    }).format(amount);
+}
+
+// Auto refresh every 30 seconds
+setInterval(loadDashboardData, 30000);
+</script>

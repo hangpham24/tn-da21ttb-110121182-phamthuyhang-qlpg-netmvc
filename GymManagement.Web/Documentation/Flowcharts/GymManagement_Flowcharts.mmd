@@ -1,0 +1,160 @@
+%% ========================================
+%% HỆ THỐNG QUẢN LÝ PHÒNG GYM - TỔNG HỢP LUỒNG
+%% Tối ưu cho khổ A4 và import vào Draw.io
+%% File: GymManagement_Flowcharts.mmd
+%% ========================================
+
+%% FLOW 1: QUY TRÌNH ĐĂNG NHẬP
+flowchart TD
+    subgraph LOGIN["🔐 QUY TRÌNH ĐĂNG NHẬP"]
+        A1[Người dùng truy cập] --> B1[Nhập thông tin đăng nhập]
+        B1 --> C1{Thông tin hợp lệ?}
+        C1 -->|Không| D1[Hiển thị lỗi]
+        D1 --> B1
+        C1 -->|Có| E1{Tài khoản hoạt động?}
+        E1 -->|Không| F1[Thông báo tài khoản bị khóa]
+        E1 -->|Có| G1[Đăng nhập thành công]
+        G1 --> H1{Vai trò người dùng?}
+        H1 -->|Admin| I1[Trang quản trị]
+        H1 -->|Trainer| J1[Trang huấn luyện viên]
+        H1 -->|Member| K1[Trang thành viên]
+    end
+
+%% FLOW 2: QUY TRÌNH ĐĂNG KÝ GÓI TẬP
+flowchart TD
+    subgraph REGISTER["💰 QUY TRÌNH ĐĂNG KÝ GÓI TẬP"]
+        A2[Chọn gói tập] --> B2[Nhập thông tin cá nhân]
+        B2 --> C2[Áp dụng mã giảm giá]
+        C2 --> D2[Tính tổng tiền]
+        D2 --> E2{Phương thức thanh toán?}
+        E2 -->|VNPay| F2[Thanh toán online]
+        E2 -->|Tiền mặt| G2[Thanh toán tại quầy]
+        F2 --> H2{Thanh toán thành công?}
+        H2 -->|Không| I2[Thông báo lỗi]
+        H2 -->|Có| J2[Kích hoạt gói tập]
+        G2 --> K2[Xác nhận thanh toán]
+        K2 --> J2
+        J2 --> L2[Gửi email xác nhận]
+        L2 --> M2[Hoàn tất đăng ký]
+    end
+
+%% FLOW 3: QUY TRÌNH ĐẶT LỊCH LỚP HỌC
+flowchart TD
+    subgraph BOOKING["🏋️ QUY TRÌNH ĐẶT LỊCH LỚP HỌC"]
+        A3[Xem lịch lớp học] --> B3[Chọn lớp và thời gian]
+        B3 --> C3{Gói tập còn hiệu lực?}
+        C3 -->|Không| D3[Thông báo gia hạn]
+        C3 -->|Có| E3{Lớp còn chỗ trống?}
+        E3 -->|Không| F3[Thêm vào danh sách chờ]
+        E3 -->|Có| G3[Tạo booking]
+        G3 --> H3[Gửi xác nhận]
+        H3 --> I3[Đặt lịch thành công]
+        F3 --> J3[Thông báo khi có chỗ trống]
+    end
+
+%% FLOW 4: QUY TRÌNH ĐIỂM DANH
+flowchart TD
+    subgraph CHECKIN["✅ QUY TRÌNH ĐIỂM DANH"]
+        A4[Thành viên đến gym] --> B4{Phương thức điểm danh?}
+        B4 -->|Nhận diện khuôn mặt| C4[Quét khuôn mặt]
+        B4 -->|Thủ công| D4[Nhân viên chọn thành viên]
+        C4 --> E4{Nhận diện thành công?}
+        E4 -->|Không| F4[Điểm danh thủ công]
+        E4 -->|Có| G4[Kiểm tra gói tập]
+        D4 --> G4
+        F4 --> G4
+        G4 --> H4{Gói tập hợp lệ?}
+        H4 -->|Không| I4[Thông báo hết hạn]
+        H4 -->|Có| J4[Ghi nhận check-in]
+        J4 --> K4[Cập nhật thống kê]
+        K4 --> L4[Hoàn tất điểm danh]
+    end
+
+%% STYLING - Màu sắc cho các loại node
+classDef startNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+classDef successNode fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+classDef warningNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+classDef errorNode fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+classDef decisionNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+
+%% Áp dụng styling
+%% FLOW 5: QUY TRÌNH QUẢN LÝ THÀNH VIÊN
+flowchart TD
+    subgraph MEMBER["👥 QUY TRÌNH QUẢN LÝ THÀNH VIÊN"]
+        A5[Truy cập quản lý thành viên] --> B5{Hành động?}
+        B5 -->|Thêm mới| C5[Nhập thông tin thành viên]
+        B5 -->|Chỉnh sửa| D5[Cập nhật thông tin]
+        B5 -->|Xem chi tiết| E5[Hiển thị hồ sơ]
+        C5 --> F5[Kiểm tra thông tin]
+        D5 --> F5
+        F5 --> G5{Thông tin hợp lệ?}
+        G5 -->|Không| H5[Hiển thị lỗi]
+        H5 --> C5
+        G5 -->|Có| I5[Lưu vào database]
+        I5 --> J5[Gửi thông báo]
+        J5 --> K5[Hoàn tất]
+        E5 --> L5[Hiển thị lịch sử]
+    end
+
+%% FLOW 6: QUY TRÌNH QUẢN LÝ LỚP HỌC
+flowchart TD
+    subgraph CLASS["🏋️ QUY TRÌNH QUẢN LÝ LỚP HỌC"]
+        A6[Quản lý lớp học] --> B6{Thao tác?}
+        B6 -->|Tạo lớp mới| C6[Nhập thông tin lớp]
+        B6 -->|Phân công HLV| D6[Chọn huấn luyện viên]
+        B6 -->|Xem lịch| E6[Hiển thị lịch học]
+        C6 --> F6[Kiểm tra xung đột lịch]
+        D6 --> F6
+        F6 --> G6{Có xung đột?}
+        G6 -->|Có| H6[Thông báo xung đột]
+        H6 --> C6
+        G6 -->|Không| I6[Tạo/Cập nhật lớp]
+        I6 --> J6[Thông báo cho HLV]
+        J6 --> K6[Hoàn tất]
+        E6 --> L6[Hiển thị chi tiết]
+    end
+
+%% FLOW 7: QUY TRÌNH KHÁCH VÃNG LAI
+flowchart TD
+    subgraph WALKIN["🚶 QUY TRÌNH KHÁCH VÃNG LAI"]
+        A7[Khách vãng lai đến] --> B7[Đăng ký nhanh]
+        B7 --> C7[Chọn gói vé ngày]
+        C7 --> D7{Phương thức thanh toán?}
+        D7 -->|Tiền mặt| E7[Thanh toán tại quầy]
+        D7 -->|Chuyển khoản| F7[Quét mã QR]
+        E7 --> G7[Kích hoạt vé]
+        F7 --> H7{Thanh toán thành công?}
+        H7 -->|Không| I7[Hủy giao dịch]
+        H7 -->|Có| G7
+        G7 --> J7[Cấp thẻ tạm]
+        J7 --> K7[Check-in]
+        K7 --> L7[Bắt đầu tập]
+    end
+
+%% FLOW 8: QUY TRÌNH TÍNH LƯƠNG HLV
+flowchart TD
+    subgraph PAYROLL["💰 QUY TRÌNH TÍNH LƯƠNG HLV"]
+        A8[Cuối tháng] --> B8[Thu thập dữ liệu HLV]
+        B8 --> C8[Tính lương cơ bản]
+        C8 --> D8[Tính hoa hồng theo lớp]
+        D8 --> E8[Tính thưởng hiệu suất]
+        E8 --> F8[Tính các khoản trừ]
+        F8 --> G8[Tính lương thực nhận]
+        G8 --> H8[Tạo bảng lương]
+        H8 --> I8{Admin phê duyệt?}
+        I8 -->|Không| J8[Chỉnh sửa]
+        J8 --> H8
+        I8 -->|Có| K8[Gửi bảng lương]
+        K8 --> L8[Chuyển khoản]
+        L8 --> M8[Hoàn tất]
+    end
+
+class A1,A2,A3,A4,A5,A6,A7,A8 startNode
+class G1,I1,J1,K1,M2,I3,L4,K5,K6,L7,M8 successNode
+class D3,F3,J3,H6,J8 warningNode
+class D1,F1,I2,I4,H5,I7 errorNode
+class C1,E1,H1,E2,H2,C3,E3,B4,E4,H4,B5,G5,B6,G6,D7,H7,I8 decisionNode
+class G1,I1,J1,K1,M2,I3,L4 successNode
+class D3,F3,J3 warningNode
+class D1,F1,I2,I4 errorNode
+class C1,E1,H1,E2,H2,C3,E3,B4,E4,H4 decisionNode

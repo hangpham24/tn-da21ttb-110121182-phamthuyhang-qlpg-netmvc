@@ -1,0 +1,270 @@
+@{
+    ViewData["Title"] = "Dashboard Admin";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <style>
+        .stat-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+    </style>
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">📊 Dashboard Admin</h1>
+        <p class="text-gray-600">Tổng quan hệ thống quản lý phòng gym</p>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Active Members -->
+        <div class="bg-white rounded-lg shadow-md p-6 stat-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Thành viên hoạt động</p>
+                    <p class="text-2xl font-bold text-gray-900" id="totalActiveMembers">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today Revenue -->
+        <div class="bg-white rounded-lg shadow-md p-6 stat-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Doanh thu hôm nay</p>
+                    <p class="text-2xl font-bold text-gray-900" id="todayRevenue">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Revenue -->
+        <div class="bg-white rounded-lg shadow-md p-6 stat-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Doanh thu tháng này</p>
+                    <p class="text-2xl font-bold text-gray-900" id="thisMonthRevenue">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today Attendance -->
+        <div class="bg-white rounded-lg shadow-md p-6 stat-card">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Điểm danh hôm nay</p>
+                    <p class="text-2xl font-bold text-gray-900" id="todayAttendance">-</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Revenue Trend Chart -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Xu hướng doanh thu (30 ngày)</h3>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Attendance Trend Chart -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">👥 Xu hướng điểm danh (7 ngày)</h3>
+            <div class="chart-container">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Packages -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Gói tập phổ biến</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gói tập</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số đăng ký</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doanh thu</th>
+                    </tr>
+                </thead>
+                <tbody id="popularPackagesTable" class="bg-white divide-y divide-gray-200">
+                    <!-- Data will be loaded via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <a href="@Url.Action("Index", "User")" class="block p-6 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-center">
+            <div class="text-3xl mb-3">👥</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Quản lý người dùng</h4>
+            <p class="text-sm text-gray-600">Xem và quản lý tài khoản</p>
+        </a>
+
+        <a href="@Url.Action("Index", "BaoCao")" class="block p-6 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-center">
+            <div class="text-3xl mb-3">📊</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Báo cáo chi tiết</h4>
+            <p class="text-sm text-gray-600">Xem báo cáo và thống kê</p>
+        </a>
+
+        <a href="@Url.Action("Index", "LopHoc")" class="block p-6 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition-colors text-center">
+            <div class="text-3xl mb-3">🎓</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Quản lý lớp học</h4>
+            <p class="text-sm text-gray-600">Tạo và quản lý lớp học</p>
+        </a>
+
+        <a href="@Url.Action("Index", "Booking")" class="block p-6 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-center">
+            <div class="text-3xl mb-3">📅</div>
+            <h4 class="font-semibold text-gray-900 mb-2">Quản lý đặt lịch</h4>
+            <p class="text-sm text-gray-600">Xem và quản lý đặt lịch</p>
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Load dashboard data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            
+            // Auto refresh every 5 minutes
+            setInterval(loadDashboardData, 300000);
+        });
+
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('@Url.Action("GetRealtimeStats", "Home")');
+                const data = await response.json();
+                
+                if (data) {
+                    updateStats(data);
+                }
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function updateStats(data) {
+            document.getElementById('totalActiveMembers').textContent = data.activeMembers || 0;
+            document.getElementById('todayRevenue').textContent = formatCurrency(data.todayRevenue || 0);
+            document.getElementById('thisMonthRevenue').textContent = formatCurrency(data.thisMonthRevenue || 0);
+            document.getElementById('todayAttendance').textContent = data.currentAttendance || 0;
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
+        // Initialize charts (placeholder - will be implemented with real data)
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(revenueCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Doanh thu',
+                    data: [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+        const attendanceChart = new Chart(attendanceCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Điểm danh',
+                    data: [],
+                    backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                    borderColor: 'rgb(168, 85, 247)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // ✅ ENHANCED: Real-time notifications for dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Listen for notification actions
+            document.addEventListener('notificationAction', function(event) {
+                const { notificationId, actionId } = event.detail;
+
+                if (actionId === 'viewRevenue') {
+                    window.location.href = '/BaoCao/Revenue';
+                } else if (actionId === 'viewPayments') {
+                    window.location.href = '/ThanhToan';
+                }
+            });
+
+            // Show welcome notification for admin
+            if (typeof notificationManager !== 'undefined') {
+                setTimeout(() => {
+                    notificationManager.show(
+                        'Chào mừng bạn đến với Dashboard Admin! Hệ thống đang hoạt động bình thường.',
+                        'info',
+                        4000
+                    );
+                }, 1000);
+            }
+        });
+    </script>
+}

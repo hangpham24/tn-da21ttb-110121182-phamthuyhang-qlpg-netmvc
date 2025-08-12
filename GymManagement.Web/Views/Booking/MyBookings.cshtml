@@ -1,0 +1,403 @@
+@model IEnumerable<GymManagement.Web.Data.Models.Booking>
+
+@{
+    ViewData["Title"] = "Lịch đã đặt - Thành viên";
+    Layout = "_MemberLayout";
+}
+
+<div class="min-h-screen bg-white">
+    <!-- Header Section -->
+    <div class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Lịch đã đặt</h1>
+                    <p class="text-gray-600">Quản lý tất cả lịch tập của bạn</p>
+                </div>
+                <div class="mt-4 sm:mt-0 flex space-x-3">
+                    <a asp-action="Calendar" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        Xem lịch
+                    </a>
+                    <a asp-action="Create" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        Đặt lịch mới
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-gray-900">@(Model?.Count() ?? 0)</div>
+                    <div class="text-sm text-gray-600">Tổng lịch đặt</div>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-green-600">@(Model?.Count(b => b.TrangThai == "BOOKED") ?? 0)</div>
+                    <div class="text-sm text-gray-600">Đã xác nhận</div>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-600">@(Model?.Count(b => b.TrangThai == "ATTENDED") ?? 0)</div>
+                    <div class="text-sm text-gray-600">Đã tham gia</div>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                    <div class="text-2xl font-bold text-red-600">@(Model?.Count(b => b.TrangThai == "CANCELED") ?? 0)</div>
+                    <div class="text-sm text-gray-600">Đã hủy</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Filter Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <button onclick="filterBookings('all')" 
+                            class="filter-tab active border-b-2 border-blue-500 py-2 px-1 text-sm font-medium text-blue-600">
+                        Tất cả (@(Model?.Count() ?? 0))
+                    </button>
+                    <button onclick="filterBookings('upcoming')" 
+                            class="filter-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Sắp tới (@(Model?.Count(b => b.Ngay >= DateOnly.FromDateTime(DateTime.Today) && b.TrangThai == "BOOKED") ?? 0))
+                    </button>
+                    <button onclick="filterBookings('booked')" 
+                            class="filter-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Đã xác nhận (@(Model?.Count(b => b.TrangThai == "BOOKED") ?? 0))
+                    </button>
+                    <button onclick="filterBookings('attended')" 
+                            class="filter-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Đã tham gia (@(Model?.Count(b => b.TrangThai == "ATTENDED") ?? 0))
+                    </button>
+                    <button onclick="filterBookings('canceled')"
+                            class="filter-tab border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Đã hủy (@(Model?.Count(b => b.TrangThai == "CANCELED") ?? 0))
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Timeline View -->
+        @if (Model != null && Model.Any())
+        {
+            <div class="space-y-6">
+                @{
+                    var groupedBookings = Model.GroupBy(b => b.Ngay.ToString("yyyy-MM")).OrderByDescending(g => g.Key);
+                }
+
+                @foreach (var monthGroup in groupedBookings)
+                {
+                    <div class="relative">
+                        <!-- Month Header -->
+                        <div class="sticky top-0 z-10 bg-white border-b border-gray-200 py-3 mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                @DateTime.ParseExact(monthGroup.Key + "-01", "yyyy-MM-dd", null).ToString("MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))
+                            </h3>
+                        </div>
+
+                        <!-- Bookings Timeline -->
+                        <div class="relative">
+                            <!-- Timeline Line -->
+                            <div class="absolute left-6 top-0 bottom-0 w-px bg-gray-200"></div>
+
+                            <div class="space-y-4">
+                                @foreach (var booking in monthGroup.OrderBy(b => b.Ngay).ThenBy(b => b.LichLop?.GioBatDau))
+                                {
+                                    var isUpcoming = booking.Ngay >= DateOnly.FromDateTime(DateTime.Today);
+                                    var isPast = booking.Ngay < DateOnly.FromDateTime(DateTime.Today);
+                                    
+                                    <div class="booking-item relative flex items-start space-x-3" 
+                                         data-status="@booking.TrangThai.ToLower()"
+                                         data-category="@(isUpcoming && booking.TrangThai == "BOOKED" ? "upcoming" : booking.TrangThai.ToLower())">
+                                        
+                                        <!-- Timeline Dot -->
+                                        <div class="relative">
+                                            <div class="h-3 w-3 rounded-full border-2 border-gray-200 bg-white"></div>
+                                            @switch (booking.TrangThai)
+                                            {
+                                                case "BOOKED":
+                                                    <div class="absolute inset-0 h-3 w-3 rounded-full bg-blue-500"></div>
+                                                    break;
+                                                case "ATTENDED":
+                                                    <div class="absolute inset-0 h-3 w-3 rounded-full bg-green-500"></div>
+                                                    break;
+                                                case "CANCELED":
+                                                    <div class="absolute inset-0 h-3 w-3 rounded-full bg-red-500"></div>
+                                                    break;
+                                                default:
+                                                    <div class="absolute inset-0 h-3 w-3 rounded-full bg-gray-500"></div>
+                                                    break;
+                                            }
+                                        </div>
+
+                                        <!-- Booking Card -->
+                                        <div class="min-w-0 flex-1 bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                                            <div class="flex items-start justify-between">
+                                                <div class="flex-1">
+                                                    <!-- Date and Time -->
+                                                    <div class="flex items-center mb-2">
+                                                        <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                        </svg>
+                                                        <span class="text-sm font-medium text-gray-900">
+                                                            @booking.Ngay.ToString("dddd, dd MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))
+                                                        </span>
+                                                        @if (booking.LichLop != null)
+                                                        {
+                                                            <span class="ml-2 text-sm text-gray-600">
+                                                                @booking.LichLop.GioBatDau.ToString("HH:mm") - @booking.LichLop.GioKetThuc.ToString("HH:mm")
+                                                            </span>
+                                                        }
+                                                    </div>
+
+                                                    <!-- Class Info -->
+                                                    <h4 class="text-lg font-semibold text-gray-900 mb-2">
+                                                        @(booking.LopHoc?.TenLop ?? "Lớp học")
+                                                    </h4>
+
+                                                    @if (!string.IsNullOrEmpty(booking.LopHoc?.MoTa))
+                                                    {
+                                                        <p class="text-sm text-gray-600 mb-3">@booking.LopHoc.MoTa</p>
+                                                    }
+
+                                                    <!-- Additional Info -->
+                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+                                                        @if (booking.LopHoc?.Hlv != null)
+                                                        {
+                                                            <div class="flex items-center">
+                                                                <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                                </svg>
+                                                                <span>HLV: @booking.LopHoc.Hlv.Ho @booking.LopHoc.Hlv.Ten</span>
+                                                            </div>
+                                                        }
+                                                        
+                                                        <div class="flex items-center">
+                                                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                            </svg>
+                                                            <span>Đặt lúc: @booking.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Status and Actions -->
+                                                <div class="ml-6 text-right">
+                                                    <!-- Status Badge -->
+                                                    <div class="mb-3">
+                                                        @switch (booking.TrangThai)
+                                                        {
+                                                            case "BOOKED":
+                                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                                                    @(isUpcoming ? "Sắp tới" : "Đã xác nhận")
+                                                                </span>
+                                                                break;
+                                                            case "ATTENDED":
+                                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                                                    Đã tham gia
+                                                                </span>
+                                                                break;
+                                                            case "CANCELED":
+                                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                                                    Đã hủy
+                                                                </span>
+                                                                break;
+                                                            default:
+                                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                                                    @booking.TrangThai
+                                                                </span>
+                                                                break;
+                                                        }
+                                                    </div>
+
+                                                    <!-- Action Buttons -->
+                                                    <div class="space-y-2">
+                                                        @if (booking.LopHoc != null)
+                                                        {
+                                                            <a href="@Url.Action("ClassDetails", "Member", new { id = booking.LopHocId })"
+                                                               class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors duration-200">
+                                                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                                </svg>
+                                                                Chi tiết lớp
+                                                            </a>
+                                                        }
+
+                                                        @if (booking.TrangThai == "BOOKED" && isUpcoming)
+                                                        {
+                                                            <button type="button"
+                                                                    onclick="showCancelBookingModal(@booking.BookingId, '@booking.LopHoc?.TenLop', '@booking.Ngay.ToString("dd/MM/yyyy")')"
+                                                                    class="inline-flex items-center px-3 py-1.5 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors duration-200">
+                                                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                                </svg>
+                                                                Hủy lịch
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12">
+                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Chưa có lịch đặt nào</h3>
+                <p class="text-gray-600 mb-6">Bắt đầu đặt lịch tập để xem ở đây</p>
+                <div class="flex justify-center space-x-4">
+                    <a asp-action="Calendar" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        Xem lịch
+                    </a>
+                    <a asp-action="Create" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                        Đặt lịch mới
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterBookings(category) {
+            const items = document.querySelectorAll('.booking-item');
+            const tabs = document.querySelectorAll('.filter-tab');
+            
+            // Update active tab
+            tabs.forEach(tab => {
+                tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            event.target.classList.add('active', 'border-blue-500', 'text-blue-600');
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            
+            // Filter items
+            items.forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Cancel booking modal functions
+        let currentCancelBookingId = null;
+
+        function showCancelBookingModal(bookingId, className, date) {
+            currentCancelBookingId = bookingId;
+            document.getElementById('cancelBookingModal').classList.remove('hidden');
+            document.getElementById('cancelBookingDetails').innerHTML = `
+                <p class="text-sm text-gray-600 mb-3">
+                    Bạn có chắc chắn muốn hủy lịch đặt?
+                </p>
+                <div class="bg-gray-50 rounded-lg p-3 mb-4">
+                    <p class="font-medium text-gray-900">${className}</p>
+                    <p class="text-sm text-gray-600">Ngày: ${date}</p>
+                </div>
+            `;
+        }
+
+        function hideCancelBookingModal() {
+            document.getElementById('cancelBookingModal').classList.add('hidden');
+            currentCancelBookingId = null;
+            document.getElementById('cancelBookingReason').value = '';
+        }
+
+        function confirmCancelBooking() {
+            if (!currentCancelBookingId) return;
+
+            const reason = document.getElementById('cancelBookingReason').value.trim();
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("CancelBooking", "Booking")';
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = token;
+            form.appendChild(tokenInput);
+
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'bookingId';
+            idInput.value = currentCancelBookingId;
+            form.appendChild(idInput);
+
+            if (reason) {
+                const reasonInput = document.createElement('input');
+                reasonInput.type = 'hidden';
+                reasonInput.name = 'reason';
+                reasonInput.value = reason;
+                form.appendChild(reasonInput);
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}
+
+<!-- Cancel Booking Modal -->
+<div id="cancelBookingModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Xác nhận hủy lịch</h3>
+                <button type="button" onclick="hideCancelBookingModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="mb-4">
+                <div id="cancelBookingDetails"></div>
+                <div>
+                    <label for="cancelBookingReason" class="block text-sm font-medium text-gray-700 mb-2">
+                        Lý do hủy (tùy chọn):
+                    </label>
+                    <textarea id="cancelBookingReason"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              rows="3"
+                              placeholder="Nhập lý do hủy lịch..."></textarea>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-end space-x-3">
+                <button type="button"
+                        onclick="hideCancelBookingModal()"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                    Hủy bỏ
+                </button>
+                <button type="button"
+                        onclick="confirmCancelBooking()"
+                        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                    Xác nhận hủy
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 

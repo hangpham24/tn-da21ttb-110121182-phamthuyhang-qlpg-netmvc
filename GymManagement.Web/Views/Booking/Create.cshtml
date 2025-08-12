@@ -1,0 +1,300 @@
+@model GymManagement.Web.Data.Models.Booking
+@{
+    ViewData["Title"] = "Đặt lịch mới";
+    Layout = User.IsInRole("Admin") ? "_Layout" : "_MemberLayout";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4 mb-4">
+            <a href="@(User.IsInRole("Admin") ? Url.Action("Index") : Url.Action("MyBookings"))" class="text-gray-600 hover:text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">📅 Đặt lịch mới</h1>
+        </div>
+        <p class="text-gray-600">Đặt lịch tham gia lớp học</p>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <form asp-action="Create" method="post" class="bg-white rounded-lg shadow-md p-6">
+            <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Member Selection (Admin only) -->
+                    @if (User.IsInRole("Admin") && ViewBag.Members != null)
+                    {
+                        <div>
+                            <label asp-for="ThanhVienId" class="block text-sm font-medium text-gray-700 mb-2">
+                                Thành viên
+                            </label>
+                            <select asp-for="ThanhVienId" asp-items="ViewBag.Members" 
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <option value="">-- Chọn thành viên --</option>
+                            </select>
+                            <span asp-validation-for="ThanhVienId" class="text-red-500 text-sm"></span>
+                            <p class="text-xs text-gray-500 mt-1">Để trống để đặt lịch cho chính bạn</p>
+                        </div>
+                    }
+
+                    <!-- Class Selection -->
+                    <div>
+                        <label asp-for="LopHocId" class="block text-sm font-medium text-gray-700 mb-2">
+                            Lớp học <span class="text-red-500">*</span>
+                        </label>
+                        <select asp-for="LopHocId" asp-items="ViewBag.Classes" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="loadClassInfo(this.value)">
+                            <option value="">-- Chọn lớp học --</option>
+                        </select>
+                        <span asp-validation-for="LopHocId" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div>
+                        <label asp-for="Ngay" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ngày tham gia <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Ngay" type="date" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               min="@DateTime.Today.ToString("yyyy-MM-dd")"
+                               onchange="checkAvailability()">
+                        <span asp-validation-for="Ngay" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label asp-for="GhiChu" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ghi chú
+                        </label>
+                        <textarea asp-for="GhiChu" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Nhập ghi chú nếu có..."></textarea>
+                        <span asp-validation-for="GhiChu" class="text-red-500 text-sm"></span>
+                        <p class="text-xs text-gray-500 mt-1">Tối đa 500 ký tự</p>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Class Information -->
+                    <div id="classInfo" class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">ℹ️ Thông tin lớp học</h3>
+                        <div id="classInfoContent" class="text-gray-600">
+                            <p>Vui lòng chọn lớp học để xem thông tin chi tiết</p>
+                        </div>
+                    </div>
+
+                    <!-- Availability Check -->
+                    <div id="availabilityCheck" class="bg-blue-50 rounded-lg p-6 hidden">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Kiểm tra tình trạng</h3>
+                        <div id="availabilityContent">
+                            <!-- Availability info will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Booking Rules -->
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <div>
+                                <h4 class="font-medium text-yellow-800">Quy định đặt lịch</h4>
+                                <ul class="text-sm text-yellow-700 mt-2 space-y-1">
+                                    <li>• Chỉ có thể đặt lịch cho các ngày trong tương lai</li>
+                                    <li>• Mỗi thành viên chỉ được đặt 1 lịch cho 1 lớp trong 1 ngày</li>
+                                    <li>• Có thể hủy đặt lịch trước 2 giờ so với giờ học</li>
+                                    <li>• Vắng mặt không báo trước sẽ bị trừ điểm uy tín</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-900 mb-3">🔗 Hành động nhanh</h4>
+                        <div class="space-y-2">
+                            <a href="@Url.Action("Calendar")" class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                                📅 Xem lịch tổng quan
+                            </a>
+                            <a href="@Url.Action("MyBookings")" class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                                📋 Đặt lịch của tôi
+                            </a>
+                            <a href="@Url.Action("PublicClasses", "LopHoc")" class="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                                🎓 Xem tất cả lớp học
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+                <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors" disabled>
+                    ✅ Xác nhận đặt lịch
+                </button>
+                <a href="@(User.IsInRole("Admin") ? Url.Action("Index") : Url.Action("MyBookings"))" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors">
+                    ❌ Hủy bỏ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let selectedClass = null;
+        let selectedDate = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set minimum date to today
+            const dateInput = document.getElementById('Ngay');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+            
+            // Enable submit button only when class and date are selected
+            updateSubmitButton();
+        });
+
+        function loadClassInfo(classId) {
+            selectedClass = classId;
+            const classInfoContent = document.getElementById('classInfoContent');
+            
+            if (!classId) {
+                classInfoContent.innerHTML = '<p>Vui lòng chọn lớp học để xem thông tin chi tiết</p>';
+                updateSubmitButton();
+                return;
+            }
+            
+            classInfoContent.innerHTML = '<p>Đang tải thông tin lớp học...</p>';
+            
+            // Simulate API call to get class info
+            setTimeout(() => {
+                classInfoContent.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">ID lớp:</span>
+                            <span class="font-medium">#${classId}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Thời gian:</span>
+                            <span class="font-medium">Đang tải...</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Huấn luyện viên:</span>
+                            <span class="font-medium">Đang tải...</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Sức chứa:</span>
+                            <span class="font-medium">Đang tải...</span>
+                        </div>
+                        <div class="mt-4 p-3 bg-blue-100 rounded-md">
+                            <p class="text-sm text-blue-800">
+                                <strong>Lưu ý:</strong> Thông tin chi tiết sẽ được cập nhật sau khi chọn ngày.
+                            </p>
+                        </div>
+                    </div>
+                `;
+                updateSubmitButton();
+                checkAvailability();
+            }, 500);
+        }
+
+        function checkAvailability() {
+            const classId = document.getElementById('LopHocId').value;
+            const date = document.getElementById('Ngay').value;
+            
+            selectedDate = date;
+            
+            if (!classId || !date) {
+                document.getElementById('availabilityCheck').classList.add('hidden');
+                updateSubmitButton();
+                return;
+            }
+            
+            const availabilityCheck = document.getElementById('availabilityCheck');
+            const availabilityContent = document.getElementById('availabilityContent');
+            
+            availabilityCheck.classList.remove('hidden');
+            availabilityContent.innerHTML = '<p>Đang kiểm tra tình trạng...</p>';
+            
+            // Simulate API call to check availability
+            setTimeout(() => {
+                const isAvailable = Math.random() > 0.3; // 70% chance available
+                const bookedSlots = Math.floor(Math.random() * 15) + 5;
+                const totalSlots = 20;
+                const availableSlots = totalSlots - bookedSlots;
+                
+                if (isAvailable && availableSlots > 0) {
+                    availabilityContent.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="flex items-center text-green-600">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="font-medium">Có thể đặt lịch</span>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                <p>Còn <strong>${availableSlots}</strong> chỗ trống (${bookedSlots}/${totalSlots} đã đặt)</p>
+                                <p>Ngày: <strong>${new Date(date).toLocaleDateString('vi-VN')}</strong></p>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: ${(availableSlots/totalSlots)*100}%"></div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    availabilityContent.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="flex items-center text-red-600">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                <span class="font-medium">Không thể đặt lịch</span>
+                            </div>
+                            <div class="text-sm text-gray-600">
+                                <p>Lớp học đã đầy (${totalSlots}/${totalSlots} đã đặt)</p>
+                                <p>Ngày: <strong>${new Date(date).toLocaleDateString('vi-VN')}</strong></p>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                updateSubmitButton();
+            }, 1000);
+        }
+
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submitBtn');
+            const classId = document.getElementById('LopHocId').value;
+            const date = document.getElementById('Ngay').value;
+            
+            if (classId && date) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('LopHocId').addEventListener('change', function() {
+            loadClassInfo(this.value);
+        });
+
+        document.getElementById('Ngay').addEventListener('change', function() {
+            checkAvailability();
+        });
+    </script>
+}

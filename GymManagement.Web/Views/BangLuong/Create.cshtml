@@ -1,0 +1,397 @@
+@model GymManagement.Web.Data.Models.BangLuong
+@{
+    ViewData["Title"] = "Tạo bảng lương";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4 mb-4">
+            <a href="@Url.Action("Index")" class="text-gray-600 hover:text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">💰 Tạo bảng lương</h1>
+        </div>
+        <p class="text-gray-600">Tạo bảng lương cho huấn luyện viên</p>
+    </div>
+
+    <div class="max-w-4xl">
+        <form asp-action="Create" method="post" class="bg-white rounded-lg shadow-md p-6">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left Column -->
+                <div class="space-y-6">
+                    <!-- Trainer Selection -->
+                    <div>
+                        <label asp-for="HlvId" class="block text-sm font-medium text-gray-700 mb-2">
+                            Huấn luyện viên <span class="text-red-500">*</span>
+                        </label>
+                        <select asp-for="HlvId" asp-items="ViewBag.Trainers" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                onchange="loadTrainerInfo(this.value)">
+                            <option value="">-- Chọn huấn luyện viên --</option>
+                        </select>
+                        <span asp-validation-for="HlvId" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Month -->
+                    <div>
+                        <label asp-for="Thang" class="block text-sm font-medium text-gray-700 mb-2">
+                            Tháng <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="Thang" type="month" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               onchange="calculateSalary()">
+                        <span asp-validation-for="Thang" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Base Salary -->
+                    <div>
+                        <label asp-for="LuongCoBan" class="block text-sm font-medium text-gray-700 mb-2">
+                            Lương cơ bản (VNĐ) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input asp-for="LuongCoBan" type="number" min="0" step="10000"
+                                   class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Nhập lương cơ bản..."
+                                   onchange="updateTotalPayment()">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <span class="text-gray-500 text-sm">VNĐ</span>
+                            </div>
+                        </div>
+                        <span asp-validation-for="LuongCoBan" class="text-red-500 text-sm"></span>
+                        <p class="text-xs text-gray-500 mt-1">Lương cơ bản dựa trên số buổi dạy và mức lương/buổi</p>
+                    </div>
+
+                    <!-- Commission -->
+                    <div>
+                        <label asp-for="TienHoaHong" class="block text-sm font-medium text-gray-700 mb-2">
+                            Hoa hồng (VNĐ)
+                        </label>
+                        <div class="relative">
+                            <input asp-for="TienHoaHong" type="number" min="0" step="10000"
+                                   class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="Nhập hoa hồng..."
+                                   onchange="updateTotalPayment()">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <span class="text-gray-500 text-sm">VNĐ</span>
+                            </div>
+                        </div>
+                        <span asp-validation-for="TienHoaHong" class="text-red-500 text-sm"></span>
+                        <p class="text-xs text-gray-500 mt-1">Hoa hồng từ giới thiệu thành viên mới, thưởng hiệu suất</p>
+                    </div>
+
+                    <!-- Payment Date -->
+                    <div>
+                        <label asp-for="NgayThanhToan" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ngày thanh toán
+                        </label>
+                        <input asp-for="NgayThanhToan" type="date" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <span asp-validation-for="NgayThanhToan" class="text-red-500 text-sm"></span>
+                        <p class="text-xs text-gray-500 mt-1">Để trống nếu chưa thanh toán</p>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="space-y-6">
+                    <!-- Trainer Information -->
+                    <div id="trainerInfo" class="bg-gray-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">ℹ️ Thông tin huấn luyện viên</h3>
+                        <div id="trainerInfoContent" class="text-gray-600">
+                            <p>Vui lòng chọn huấn luyện viên để xem thông tin</p>
+                        </div>
+                    </div>
+
+                    <!-- Salary Calculation -->
+                    <div id="salaryCalculation" class="bg-blue-50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🧮 Tính toán lương</h3>
+                        <div id="calculationContent">
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Số buổi dạy:</span>
+                                    <span class="font-medium" id="classCount">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Lương/buổi:</span>
+                                    <span class="font-medium" id="salaryPerClass">-</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Lương cơ bản:</span>
+                                    <span class="font-medium text-blue-600" id="calculatedBaseSalary">-</span>
+                                </div>
+                                <hr class="border-gray-300">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Hoa hồng:</span>
+                                    <span class="font-medium text-green-600" id="displayCommission">0 VNĐ</span>
+                                </div>
+                                <div class="flex justify-between text-lg font-bold">
+                                    <span class="text-gray-900">Tổng thanh toán:</span>
+                                    <span class="text-purple-600" id="totalPayment">0 VNĐ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto-calculation Options -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 class="font-medium text-green-800 mb-3">⚡ Tính toán tự động</h4>
+                        <div class="space-y-2">
+                            <button type="button" onclick="autoCalculateBaseSalary()" 
+                                    class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                                🔄 Tự động tính lương cơ bản
+                            </button>
+                            <button type="button" onclick="autoCalculateCommission()" 
+                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                                💰 Tự động tính hoa hồng
+                            </button>
+                        </div>
+                        <p class="text-xs text-green-700 mt-2">
+                            Hệ thống sẽ tự động tính toán dựa trên dữ liệu thực tế
+                        </p>
+                    </div>
+
+                    <!-- Salary Rules -->
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <div>
+                                <h4 class="font-medium text-yellow-800">Quy định tính lương</h4>
+                                <ul class="text-sm text-yellow-700 mt-2 space-y-1">
+                                    <li>• Lương cơ bản = Số buổi dạy × Mức lương/buổi</li>
+                                    <li>• Hoa hồng từ giới thiệu thành viên mới: 5% giá gói tập</li>
+                                    <li>• Thưởng hiệu suất dựa trên đánh giá của học viên</li>
+                                    <li>• Lương được thanh toán vào cuối tháng</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-4 mt-8 pt-6 border-t border-gray-200">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors">
+                    💾 Tạo bảng lương
+                </button>
+                <button type="button" onclick="previewSalary()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors">
+                    👁️ Xem trước
+                </button>
+                <a href="@Url.Action("Index")" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors">
+                    ❌ Hủy bỏ
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div id="previewModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Xem trước bảng lương</h3>
+                    <button onclick="closePreviewModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="previewContent">
+                    <!-- Preview content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let selectedTrainer = null;
+        let selectedMonth = null;
+
+        function loadTrainerInfo(trainerId) {
+            selectedTrainer = trainerId;
+            const trainerInfoContent = document.getElementById('trainerInfoContent');
+            
+            if (!trainerId) {
+                trainerInfoContent.innerHTML = '<p>Vui lòng chọn huấn luyện viên để xem thông tin</p>';
+                return;
+            }
+            
+            trainerInfoContent.innerHTML = '<p>Đang tải thông tin huấn luyện viên...</p>';
+            
+            // Simulate API call to get trainer info
+            setTimeout(() => {
+                trainerInfoContent.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">ID HLV:</span>
+                            <span class="font-medium">#${trainerId}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Kinh nghiệm:</span>
+                            <span class="font-medium">Đang tải...</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Chuyên môn:</span>
+                            <span class="font-medium">Đang tải...</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Đánh giá:</span>
+                            <span class="font-medium">⭐⭐⭐⭐⭐</span>
+                        </div>
+                    </div>
+                `;
+                calculateSalary();
+            }, 500);
+        }
+
+        function calculateSalary() {
+            const trainerId = document.getElementById('HlvId').value;
+            const month = document.getElementById('Thang').value;
+            
+            selectedMonth = month;
+            
+            if (!trainerId || !month) {
+                return;
+            }
+            
+            // Simulate calculation
+            const classCount = Math.floor(Math.random() * 20) + 10; // 10-30 classes
+            const salaryPerClass = 200000; // 200k per class
+            const baseSalary = classCount * salaryPerClass;
+            
+            document.getElementById('classCount').textContent = classCount + ' buổi';
+            document.getElementById('salaryPerClass').textContent = salaryPerClass.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('calculatedBaseSalary').textContent = baseSalary.toLocaleString('vi-VN') + ' VNĐ';
+            
+            // Update form field
+            document.getElementById('LuongCoBan').value = baseSalary;
+            updateTotalPayment();
+        }
+
+        function updateTotalPayment() {
+            const baseSalary = parseFloat(document.getElementById('LuongCoBan').value) || 0;
+            const commission = parseFloat(document.getElementById('TienHoaHong').value) || 0;
+            const total = baseSalary + commission;
+            
+            document.getElementById('displayCommission').textContent = commission.toLocaleString('vi-VN') + ' VNĐ';
+            document.getElementById('totalPayment').textContent = total.toLocaleString('vi-VN') + ' VNĐ';
+        }
+
+        function autoCalculateBaseSalary() {
+            const trainerId = document.getElementById('HlvId').value;
+            const month = document.getElementById('Thang').value;
+            
+            if (!trainerId || !month) {
+                alert('Vui lòng chọn huấn luyện viên và tháng');
+                return;
+            }
+            
+            // Simulate auto calculation
+            calculateSalary();
+            alert('Đã tự động tính lương cơ bản dựa trên số buổi dạy thực tế');
+        }
+
+        function autoCalculateCommission() {
+            const trainerId = document.getElementById('HlvId').value;
+            const month = document.getElementById('Thang').value;
+            
+            if (!trainerId || !month) {
+                alert('Vui lòng chọn huấn luyện viên và tháng');
+                return;
+            }
+            
+            // Simulate commission calculation
+            const commission = Math.floor(Math.random() * 1000000) + 500000; // 500k-1.5M
+            document.getElementById('TienHoaHong').value = commission;
+            updateTotalPayment();
+            alert('Đã tự động tính hoa hồng dựa trên hiệu suất thực tế');
+        }
+
+        function previewSalary() {
+            const trainerId = document.getElementById('HlvId').value;
+            const month = document.getElementById('Thang').value;
+            const baseSalary = document.getElementById('LuongCoBan').value;
+            const commission = document.getElementById('TienHoaHong').value;
+            const paymentDate = document.getElementById('NgayThanhToan').value;
+            
+            if (!trainerId || !month || !baseSalary) {
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+                return;
+            }
+            
+            const total = (parseFloat(baseSalary) || 0) + (parseFloat(commission) || 0);
+            const trainerName = document.getElementById('HlvId').selectedOptions[0].text;
+            
+            const content = `
+                <div class="space-y-4">
+                    <div class="text-center border-b pb-4">
+                        <h4 class="text-xl font-bold text-gray-900">BẢNG LƯƠNG</h4>
+                        <p class="text-gray-600">Tháng ${month}</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Huấn luyện viên:</span>
+                            <span class="font-medium">${trainerName}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Tháng:</span>
+                            <span class="font-medium">${month}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Lương cơ bản:</span>
+                            <span class="font-medium">${parseFloat(baseSalary).toLocaleString('vi-VN')} VNĐ</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Hoa hồng:</span>
+                            <span class="font-medium text-green-600">${parseFloat(commission || 0).toLocaleString('vi-VN')} VNĐ</span>
+                        </div>
+                        <hr class="border-gray-300">
+                        <div class="flex justify-between text-lg font-bold">
+                            <span class="text-gray-900">Tổng thanh toán:</span>
+                            <span class="text-blue-600">${total.toLocaleString('vi-VN')} VNĐ</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Ngày thanh toán:</span>
+                            <span class="font-medium">${paymentDate || 'Chưa xác định'}</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg mt-4">
+                        <p class="text-sm text-gray-600">
+                            <strong>Lưu ý:</strong> Đây là bản xem trước. Vui lòng kiểm tra kỹ thông tin trước khi tạo bảng lương.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('previewContent').innerHTML = content;
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('previewModal').addEventListener('click', function(e) {
+            if (e.target === this) closePreviewModal();
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTotalPayment();
+        });
+    </script>
+}

@@ -1,0 +1,450 @@
+@{
+    ViewData["Title"] = "Check-in";
+    Layout = "_MemberLayout";
+}
+
+    <!-- Header -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div class="flex items-center gap-4 mb-4">
+            <a href="@Url.Action("Index")" class="text-gray-600 hover:text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">📱 Check-in</h1>
+        </div>
+        <p class="text-gray-600">Điểm danh vào phòng gym</p>
+    </div>
+
+<!-- Main Content -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Check-in Status -->
+        <div id="checkInStatus" class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="text-center">
+                <div id="statusIcon" class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h2 id="statusTitle" class="text-xl font-semibold text-gray-900 mb-2">Kiểm tra trạng thái...</h2>
+                <p id="statusMessage" class="text-gray-600 mb-4">Đang kiểm tra trạng thái check-in của bạn</p>
+                <div id="lastCheckIn" class="text-sm text-gray-500"></div>
+            </div>
+        </div>
+
+        <!-- Check-in Methods -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Face Recognition Check-in -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Nhận diện khuôn mặt</h3>
+                    <p class="text-gray-600 text-sm">Sử dụng camera để check-in tự động</p>
+                </div>
+
+                <!-- Camera Section -->
+                <div class="mb-6">
+                    <div id="cameraContainer" class="relative bg-gray-100 rounded-lg overflow-hidden" style="height: 300px;">
+                        <video id="video" class="w-full h-full object-cover hidden" autoplay muted></video>
+                        <canvas id="canvas" class="hidden"></canvas>
+                        <div id="cameraPlaceholder" class="flex items-center justify-center h-full">
+                            <div class="text-center">
+                                <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                                <p class="text-gray-500">Nhấn "Bật camera" để bắt đầu</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Camera Controls -->
+                <div class="space-y-3">
+                    <button id="startCameraBtn" onclick="startCamera()" 
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors">
+                        📷 Bật camera
+                    </button>
+                    <button id="captureBtn" onclick="captureAndCheckIn()" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors hidden">
+                        ✅ Chụp ảnh và check-in
+                    </button>
+                    <button id="stopCameraBtn" onclick="stopCamera()" 
+                            class="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors hidden">
+                        ⏹️ Tắt camera
+                    </button>
+                </div>
+
+                <!-- Face Recognition Status -->
+                <div id="faceRecognitionStatus" class="mt-4 p-3 rounded-md hidden">
+                    <div class="flex items-center">
+                        <div id="recognitionIcon" class="mr-2"></div>
+                        <span id="recognitionMessage"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manual Check-in -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Check-in thủ công</h3>
+                    <p class="text-gray-600 text-sm">Check-in đơn giản bằng một cú nhấp</p>
+                </div>
+
+                <!-- Manual Check-in Form -->
+                <div class="space-y-4">
+                    @if (User.IsInRole("Admin") || User.IsInRole("Trainer"))
+                    {
+                        <!-- Member Selection for Admin/Trainer -->
+                        <div>
+                            <label for="memberSelect" class="block text-sm font-medium text-gray-700 mb-2">
+                                Chọn thành viên (Admin/Trainer)
+                            </label>
+                            <select id="memberSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="">-- Chọn thành viên --</option>
+                                <!-- Members will be loaded via AJAX -->
+                            </select>
+                        </div>
+                    }
+
+                    <!-- Notes -->
+                    <div>
+                        <label for="checkInNote" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ghi chú (tùy chọn)
+                        </label>
+                        <textarea id="checkInNote" rows="3" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                  placeholder="Nhập ghi chú nếu có..."></textarea>
+                    </div>
+
+                    <!-- Manual Check-in Button -->
+                    <button id="manualCheckInBtn" onclick="manualCheckIn()" 
+                            class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors">
+                        ✅ Check-in ngay
+                    </button>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="font-medium text-gray-900 mb-3">📊 Thống kê nhanh</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="text-center p-3 bg-blue-50 rounded-lg">
+                            <div class="font-bold text-blue-600" id="todayTotal">-</div>
+                            <div class="text-gray-600">Hôm nay</div>
+                        </div>
+                        <div class="text-center p-3 bg-green-50 rounded-lg">
+                            <div class="font-bold text-green-600" id="weekTotal">-</div>
+                            <div class="text-gray-600">Tuần này</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Check-ins -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🕒 Check-in gần đây</h3>
+            <div id="recentCheckIns">
+                <div class="text-center py-4 text-gray-500">
+                    <p>Đang tải dữ liệu...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check-in Rules -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mt-8">
+            <div class="flex">
+                <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    <h4 class="font-medium text-yellow-800">Quy định check-in</h4>
+                    <ul class="text-sm text-yellow-700 mt-2 space-y-1">
+                        <li>• Mỗi thành viên chỉ được check-in một lần trong ngày</li>
+                        <li>• Check-in bằng nhận diện khuôn mặt sẽ được ưu tiên</li>
+                        <li>• Thời gian check-in sẽ được ghi nhận chính xác</li>
+                        <li>• Dữ liệu check-in được sử dụng cho báo cáo và thống kê</li>
+                    </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let stream = null;
+        let video = null;
+        let canvas = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            video = document.getElementById('video');
+            canvas = document.getElementById('canvas');
+            
+            checkCurrentStatus();
+            loadQuickStats();
+            loadRecentCheckIns();
+            
+            @if (User.IsInRole("Admin") || User.IsInRole("Trainer"))
+            {
+                <text>loadMembers();</text>
+            }
+        });
+
+        function checkCurrentStatus() {
+            fetch('@Url.Action("CheckStatus")')
+                .then(response => response.json())
+                .then(data => {
+                    const statusIcon = document.getElementById('statusIcon');
+                    const statusTitle = document.getElementById('statusTitle');
+                    const statusMessage = document.getElementById('statusMessage');
+                    const lastCheckIn = document.getElementById('lastCheckIn');
+                    
+                    if (data.hasCheckedIn) {
+                        statusIcon.innerHTML = `
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        `;
+                        statusIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center';
+                        statusTitle.textContent = 'Đã check-in hôm nay';
+                        statusMessage.textContent = 'Bạn đã check-in thành công hôm nay';
+                        lastCheckIn.textContent = `Lần cuối: ${data.lastCheckIn}`;
+                        
+                        // Disable check-in buttons
+                        document.getElementById('manualCheckInBtn').disabled = true;
+                        document.getElementById('manualCheckInBtn').textContent = '✅ Đã check-in';
+                        document.getElementById('manualCheckInBtn').classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        statusIcon.innerHTML = `
+                            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        `;
+                        statusIcon.className = 'w-16 h-16 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center';
+                        statusTitle.textContent = 'Chưa check-in hôm nay';
+                        statusMessage.textContent = 'Hãy check-in để bắt đầu buổi tập';
+                        if (data.lastCheckIn) {
+                            lastCheckIn.textContent = `Lần cuối: ${data.lastCheckIn}`;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking status:', error);
+                });
+        }
+
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    } 
+                });
+                
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+                document.getElementById('cameraPlaceholder').classList.add('hidden');
+                document.getElementById('startCameraBtn').classList.add('hidden');
+                document.getElementById('captureBtn').classList.remove('hidden');
+                document.getElementById('stopCameraBtn').classList.remove('hidden');
+                
+                // Set canvas size
+                canvas.width = 640;
+                canvas.height = 480;
+                
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                showFaceRecognitionStatus('error', 'Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.');
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            video.classList.add('hidden');
+            document.getElementById('cameraPlaceholder').classList.remove('hidden');
+            document.getElementById('startCameraBtn').classList.remove('hidden');
+            document.getElementById('captureBtn').classList.add('hidden');
+            document.getElementById('stopCameraBtn').classList.add('hidden');
+            hideFaceRecognitionStatus();
+        }
+
+        function captureAndCheckIn() {
+            if (!video.videoWidth || !video.videoHeight) {
+                showFaceRecognitionStatus('error', 'Camera chưa sẵn sàng. Vui lòng thử lại.');
+                return;
+            }
+            
+            // Draw video frame to canvas
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert canvas to blob
+            canvas.toBlob(async (blob) => {
+                if (!blob) {
+                    showFaceRecognitionStatus('error', 'Không thể chụp ảnh. Vui lòng thử lại.');
+                    return;
+                }
+                
+                showFaceRecognitionStatus('processing', 'Đang xử lý nhận diện khuôn mặt...');
+                
+                // Create form data
+                const formData = new FormData();
+                formData.append('faceImage', blob, 'face.jpg');
+                
+                try {
+                    const response = await fetch('@Url.Action("FaceRecognitionCheckIn")', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showFaceRecognitionStatus('success', result.message);
+                        checkCurrentStatus();
+                        loadQuickStats();
+                        loadRecentCheckIns();
+                        stopCamera();
+                    } else {
+                        showFaceRecognitionStatus('error', result.message);
+                    }
+                } catch (error) {
+                    console.error('Error during face recognition check-in:', error);
+                    showFaceRecognitionStatus('error', 'Có lỗi xảy ra khi check-in. Vui lòng thử lại.');
+                }
+            }, 'image/jpeg', 0.8);
+        }
+
+        async function manualCheckIn() {
+            const note = document.getElementById('checkInNote').value;
+            const memberSelect = document.getElementById('memberSelect');
+            const memberId = memberSelect ? memberSelect.value : null;
+            
+            const button = document.getElementById('manualCheckInBtn');
+            const originalText = button.textContent;
+            button.textContent = 'Đang check-in...';
+            button.disabled = true;
+            
+            try {
+                let url, body;
+                
+                if (memberId) {
+                    // Admin/Trainer checking in for a member
+                    url = '@Url.Action("ManualCheckIn")';
+                    body = JSON.stringify({ memberId: parseInt(memberId), note: note });
+                } else {
+                    // Self check-in
+                    url = '@Url.Action("SelfCheckIn")';
+                    body = JSON.stringify({ note: note });
+                }
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: body
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(result.message);
+                    checkCurrentStatus();
+                    loadQuickStats();
+                    loadRecentCheckIns();
+                    document.getElementById('checkInNote').value = '';
+                    if (memberSelect) memberSelect.value = '';
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                console.error('Error during manual check-in:', error);
+                alert('Có lỗi xảy ra khi check-in. Vui lòng thử lại.');
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        function showFaceRecognitionStatus(type, message) {
+            const statusDiv = document.getElementById('faceRecognitionStatus');
+            const iconDiv = document.getElementById('recognitionIcon');
+            const messageSpan = document.getElementById('recognitionMessage');
+            
+            statusDiv.classList.remove('hidden', 'bg-blue-50', 'bg-green-50', 'bg-red-50');
+            
+            switch (type) {
+                case 'processing':
+                    statusDiv.classList.add('bg-blue-50');
+                    iconDiv.innerHTML = '🔄';
+                    break;
+                case 'success':
+                    statusDiv.classList.add('bg-green-50');
+                    iconDiv.innerHTML = '✅';
+                    break;
+                case 'error':
+                    statusDiv.classList.add('bg-red-50');
+                    iconDiv.innerHTML = '❌';
+                    break;
+            }
+            
+            messageSpan.textContent = message;
+        }
+
+        function hideFaceRecognitionStatus() {
+            document.getElementById('faceRecognitionStatus').classList.add('hidden');
+        }
+
+        function loadQuickStats() {
+            // Placeholder for quick stats
+            setTimeout(() => {
+                document.getElementById('todayTotal').textContent = '0';
+                document.getElementById('weekTotal').textContent = '0';
+            }, 500);
+        }
+
+        function loadRecentCheckIns() {
+            // Placeholder for recent check-ins
+            setTimeout(() => {
+                document.getElementById('recentCheckIns').innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <p>Chưa có dữ liệu check-in gần đây</p>
+                    </div>
+                `;
+            }, 1000);
+        }
+
+        function loadMembers() {
+            // Placeholder for loading members (Admin/Trainer only)
+            // This would typically fetch from an API
+        }
+
+        // Cleanup camera when leaving page
+        window.addEventListener('beforeunload', function() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+}

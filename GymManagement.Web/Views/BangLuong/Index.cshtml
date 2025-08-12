@@ -1,0 +1,564 @@
+@model IEnumerable<GymManagement.Web.Data.Models.BangLuong>
+@{
+    ViewData["Title"] = "Quản lý bảng lương";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">💰 Quản lý bảng lương</h1>
+            <p class="text-gray-600">Quản lý lương và hoa hồng cho huấn luyện viên</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="showGenerateSalaryModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                ⚡ Tạo lương tháng
+            </button>
+            <a href="@Url.Action("UnpaidSalaries")" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                ⏳ Chưa thanh toán
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Tổng chi phí lương</p>
+                    <p class="text-2xl font-bold text-gray-900">@(Model?.Sum(s => s.TongThanhToan).ToString("N0") ?? "0") VNĐ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Đã thanh toán</p>
+                    <p class="text-2xl font-bold text-gray-900">@(Model?.Where(s => s.NgayThanhToan.HasValue).Sum(s => s.TongThanhToan).ToString("N0") ?? "0") VNĐ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-orange-100 text-orange-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Chưa thanh toán</p>
+                    <p class="text-2xl font-bold text-gray-900">@(Model?.Where(s => !s.NgayThanhToan.HasValue).Sum(s => s.TongThanhToan).ToString("N0") ?? "0") VNĐ</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Số HLV</p>
+                    <p class="text-2xl font-bold text-gray-900">@(Model?.Select(s => s.HlvId).Distinct().Count() ?? 0)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+                <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+                <input type="text" id="searchInput" placeholder="Tên huấn luyện viên..." 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="monthFilter" class="block text-sm font-medium text-gray-700 mb-2">Tháng</label>
+                <select id="monthFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả tháng</option>
+                    @if (Model != null)
+                    {
+                        @foreach (var month in Model.Select(s => s.Thang).Distinct().OrderByDescending(m => m))
+                        {
+                            <option value="@month">@month</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div>
+                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả</option>
+                    <option value="paid">Đã thanh toán</option>
+                    <option value="unpaid">Chưa thanh toán</option>
+                </select>
+            </div>
+            <div>
+                <label for="amountFilter" class="block text-sm font-medium text-gray-700 mb-2">Mức lương</label>
+                <select id="amountFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả</option>
+                    <option value="low">< 5 triệu</option>
+                    <option value="medium">5-10 triệu</option>
+                    <option value="high">> 10 triệu</option>
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button onclick="exportSalaries()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                    📊 Xuất Excel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Salary Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Huấn luyện viên</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tháng</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lương cơ bản</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hoa hồng</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng thanh toán</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salaryTable" class="bg-white divide-y divide-gray-200">
+                        @foreach (var bangLuong in Model.OrderByDescending(s => s.Thang).ThenBy(s => s.Hlv?.Ho))
+                        {
+                            <tr class="hover:bg-gray-50 salary-row" 
+                                data-trainer="@(bangLuong.Hlv?.Ho + " " + bangLuong.Hlv?.Ten)?.ToLower()"
+                                data-month="@bangLuong.Thang"
+                                data-status="@(bangLuong.NgayThanhToan.HasValue ? "paid" : "unpaid")"
+                                data-amount="@bangLuong.TongThanhToan">
+                                
+                                <!-- Trainer -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                                <span class="text-sm font-medium text-purple-600">
+                                                    @(bangLuong.Hlv?.Ho?.FirstOrDefault() ?? 'H')
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">
+                                                @bangLuong.Hlv?.Ho @bangLuong.Hlv?.Ten
+                                            </div>
+                                            <div class="text-sm text-gray-500">
+                                                @bangLuong.Hlv?.Email
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Month -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">@bangLuong.Thang</div>
+                                    <div class="text-sm text-gray-500">
+                                        @{
+                                            var monthYear = bangLuong.Thang.Split('-');
+                                            var monthName = monthYear.Length == 2 ? $"Tháng {monthYear[1]}/{monthYear[0]}" : bangLuong.Thang;
+                                        }
+                                        @monthName
+                                    </div>
+                                </td>
+
+                                <!-- Base Salary -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">@bangLuong.LuongCoBan.ToString("N0") VNĐ</div>
+                                </td>
+
+                                <!-- Commission -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-green-600">@bangLuong.TienHoaHong.ToString("N0") VNĐ</div>
+                                </td>
+
+                                <!-- Total Payment -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-bold text-blue-600">@bangLuong.TongThanhToan.ToString("N0") VNĐ</div>
+                                </td>
+
+                                <!-- Status -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (bangLuong.NgayThanhToan.HasValue)
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            ✅ Đã thanh toán
+                                        </span>
+                                        <div class="text-xs text-gray-500 mt-1">@bangLuong.NgayThanhToan.Value.ToString("dd/MM/yyyy")</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                                            ⏳ Chưa thanh toán
+                                        </span>
+                                    }
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <a href="@Url.Action("Details", new { id = bangLuong.BangLuongId })" 
+                                           class="text-blue-600 hover:text-blue-900">
+                                            👁️ Chi tiết
+                                        </a>
+                                        @if (!bangLuong.NgayThanhToan.HasValue)
+                                        {
+                                            <button onclick="markAsPaid(@bangLuong.BangLuongId)" 
+                                                    class="text-green-600 hover:text-green-900">
+                                                💰 Thanh toán
+                                            </button>
+                                        }
+                                        <button onclick="viewSalaryBreakdown(@bangLuong.BangLuongId)" 
+                                                class="text-purple-600 hover:text-purple-900">
+                                            📊 Phân tích
+                                        </button>
+                                        @if (!bangLuong.NgayThanhToan.HasValue)
+                                        {
+                                            <button onclick="deleteSalary(@bangLuong.BangLuongId)" 
+                                                    class="text-red-600 hover:text-red-900">
+                                                🗑️ Xóa
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Chưa có bảng lương nào</h3>
+            <p class="text-gray-600 mb-4">Hệ thống chưa có bảng lương nào. Hãy tạo bảng lương đầu tiên.</p>
+            <button onclick="showGenerateSalaryModal()" class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                ⚡ Tạo bảng lương đầu tiên
+            </button>
+        </div>
+    }
+</div>
+
+<!-- Generate Salary Modal -->
+<div id="generateSalaryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Tạo bảng lương tháng</h3>
+                    <button onclick="closeGenerateSalaryModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label for="salaryMonth" class="block text-sm font-medium text-gray-700 mb-2">Chọn tháng</label>
+                        <input type="month" id="salaryMonth" value="@DateTime.Now.ToString("yyyy-MM")"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                            </svg>
+                            <div>
+                                <h4 class="font-medium text-yellow-800">Lưu ý</h4>
+                                <p class="text-sm text-yellow-700 mt-1">
+                                    Hệ thống sẽ tự động tính lương cơ bản và hoa hồng dựa trên số buổi dạy và hiệu suất của từng huấn luyện viên.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 pt-4">
+                        <button onclick="generateMonthlySalaries()" 
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors">
+                            ⚡ Tạo bảng lương
+                        </button>
+                        <button onclick="closeGenerateSalaryModal()" 
+                                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors">
+                            ❌ Hủy bỏ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white rounded-lg shadow-xl p-8 mx-4 max-w-sm w-full text-center">
+            <!-- Animated Spinner -->
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-green-600 mb-4"></div>
+            
+            <!-- Loading Text -->
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Đang tạo bảng lương...</h3>
+            <p class="text-gray-600 text-sm mb-4">Hệ thống đang tính toán lương và hoa hồng cho từng huấn luyện viên. Vui lòng đợi trong giây lát.</p>
+            
+            <!-- Progress Steps -->
+            <div class="text-left text-sm text-gray-500">
+                <div class="flex items-center mb-2">
+                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                    <span>Đang tính lương cơ bản...</span>
+                </div>
+                <div class="flex items-center mb-2">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-2 animate-pulse" style="animation-delay: 0.5s"></div>
+                    <span>Đang tính hoa hồng...</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-3 h-3 bg-purple-500 rounded-full mr-2 animate-pulse" style="animation-delay: 1s"></div>
+                    <span>Đang lưu dữ liệu...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Salary Breakdown Modal -->
+<div id="salaryBreakdownModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Phân tích chi tiết lương</h3>
+                    <button onclick="closeSalaryBreakdownModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="salaryBreakdownContent">
+                    <!-- Salary breakdown will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Search and filter functionality
+        document.getElementById('searchInput').addEventListener('input', filterSalaries);
+        document.getElementById('monthFilter').addEventListener('change', filterSalaries);
+        document.getElementById('statusFilter').addEventListener('change', filterSalaries);
+        document.getElementById('amountFilter').addEventListener('change', filterSalaries);
+
+        function filterSalaries() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const month = document.getElementById('monthFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const amount = document.getElementById('amountFilter').value;
+            
+            const salaryRows = document.querySelectorAll('.salary-row');
+
+            salaryRows.forEach(row => {
+                const trainer = row.getAttribute('data-trainer') || '';
+                const rowMonth = row.getAttribute('data-month');
+                const rowStatus = row.getAttribute('data-status');
+                const rowAmount = parseFloat(row.getAttribute('data-amount'));
+                
+                let show = true;
+                
+                // Search filter
+                if (searchTerm && !trainer.includes(searchTerm)) {
+                    show = false;
+                }
+                
+                // Month filter
+                if (month && show && rowMonth !== month) {
+                    show = false;
+                }
+                
+                // Status filter
+                if (status && show && rowStatus !== status) {
+                    show = false;
+                }
+                
+                // Amount filter
+                if (amount && show) {
+                    switch (amount) {
+                        case 'low':
+                            if (rowAmount >= 5000000) show = false;
+                            break;
+                        case 'medium':
+                            if (rowAmount < 5000000 || rowAmount > 10000000) show = false;
+                            break;
+                        case 'high':
+                            if (rowAmount <= 10000000) show = false;
+                            break;
+                    }
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        function showGenerateSalaryModal() {
+            document.getElementById('generateSalaryModal').classList.remove('hidden');
+        }
+
+        function closeGenerateSalaryModal() {
+            document.getElementById('generateSalaryModal').classList.add('hidden');
+        }
+
+        async function generateMonthlySalaries() {
+            const month = document.getElementById('salaryMonth').value;
+            if (!month) {
+                alert('Vui lòng chọn tháng');
+                return;
+            }
+            
+            // Show loading overlay
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            
+            try {
+                const response = await fetch('@Url.Action("GenerateMonthlySalaries")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ month: month })
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading overlay
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                
+                if (result.success) {
+                    alert(result.message);
+                    closeGenerateSalaryModal();
+                    location.reload();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                // Hide loading overlay on error
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                
+                console.error('Error generating salaries:', error);
+                alert('Có lỗi xảy ra khi tạo bảng lương.');
+            }
+        }
+
+        async function markAsPaid(salaryId) {
+            if (confirm('Xác nhận đã thanh toán lương này?')) {
+                try {
+                    const response = await fetch(`@Url.Action("PaySalary")`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: `salaryId=${salaryId}`
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        alert(result.message);
+                    }
+                } catch (error) {
+                    console.error('Error marking as paid:', error);
+                    alert('Có lỗi xảy ra khi cập nhật trạng thái thanh toán.');
+                }
+            }
+        }
+
+        function viewSalaryBreakdown(salaryId) {
+            // Show loading
+            document.getElementById('salaryBreakdownContent').innerHTML = '<div class="text-center py-4">Đang tải...</div>';
+            document.getElementById('salaryBreakdownModal').classList.remove('hidden');
+            
+            // Load salary breakdown (placeholder - implement with actual API call)
+            setTimeout(() => {
+                document.getElementById('salaryBreakdownContent').innerHTML = `
+                    <div class="space-y-4">
+                        <p><strong>ID Bảng lương:</strong> ${salaryId}</p>
+                        <p><strong>Chi tiết:</strong> Sẽ được cập nhật sau</p>
+                    </div>
+                `;
+            }, 500);
+        }
+
+        function closeSalaryBreakdownModal() {
+            document.getElementById('salaryBreakdownModal').classList.add('hidden');
+        }
+
+        async function deleteSalary(salaryId) {
+            if (confirm('Bạn có chắc chắn muốn xóa bảng lương này?\n\nLưu ý: Chỉ có thể xóa bảng lương chưa được thanh toán.')) {
+                try {
+                    const response = await fetch('@Url.Action("Delete")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({ id: salaryId })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert(result.message);
+                        location.reload();
+                    } else {
+                        alert(result.message);
+                    }
+                } catch (error) {
+                    console.error('Error deleting salary:', error);
+                    alert('Có lỗi xảy ra khi xóa bảng lương.');
+                }
+            }
+        }
+
+        function exportSalaries() {
+            const month = document.getElementById('monthFilter').value || new Date().toISOString().slice(0, 7);
+            window.location.href = `@Url.Action("ExportSalaries")?month=${month}&format=csv`;
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('generateSalaryModal').addEventListener('click', function(e) {
+            if (e.target === this) closeGenerateSalaryModal();
+        });
+
+        document.getElementById('salaryBreakdownModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSalaryBreakdownModal();
+        });
+    </script>
+}

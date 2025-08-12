@@ -1,0 +1,1030 @@
+@{
+    ViewData["Title"] = "Báo Cáo Doanh Thu - Admin";
+    Layout = "_Layout";
+}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-green-50 to-emerald-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="@Url.Action("Index", "BaoCao")" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">Báo cáo doanh thu</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Header Section -->
+        <div class="mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div class="mb-4 lg:mb-0">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
+                        💰 Báo Cáo Doanh Thu
+                    </h1>
+                    <p class="text-gray-600 text-lg">Phân tích chi tiết doanh thu và xu hướng tài chính</p>
+                </div>
+                
+                <!-- Export Button with Dropdown -->
+                <div class="relative">
+                    <button id="exportBtn" onclick="handleExportClick()" class="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center">
+                        <svg class="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Xuất báo cáo</span>
+                        <span class="sm:hidden">Xuất</span>
+                        <svg class="w-4 h-4 ml-1 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div id="exportDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                        <div class="py-1">
+                            <button onclick="exportReport('csv')" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Xuất CSV
+                            </button>
+                            <button onclick="exportReport('excel')" class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                                </svg>
+                                Xuất Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 mb-8">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                </svg>
+                Bộ lọc dữ liệu
+            </h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Date Range -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Từ ngày</label>
+                    <input type="date" id="startDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Đến ngày</label>
+                    <input type="date" id="endDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                </div>
+
+                <!-- Source Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nguồn khách</label>
+                    <select id="sourceFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="all">🏢 Tất cả</option>
+                        <option value="member">👥 Thành viên</option>
+                        <option value="walkin">🚶 Khách vãng lai</option>
+                    </select>
+                </div>
+
+                <!-- Group By -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nhóm theo</label>
+                    <select id="groupBy" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="day">Ngày</option>
+                        <option value="week">Tuần</option>
+                        <option value="month">Tháng</option>
+                    </select>
+                </div>
+
+                <!-- Apply Button -->
+                <div class="flex items-end">
+                    <button id="applyFilters" onclick="handleApplyFilters()" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-300">
+                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        Áp dụng
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <!-- Total Revenue -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Tổng doanh thu</p>
+                        <p id="totalRevenue" class="text-3xl font-bold text-green-600">0 VNĐ</p>
+                        <p class="text-xs text-gray-500 mt-1">Trong khoảng thời gian đã chọn</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Average Daily -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Trung bình/ngày</p>
+                        <p id="avgDaily" class="text-3xl font-bold text-blue-600">0 VNĐ</p>
+                        <p class="text-xs text-gray-500 mt-1">Doanh thu trung bình mỗi ngày</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Highest Day -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Ngày cao nhất</p>
+                        <p id="highestAmount" class="text-3xl font-bold text-purple-600">0 VNĐ</p>
+                        <p id="highestDate" class="text-xs text-gray-500 mt-1">--/--/----</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Growth Rate -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-1">Tăng trưởng</p>
+                        <p id="growthRate" class="text-3xl font-bold text-orange-600">+0%</p>
+                        <p class="text-xs text-gray-500 mt-1">So với kỳ trước</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section with Tabs -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-200">
+                <nav class="flex flex-col sm:flex-row sm:space-x-8 px-4 sm:px-6 pt-4 sm:pt-6" aria-label="Tabs">
+                    <button id="trendTab" class="chart-tab-btn border-b-2 border-green-500 py-2 px-1 text-sm font-medium text-green-600 mb-2 sm:mb-0" data-tab="trend">
+                        <span class="hidden sm:inline">📊 </span>Xu hướng doanh thu
+                    </button>
+                    <button id="paymentTab" class="chart-tab-btn border-b-2 border-transparent py-2 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="payment">
+                        <span class="hidden sm:inline">💳 </span>Phương thức thanh toán
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Trend Chart Tab -->
+                <div id="trendTabContent" class="chart-tab-content">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-3 sm:space-y-0">
+                        <h3 class="text-lg sm:text-xl font-bold text-gray-900">Xu hướng doanh thu theo thời gian</h3>
+                        <div class="flex space-x-2">
+                            <button class="chart-type-btn px-3 py-1 text-xs bg-green-600 text-white rounded-full" data-type="line">Đường</button>
+                            <button class="chart-type-btn px-3 py-1 text-xs bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors" data-type="bar">Cột</button>
+                        </div>
+                    </div>
+                    <div class="h-64 sm:h-80">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Payment Method Chart Tab -->
+                <div id="paymentTabContent" class="chart-tab-content hidden">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-2 sm:space-y-0">
+                        <h3 class="text-lg sm:text-xl font-bold text-gray-900">Phân bố theo phương thức thanh toán</h3>
+                        <div class="text-sm text-gray-500">Tỷ lệ phần trăm theo giá trị</div>
+                    </div>
+                    <div class="h-64 sm:h-80">
+                        <canvas id="paymentMethodChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Table -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-100">
+            <div class="p-4 sm:p-6 border-b border-gray-200">
+                <h3 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h2a2 2 0 002-2z"></path>
+                    </svg>
+                    Chi tiết doanh thu theo ngày
+                </h3>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doanh thu</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Số GD</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">TB/GD</th>
+                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Thay đổi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="revenueTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Table rows will be populated by JavaScript -->
+                        <tr>
+                            <td colspan="5" class="px-3 sm:px-6 py-8 text-center text-gray-500">
+                                <div class="flex items-center justify-center">
+                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mr-2"></div>
+                                    Đang tải dữ liệu...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <!-- ✅ Loading Manager -->
+    <script src="~/js/loading-manager.js"></script>
+
+    <script>
+        // Global variables
+        let revenueChart, paymentMethodChart;
+        let currentData = {};
+
+        // ✅ IMMEDIATE TEST - Add to window for debugging
+        window.testRevenuePage = function() {
+            console.log('🧪 Manual test function called');
+            const applyBtn = document.getElementById('applyFilters');
+            const exportBtn = document.getElementById('exportBtn');
+
+            console.log('Elements:', { applyBtn, exportBtn });
+
+            if (applyBtn) {
+                console.log('✅ Manually triggering loadRevenueData');
+                loadRevenueData();
+            }
+
+            return { applyBtn, exportBtn };
+        };
+
+        // ✅ SIMPLE HANDLERS - Global functions for onclick
+        window.handleApplyFilters = function() {
+            console.log('🎯 Apply filters handler called');
+            loadRevenueData();
+        };
+
+        window.handleExportClick = function() {
+            console.log('🎯 Export handler called');
+            const dropdown = document.getElementById('exportDropdown');
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
+        };
+
+        // ✅ DEBUGGING: Test function
+        function testButtons() {
+            console.log('🧪 Testing buttons...');
+            const applyBtn = document.getElementById('applyFilters');
+            const exportBtn = document.getElementById('exportBtn');
+
+            if (applyBtn) {
+                console.log('✅ Apply button found and working');
+                applyBtn.style.border = '2px solid red';
+            } else {
+                console.error('❌ Apply button NOT found');
+            }
+
+            if (exportBtn) {
+                console.log('✅ Export button found and working');
+                exportBtn.style.border = '2px solid blue';
+            } else {
+                console.error('❌ Export button NOT found');
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Page loaded, initializing...');
+
+            // Test buttons immediately
+            testButtons();
+
+            initializeDateFilters();
+            initializeCharts();
+
+            // ✅ FIXED: Load data immediately on page load
+            setTimeout(() => {
+                loadRevenueData();
+            }, 100);
+
+            // ✅ FIXED: Event listeners with error handling
+            const applyBtn = document.getElementById('applyFilters');
+            const exportBtn = document.getElementById('exportBtn');
+            const exportDropdown = document.getElementById('exportDropdown');
+
+            console.log('🔍 Debug - Elements found:', {
+                applyBtn: !!applyBtn,
+                exportBtn: !!exportBtn,
+                exportDropdown: !!exportDropdown
+            });
+
+            if (applyBtn) {
+                applyBtn.addEventListener('click', function(e) {
+                    console.log('✅ Apply button clicked');
+                    loadRevenueData();
+                });
+            } else {
+                console.error('❌ Apply button not found!');
+            }
+
+            if (exportBtn && exportDropdown) {
+                exportBtn.addEventListener('click', function(e) {
+                    console.log('✅ Export button clicked');
+                    e.stopPropagation();
+                    exportDropdown.classList.toggle('hidden');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function() {
+                    exportDropdown.classList.add('hidden');
+                });
+            } else {
+                console.error('❌ Export button or dropdown not found!', {
+                    exportBtn: !!exportBtn,
+                    exportDropdown: !!exportDropdown
+                });
+            }
+
+            // ✅ BACKUP: Event delegation approach
+            document.body.addEventListener('click', function(e) {
+                if (e.target.id === 'applyFilters' || e.target.closest('#applyFilters')) {
+                    console.log('🎯 Apply button clicked via delegation');
+                    e.preventDefault();
+                    loadRevenueData();
+                }
+
+                if (e.target.id === 'exportBtn' || e.target.closest('#exportBtn')) {
+                    console.log('🎯 Export button clicked via delegation');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const dropdown = document.getElementById('exportDropdown');
+                    if (dropdown) {
+                        dropdown.classList.toggle('hidden');
+                    }
+                }
+            });
+
+            // Chart type buttons
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    changeChartType(this.dataset.type);
+                });
+            });
+
+            // ✅ NEW: Tab switching functionality
+            document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchTab(this.dataset.tab);
+                });
+            });
+
+            // ✅ NEW: Window resize handler for responsive charts
+            window.addEventListener('resize', function() {
+                if (revenueChart) {
+                    revenueChart.resize();
+                }
+                if (paymentMethodChart) {
+                    paymentMethodChart.resize();
+                }
+            });
+        });
+
+        // ✅ IMPROVED: Initialize date filters with current month
+        function initializeDateFilters() {
+            const today = new Date();
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+            document.getElementById('startDate').value = startOfMonth.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endOfMonth.toISOString().split('T')[0];
+
+            // Set default values for other filters
+            document.getElementById('sourceFilter').value = 'all';
+            document.getElementById('groupBy').value = 'day';
+        }
+
+        // ✅ ENHANCED: Load revenue data with comprehensive filtering
+        function loadRevenueData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const groupBy = document.getElementById('groupBy').value;
+            const source = document.getElementById('sourceFilter').value;
+
+            // ✅ CLIENT-SIDE VALIDATION
+            if (!startDate || !endDate) {
+                showNotification('Vui lòng chọn khoảng thời gian', 'error');
+                return;
+            }
+
+            if (new Date(startDate) > new Date(endDate)) {
+                showNotification('Ngày bắt đầu không thể lớn hơn ngày kết thúc', 'error');
+                return;
+            }
+
+            // ✅ VALIDATE: Date range not too large (max 1 year)
+            const daysDiff = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+            if (daysDiff > 365) {
+                showNotification('Khoảng thời gian không được vượt quá 1 năm', 'error');
+                return;
+            }
+
+            // ✅ SHOW LOADING STATES (with error handling)
+            try {
+                if (typeof loadingManager !== 'undefined') {
+                    loadingManager.showButtonLoading('applyFilters', 'Đang tải...');
+                    loadingManager.showChartLoading('revenueChart', 'Đang tải biểu đồ doanh thu...');
+                    loadingManager.showChartLoading('paymentMethodChart', 'Đang tải biểu đồ phương thức...');
+                    loadingManager.showTableLoading('revenueTable', 'Đang tải bảng dữ liệu...');
+                } else {
+                    console.warn('⚠️ LoadingManager not available');
+                }
+            } catch (error) {
+                console.error('❌ Error with LoadingManager:', error);
+            }
+
+            // Show loading for summary cards
+            document.getElementById('totalRevenue').textContent = '...';
+            document.getElementById('avgDaily').textContent = '...';
+            document.getElementById('highestAmount').textContent = '...';
+            document.getElementById('growthRate').textContent = '...';
+
+            // ✅ IMPROVED: Load revenue data with better error handling
+            const revenueUrl = `@Url.Action("GetRevenueData", "BaoCao")?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}&source=${source}`;
+            const paymentUrl = `@Url.Action("GetRevenueByPaymentMethod", "BaoCao")?startDate=${startDate}&endDate=${endDate}&source=${source}`;
+
+            console.log('Loading data with filters:', { startDate, endDate, groupBy, source });
+            console.log('API URLs:', { revenueUrl, paymentUrl });
+
+            Promise.all([
+                fetch(revenueUrl),
+                fetch(paymentUrl)
+            ])
+            .then(responses => {
+                // Check if all responses are OK
+                responses.forEach((response, index) => {
+                    if (!response.ok) {
+                        throw new Error(`API ${index + 1} failed: ${response.status} ${response.statusText}`);
+                    }
+                });
+                return Promise.all(responses.map(r => r.json()));
+            })
+            .then(([revenueData, paymentData]) => {
+                console.log('✅ Revenue API Response:', revenueData);
+                console.log('✅ Payment Method API Response:', paymentData);
+
+                if (revenueData.success && paymentData.success) {
+                    console.log('📊 Revenue Data:', revenueData.data);
+                    console.log('💳 Payment Data:', paymentData.data);
+
+                    // Store current data for export
+                    currentData = {
+                        revenue: revenueData.data,
+                        paymentMethods: paymentData.data,
+                        startDate: startDate,
+                        endDate: endDate,
+                        groupBy: groupBy,
+                        source: source
+                    };
+
+                    // Update UI components
+                    updateSummaryCards(revenueData.data);
+                    updateRevenueChart(revenueData.data);
+                    updatePaymentMethodChart(paymentData.data);
+                    updateRevenueTable(revenueData.data);
+
+                    showNotification(`Đã tải dữ liệu từ ${formatDate(startDate)} đến ${formatDate(endDate)}`, 'success');
+                } else {
+                    console.error('❌ API Error - Revenue:', revenueData);
+                    console.error('❌ API Error - Payment:', paymentData);
+                    const errorMsg = revenueData.message || paymentData.message || 'Có lỗi khi tải dữ liệu';
+                    showNotification(errorMsg, 'error');
+
+                    // Show error state in charts
+                    showErrorInCharts();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading revenue data:', error);
+                showNotification('Có lỗi kết nối khi tải dữ liệu', 'error');
+                showErrorInCharts();
+            })
+            .finally(() => {
+                // ✅ HIDE LOADING STATES (with error handling)
+                try {
+                    if (typeof loadingManager !== 'undefined') {
+                        loadingManager.hideButtonLoading('applyFilters');
+                    }
+                } catch (error) {
+                    console.error('❌ Error hiding loading states:', error);
+                }
+            });
+        }
+
+        // Update summary cards
+        function updateSummaryCards(data) {
+            console.log('updateSummaryCards called with data:', data);
+
+            const values = Object.values(data);
+            console.log('Values extracted:', values);
+
+            const total = values.reduce((sum, val) => sum + val, 0);
+            const average = values.length > 0 ? total / values.length : 0;
+            const highest = Math.max(...values);
+            const highestDate = Object.keys(data).find(key => data[key] === highest);
+
+            console.log('Calculated values:', { total, average, highest, highestDate });
+
+            // Calculate growth rate (mock calculation)
+            const growthRate = Math.floor(Math.random() * 30) - 10; // -10% to +20%
+
+            document.getElementById('totalRevenue').textContent = formatCurrency(total);
+            document.getElementById('avgDaily').textContent = formatCurrency(average);
+            document.getElementById('highestAmount').textContent = formatCurrency(highest);
+            document.getElementById('highestDate').textContent = formatDate(highestDate);
+
+            const growthElement = document.getElementById('growthRate');
+            growthElement.textContent = (growthRate >= 0 ? '+' : '') + growthRate + '%';
+            growthElement.className = `text-3xl font-bold ${growthRate >= 0 ? 'text-green-600' : 'text-red-600'}`;
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            initializeRevenueChart();
+            initializePaymentMethodChart();
+        }
+
+        // ✅ IMPROVED: Initialize revenue chart with responsive design
+        function initializeRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+
+            revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Doanh thu (VNĐ)',
+                        data: [],
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgb(34, 197, 94)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: window.innerWidth < 640 ? 3 : 5,
+                        pointHoverRadius: window.innerWidth < 640 ? 5 : 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            borderColor: 'rgb(34, 197, 94)',
+                            borderWidth: 1,
+                            titleFont: {
+                                size: window.innerWidth < 640 ? 12 : 14
+                            },
+                            bodyFont: {
+                                size: window.innerWidth < 640 ? 11 : 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Doanh thu: ' + formatCurrency(context.parsed.y, window.innerWidth < 640);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                font: {
+                                    size: window.innerWidth < 640 ? 10 : 12
+                                },
+                                callback: function(value) {
+                                    return formatCurrency(value, window.innerWidth < 640);
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: window.innerWidth < 640 ? 10 : 12
+                                },
+                                maxRotation: window.innerWidth < 640 ? 45 : 0
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // ✅ IMPROVED: Initialize payment method chart with responsive design
+        function initializePaymentMethodChart() {
+            const ctx = document.getElementById('paymentMethodChart').getContext('2d');
+
+            paymentMethodChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            'rgba(34, 197, 94, 0.8)',   // Green - VNPay
+                            'rgba(59, 130, 246, 0.8)',  // Blue - Banking
+                            'rgba(147, 51, 234, 0.8)',  // Purple - Cash
+                            'rgba(249, 115, 22, 0.8)',  // Orange - Credit Card
+                            'rgba(239, 68, 68, 0.8)'    // Red - Other
+                        ],
+                        borderColor: [
+                            'rgb(34, 197, 94)',
+                            'rgb(59, 130, 246)',
+                            'rgb(147, 51, 234)',
+                            'rgb(249, 115, 22)',
+                            'rgb(239, 68, 68)'
+                        ],
+                        borderWidth: window.innerWidth < 640 ? 1 : 2,
+                        hoverBorderWidth: window.innerWidth < 640 ? 2 : 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: window.innerWidth < 640 ? 'bottom' : 'right',
+                            labels: {
+                                padding: window.innerWidth < 640 ? 15 : 20,
+                                usePointStyle: true,
+                                font: {
+                                    size: window.innerWidth < 640 ? 11 : 13
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: 'white',
+                            bodyColor: 'white',
+                            titleFont: {
+                                size: window.innerWidth < 640 ? 12 : 14
+                            },
+                            bodyFont: {
+                                size: window.innerWidth < 640 ? 11 : 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((sum, val) => sum + val, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + formatCurrency(context.parsed, window.innerWidth < 640) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    },
+                    cutout: window.innerWidth < 640 ? '50%' : '60%'
+                }
+            });
+        }
+
+        // Update charts with new data
+        function updateRevenueChart(data) {
+            const labels = Object.keys(data).map(date => formatDate(date));
+            const values = Object.values(data);
+
+            revenueChart.data.labels = labels;
+            revenueChart.data.datasets[0].data = values;
+            revenueChart.update('active');
+        }
+
+        function updatePaymentMethodChart(data) {
+            const labels = Object.keys(data);
+            const values = Object.values(data);
+
+            paymentMethodChart.data.labels = labels;
+            paymentMethodChart.data.datasets[0].data = values;
+            paymentMethodChart.update('active');
+        }
+
+        // Update revenue table
+        function updateRevenueTable(data) {
+            const tbody = document.getElementById('revenueTableBody');
+            const entries = Object.entries(data).sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+            if (entries.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                            Không có dữ liệu trong khoảng thời gian đã chọn
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = entries.map((entry, index) => {
+                const [date, revenue] = entry;
+                const prevRevenue = index < entries.length - 1 ? entries[index + 1][1] : revenue;
+                const change = prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue * 100) : 0;
+                const transactions = Math.floor(Math.random() * 20) + 5; // Mock data
+                const avgPerTransaction = revenue / transactions;
+
+                return `
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            ${formatDate(date)}
+                        </td>
+                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                            <span class="sm:hidden">${formatCurrency(revenue, true)}</span>
+                            <span class="hidden sm:inline">${formatCurrency(revenue)}</span>
+                        </td>
+                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
+                            ${transactions}
+                        </td>
+                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                            ${formatCurrency(avgPerTransaction, true)}
+                        </td>
+                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                change >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            }">
+                                ${change >= 0 ? '↗' : '↘'} ${Math.abs(change).toFixed(1)}%
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ✅ NEW: Switch between chart tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+                btn.classList.remove('border-green-500', 'text-green-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Update tab contents
+            document.querySelectorAll('.chart-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Activate selected tab
+            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+            const activeContent = document.getElementById(`${tabName}TabContent`);
+
+            if (activeTab && activeContent) {
+                activeTab.classList.remove('border-transparent', 'text-gray-500');
+                activeTab.classList.add('border-green-500', 'text-green-600');
+                activeContent.classList.remove('hidden');
+
+                // Trigger chart resize if needed
+                setTimeout(() => {
+                    if (tabName === 'trend' && revenueChart) {
+                        revenueChart.resize();
+                    } else if (tabName === 'payment' && paymentMethodChart) {
+                        paymentMethodChart.resize();
+                    }
+                }, 100);
+            }
+        }
+
+        // ✅ IMPROVED: Change chart type with better error handling
+        function changeChartType(type) {
+            if (!revenueChart) {
+                console.warn('Revenue chart not initialized');
+                return;
+            }
+
+            // Update button states
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.classList.remove('bg-green-600', 'text-white');
+                btn.classList.add('bg-green-100', 'text-green-600');
+            });
+
+            event.target.classList.remove('bg-green-100', 'text-green-600');
+            event.target.classList.add('bg-green-600', 'text-white');
+
+            // Update chart
+            revenueChart.config.type = type;
+            if (type === 'bar') {
+                revenueChart.data.datasets[0].backgroundColor = 'rgba(34, 197, 94, 0.8)';
+                revenueChart.data.datasets[0].borderColor = 'rgb(34, 197, 94)';
+                revenueChart.data.datasets[0].fill = false;
+            } else {
+                revenueChart.data.datasets[0].backgroundColor = 'rgba(34, 197, 94, 0.1)';
+                revenueChart.data.datasets[0].borderColor = 'rgb(34, 197, 94)';
+                revenueChart.data.datasets[0].fill = true;
+            }
+            revenueChart.update('active');
+        }
+
+        // ✅ IMPROVED: Export report with format support
+        function exportReport(format = 'csv') {
+            if (!currentData.revenue || Object.keys(currentData.revenue).length === 0) {
+                showNotification('Không có dữ liệu để xuất', 'error');
+                return;
+            }
+
+            const startDate = currentData.startDate;
+            const endDate = currentData.endDate;
+
+            // Hide dropdown
+            document.getElementById('exportDropdown').classList.add('hidden');
+
+            // Show loading notification
+            showNotification('Đang chuẩn bị file xuất...', 'info');
+
+            // Determine file extension and MIME type
+            const fileExtension = format === 'excel' ? 'xlsx' : 'csv';
+            const mimeType = format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'text/csv';
+
+            // Call export API
+            fetch(`@Url.Action("ExportReport", "BaoCao")?reportType=revenue&startDate=${startDate}&endDate=${endDate}&format=${format}`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.blob();
+                    }
+                    throw new Error(`Export failed: ${response.status}`);
+                })
+                .then(blob => {
+                    // Create download link
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `BaoCaoDoanhThu_${startDate}_${endDate}.${fileExtension}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    showNotification(`Xuất báo cáo ${format.toUpperCase()} thành công`, 'success');
+                })
+                .catch(error => {
+                    console.error('Export error:', error);
+                    showNotification(`Có lỗi khi xuất báo cáo ${format.toUpperCase()}`, 'error');
+                });
+        }
+
+        // ✅ IMPROVED: Utility functions with mobile support
+        function formatCurrency(amount, compact = false) {
+            if (compact && amount >= 1000000) {
+                return (amount / 1000000).toFixed(1) + 'M VNĐ';
+            } else if (compact && amount >= 1000) {
+                return (amount / 1000).toFixed(0) + 'K VNĐ';
+            }
+
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        function showLoading(show) {
+            const elements = ['totalRevenue', 'avgDaily', 'highestAmount', 'growthRate'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (show) {
+                    element.innerHTML = '<div class="animate-pulse bg-gray-200 h-6 rounded"></div>';
+                }
+            });
+        }
+
+        // ✅ NEW: Show error state in charts
+        function showErrorInCharts() {
+            const revenueChartContainer = document.getElementById('revenueChart').parentElement;
+            const paymentChartContainer = document.getElementById('paymentMethodChart').parentElement;
+
+            revenueChartContainer.innerHTML = `
+                <div class="flex items-center justify-center h-80">
+                    <div class="text-center">
+                        <div class="text-red-500 text-4xl mb-3">⚠️</div>
+                        <p class="text-gray-600">Không thể tải biểu đồ doanh thu</p>
+                        <button onclick="loadRevenueData()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Thử lại
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            paymentChartContainer.innerHTML = `
+                <div class="flex items-center justify-center h-80">
+                    <div class="text-center">
+                        <div class="text-red-500 text-4xl mb-3">⚠️</div>
+                        <p class="text-gray-600">Không thể tải biểu đồ phương thức</p>
+                        <button onclick="loadRevenueData()" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            Thử lại
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' :
+                type === 'error' ? 'bg-red-500 text-white' :
+                'bg-blue-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <span class="mr-2">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-gray-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 10);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 5000);
+        }
+    </script>
+}

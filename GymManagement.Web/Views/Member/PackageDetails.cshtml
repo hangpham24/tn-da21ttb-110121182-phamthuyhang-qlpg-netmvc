@@ -1,0 +1,488 @@
+@model GymManagement.Web.Models.DTOs.GoiTapDto
+
+@{
+    ViewData["Title"] = $"Chi tiết gói tập - {Model.TenGoi}";
+    Layout = "_MemberLayout";
+    
+    // Determine styling based on package duration
+    var gradientClass = "";
+    var levelClass = "";
+    var levelText = "";
+    var iconEmoji = "";
+    
+    if (Model.ThoiHanThang >= 12)
+    {
+        gradientClass = "from-purple-500 to-pink-600";
+        levelClass = "bg-purple-100 text-purple-800 border-purple-200";
+        levelText = "PREMIUM";
+        iconEmoji = "👑";
+    }
+    else if (Model.ThoiHanThang >= 6)
+    {
+        gradientClass = "from-blue-500 to-indigo-600";
+        levelClass = "bg-blue-100 text-blue-800 border-blue-200";
+        levelText = "PHỔ BIẾN";
+        iconEmoji = "⭐";
+    }
+    else
+    {
+        gradientClass = "from-green-500 to-emerald-600";
+        levelClass = "bg-green-100 text-green-800 border-green-200";
+        levelText = "CƠ BẢN";
+        iconEmoji = "🌱";
+    }
+}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Breadcrumb -->
+        <nav class="flex items-center space-x-2 text-sm text-gray-600 mb-8">
+            <a href="@Url.Action("Dashboard", "Member")" class="hover:text-blue-600 transition-colors">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+                Dashboard
+            </a>
+            <span>›</span>
+            <a href="@Url.Action("Packages", "Member")" class="hover:text-blue-600 transition-colors">Gói tập</a>
+            <span>›</span>
+            <span class="text-gray-900 font-medium">Chi tiết</span>
+        </nav>
+
+        <!-- Main Package Card -->
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden mb-8">
+            <!-- Package Header -->
+            <div class="bg-gradient-to-r @gradientClass p-8 text-white relative overflow-hidden">
+                <!-- Background Pattern -->
+                <div class="absolute inset-0 opacity-10">
+                    <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,<svg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"><g fill=\"none\" fill-rule=\"evenodd\"><g fill=\"%23ffffff\" fill-opacity=\"0.1\"><circle cx=\"30\" cy=\"30\" r=\"4\"/></g></g></svg>');"></div>
+                </div>
+                
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center text-3xl">
+                                @iconEmoji
+                            </div>
+                            <div>
+                                <h1 class="text-3xl font-bold mb-2">@Model.TenGoi</h1>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium @levelClass border">
+                                    @levelText
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                            <div class="text-3xl font-bold mb-1">@Model.Gia.ToString("N0")</div>
+                            <div class="text-sm opacity-90">VNĐ</div>
+                        </div>
+                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                            <div class="text-3xl font-bold mb-1">@Model.ThoiHanThang</div>
+                            <div class="text-sm opacity-90">Tháng</div>
+                        </div>
+                        <div class="bg-white bg-opacity-10 rounded-xl p-4">
+                            <div class="text-3xl font-bold mb-1">@(Model.SoBuoiToiDa?.ToString() ?? "∞")</div>
+                            <div class="text-sm opacity-90">Buổi tập</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Details -->
+            <div class="p-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Package Information -->
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Thông tin gói tập
+                            </h3>
+                            
+                            <div class="bg-gray-50 rounded-xl p-6 space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 font-medium">Mã gói:</span>
+                                    <span class="font-bold text-gray-900">#@Model.GoiTapId</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 font-medium">Thời hạn:</span>
+                                    <span class="font-bold text-gray-900">@Model.ThoiHanThang tháng</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 font-medium">Số buổi tối đa:</span>
+                                    <span class="font-bold text-gray-900">
+                                        @if (Model.SoBuoiToiDa.HasValue)
+                                        {
+                                            @Model.SoBuoiToiDa <span class="text-sm text-gray-500">buổi</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-green-600">Không giới hạn</span>
+                                        }
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 font-medium">Giá trung bình/tháng:</span>
+                                    <span class="font-bold text-blue-600">@((Model.Gia / Model.ThoiHanThang).ToString("N0")) VNĐ</span>
+                                </div>
+                                @if (Model.SoBuoiToiDa.HasValue)
+                                {
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-600 font-medium">Giá trung bình/buổi:</span>
+                                        <span class="font-bold text-green-600">@((Model.Gia / Model.SoBuoiToiDa.Value).ToString("N0")) VNĐ</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Package Description -->
+                        @if (!string.IsNullOrEmpty(Model.MoTa))
+                        {
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Mô tả chi tiết
+                                </h3>
+                                <div class="bg-gray-50 rounded-xl p-6">
+                                    <p class="text-gray-700 leading-relaxed">@Model.MoTa</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Registration Section -->
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Đăng ký gói tập
+                            </h3>
+                            
+                            @if (ViewBag.IsUserRegistered == true)
+                            {
+                                <!-- User Already Registered -->
+                                <div class="space-y-4">
+                                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <div class="flex items-center">
+                                            <svg class="w-6 h-6 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <div>
+                                                <span class="text-base font-semibold text-blue-800">✅ Đã đăng ký</span>
+                                                <p class="text-sm text-blue-700 mt-1">Bạn đã đăng ký gói tập này thành công</p>
+                                            </div>
+                                        </div>
+                                        @if (ViewBag.UserRegistration != null)
+                                        {
+                                            <div class="mt-3 pt-3 border-t border-blue-200">
+                                                <div class="grid grid-cols-2 gap-3 text-sm">
+                                                    <div>
+                                                        <span class="text-blue-600 font-medium">Ngày bắt đầu:</span>
+                                                        <span class="text-blue-800">@((ViewBag.UserRegistration as GymManagement.Web.Data.Models.DangKy)?.NgayBatDau.ToString("dd/MM/yyyy"))</span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-blue-600 font-medium">Ngày kết thúc:</span>
+                                                        <span class="text-blue-800">@((ViewBag.UserRegistration as GymManagement.Web.Data.Models.DangKy)?.NgayKetThuc.ToString("dd/MM/yyyy"))</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <div class="flex space-x-3">
+                                        <a asp-controller="Member" asp-action="MyRegistrations"
+                                           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center">
+                                            <span class="flex items-center justify-center">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                                </svg>
+                                                Xem đăng ký của tôi
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Available for Registration -->
+                                <div class="space-y-4">
+                                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <div class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="text-sm font-medium text-green-800">Có thể đăng ký</span>
+                                        </div>
+                                        <p class="text-xs text-green-700 mt-1">Gói tập này hiện đang có sẵn</p>
+                                    </div>
+
+                                    <button onclick="registerPackage(@Model.GoiTapId, '@Model.TenGoi')"
+                                            class="w-full bg-gradient-to-r @gradientClass hover:shadow-xl text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:-translate-y-1 group relative overflow-hidden">
+                                        <!-- Button Background Effect -->
+                                        <div class="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+
+                                        <span class="relative flex items-center justify-center">
+                                            <svg class="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            <span class="text-base font-bold">Đăng Ký Ngay</span>
+                                        </span>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Back to Packages -->
+                        <div class="mt-6 pt-4 border-t border-gray-100">
+                            <a asp-action="Packages" 
+                               class="flex items-center justify-center w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-6 rounded-xl transition-all duration-300">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                Quay lại danh sách gói tập
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Registration Modal -->
+<div id="packageModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="bg-gradient-to-r @gradientClass p-6 text-white rounded-t-2xl">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                    <span class="text-xl">@iconEmoji</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold">Đăng ký gói tập</h3>
+                    <p class="text-white text-opacity-90 text-sm" id="selectedPackageName">@Model.TenGoi</p>
+                </div>
+            </div>
+            <button onclick="closePackageModal()" class="absolute top-4 right-4 text-white hover:text-gray-200 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="p-6">
+            <form id="packageRegistrationForm">
+                @Html.AntiForgeryToken()
+                
+                <!-- Duration Selection -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Thời hạn đăng ký</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="relative">
+                            <input type="radio" name="duration" value="1" class="sr-only peer" checked>
+                            <div class="p-4 border-2 border-gray-200 rounded-xl cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
+                                <div class="text-center">
+                                    <div class="font-bold text-lg">1 tháng</div>
+                                    <div class="text-sm text-gray-600">@Model.Gia.ToString("N0") VNĐ</div>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="relative">
+                            <input type="radio" name="duration" value="@Model.ThoiHanThang" class="sr-only peer">
+                            <div class="p-4 border-2 border-gray-200 rounded-xl cursor-pointer peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all">
+                                <div class="text-center">
+                                    <div class="font-bold text-lg">@Model.ThoiHanThang tháng</div>
+                                    <div class="text-sm text-gray-600">@Model.Gia.ToString("N0") VNĐ</div>
+                                    @if (Model.ThoiHanThang > 1)
+                                    {
+                                        <div class="text-xs text-green-600 font-medium">Tiết kiệm hơn!</div>
+                                    }
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Important Notes -->
+                <div class="mb-6">
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div>
+                                <h4 class="text-sm font-semibold text-amber-900 mb-1">⚠️ Lưu ý quan trọng</h4>
+                                <ul class="text-xs text-amber-700 space-y-1">
+                                    <li>• Gói tập có hiệu lực ngay sau khi thanh toán</li>
+                                    <li>• Có thể hủy đăng ký trước 24h khi hết hạn</li>
+                                    <li>• Vui lòng đọc kỹ điều khoản sử dụng</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <button type="button" onclick="closePackageModal()" 
+                            class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors">
+                        Hủy
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-gradient-to-r @gradientClass hover:shadow-xl text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 group">
+                        <span class="flex items-center justify-center">
+                            <svg class="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Xác nhận đăng ký
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedPackageId = @Model.GoiTapId;
+        let selectedPackageName = '@Model.TenGoi';
+
+        // Package registration function
+        function registerPackage(packageId, packageName) {
+            selectedPackageId = packageId;
+            selectedPackageName = packageName;
+            document.getElementById('selectedPackageName').textContent = packageName;
+            document.getElementById('packageModal').classList.remove('hidden');
+            document.getElementById('packageModal').classList.add('flex');
+        }
+
+        function closePackageModal() {
+            document.getElementById('packageModal').classList.add('hidden');
+            document.getElementById('packageModal').classList.remove('flex');
+        }
+
+        // Handle form submission
+        document.getElementById('packageRegistrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const duration = document.querySelector('input[name="duration"]:checked').value;
+            const button = e.target.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            
+            button.innerHTML = '<span class="flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Đang xử lý thanh toán...</span>';
+            button.disabled = true;
+            
+            const formData = new FormData();
+            formData.append('goiTapId', selectedPackageId);
+            formData.append('thoiHanThang', duration);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            fetch('@Url.Action("CreatePackagePayment", "ThanhToan")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Call VNPay Area to create payment URL
+                    fetch('/VNPayAPI/Home/CreatePayment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            thanhToanId: data.thanhToanId,
+                            returnUrl: data.returnUrl
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(vnpayData => {
+                        if (vnpayData.success) {
+                            // Show QR Payment Modal instead of direct redirect
+                            showQRPaymentModal({
+                                paymentUrl: vnpayData.paymentUrl,
+                                qrCodeData: vnpayData.qrCodeData,
+                                qrImageUrl: vnpayData.qrImageUrl,
+                                orderId: vnpayData.orderId,
+                                amount: vnpayData.amount,
+                                bankInfo: vnpayData.bankInfo
+                            });
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        } else {
+                            alert('Lỗi VNPay: ' + vnpayData.message);
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('VNPay Error:', error);
+                        alert('Có lỗi xảy ra khi tạo thanh toán VNPay');
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    });
+                } else {
+                    alert('Lỗi: ' + data.message);
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xử lý thanh toán');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        });
+
+        // Notification function
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('packageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePackageModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePackageModal();
+            }
+        });
+    </script>
+}
+
+@* Include QR Payment Modal *@
+@await Html.PartialAsync("_QRPaymentModal")
