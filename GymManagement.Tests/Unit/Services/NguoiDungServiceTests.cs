@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 using GymManagement.Web.Data;
+using Microsoft.Extensions.Logging;
 
 namespace GymManagement.Tests.Unit.Services
 {
@@ -16,16 +17,20 @@ namespace GymManagement.Tests.Unit.Services
     {
         private readonly Mock<IUnitOfWork> _unitOfWorkMock;
         private readonly Mock<INguoiDungRepository> _nguoiDungRepositoryMock;
+        private readonly Mock<ILogger<NguoiDungService>> _loggerMock;
+        private readonly Mock<IPasswordService> _passwordServiceMock;
         private readonly NguoiDungService _nguoiDungService;
 
         public NguoiDungServiceTests()
         {
             _unitOfWorkMock = new Mock<IUnitOfWork>();
             _nguoiDungRepositoryMock = new Mock<INguoiDungRepository>();
+            _loggerMock = new Mock<ILogger<NguoiDungService>>();
+            _passwordServiceMock = new Mock<IPasswordService>();
 
             _unitOfWorkMock.Setup(u => u.NguoiDungs).Returns(_nguoiDungRepositoryMock.Object);
 
-            _nguoiDungService = new NguoiDungService(_unitOfWorkMock.Object);
+            _nguoiDungService = new NguoiDungService(_unitOfWorkMock.Object, _loggerMock.Object, _passwordServiceMock.Object);
         }
 
         [Fact]
@@ -209,9 +214,22 @@ namespace GymManagement.Tests.Unit.Services
         public async Task ChangePasswordAsync_ValidData_ReturnsTrue()
         {
             // Arrange
-            var existingUser = new NguoiDung { NguoiDungId = 1, TaiKhoan = new TaiKhoan { MatKhauHash = "oldpassword" } };
+            var salt = "testsalt";
+            var hashedOldPassword = "hashedoldpassword";
+            var hashedNewPassword = "hashednewpassword";
+            var existingUser = new NguoiDung
+            {
+                NguoiDungId = 1,
+                TaiKhoan = new TaiKhoan
+                {
+                    MatKhauHash = hashedOldPassword,
+                    Salt = salt
+                }
+            };
 
             _nguoiDungRepositoryMock.Setup(repo => repo.GetWithTaiKhoanAsync(1)).ReturnsAsync(existingUser);
+            _passwordServiceMock.Setup(ps => ps.VerifyPassword("oldpassword", salt, hashedOldPassword)).Returns(true);
+            _passwordServiceMock.Setup(ps => ps.HashPassword("newpassword", salt)).Returns(hashedNewPassword);
             _unitOfWorkMock.Setup(uow => uow.SaveChangesAsync()).ReturnsAsync(1);
 
             // Act
@@ -219,8 +237,39 @@ namespace GymManagement.Tests.Unit.Services
 
             // Assert
             Assert.True(result);
-            Assert.Equal("newpassword", existingUser.TaiKhoan.MatKhauHash);
+            Assert.Equal(hashedNewPassword, existingUser.TaiKhoan.MatKhauHash);
+            _passwordServiceMock.Verify(ps => ps.VerifyPassword("oldpassword", salt, hashedOldPassword), Times.Once);
+            _passwordServiceMock.Verify(ps => ps.HashPassword("newpassword", salt), Times.Once);
             _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task ChangePasswordAsync_InvalidCurrentPassword_ReturnsFalse()
+        {
+            // Arrange
+            var salt = "testsalt";
+            var hashedOldPassword = "hashedoldpassword";
+            var existingUser = new NguoiDung
+            {
+                NguoiDungId = 1,
+                TaiKhoan = new TaiKhoan
+                {
+                    MatKhauHash = hashedOldPassword,
+                    Salt = salt
+                }
+            };
+
+            _nguoiDungRepositoryMock.Setup(repo => repo.GetWithTaiKhoanAsync(1)).ReturnsAsync(existingUser);
+            _passwordServiceMock.Setup(ps => ps.VerifyPassword("wrongpassword", salt, hashedOldPassword)).Returns(false);
+
+            // Act
+            var result = await _nguoiDungService.ChangePasswordAsync(1, "wrongpassword", "newpassword");
+
+            // Assert
+            Assert.False(result);
+            _passwordServiceMock.Verify(ps => ps.VerifyPassword("wrongpassword", salt, hashedOldPassword), Times.Once);
+            _passwordServiceMock.Verify(ps => ps.HashPassword(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _unitOfWorkMock.Verify(uow => uow.SaveChangesAsync(), Times.Never);
         }
 
         [Fact]

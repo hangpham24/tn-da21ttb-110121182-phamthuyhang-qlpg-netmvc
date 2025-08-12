@@ -9,11 +9,13 @@ namespace GymManagement.Web.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<NguoiDungService> _logger;
+        private readonly IPasswordService _passwordService;
 
-        public NguoiDungService(IUnitOfWork unitOfWork, ILogger<NguoiDungService> logger)
+        public NguoiDungService(IUnitOfWork unitOfWork, ILogger<NguoiDungService> logger, IPasswordService passwordService)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _passwordService = passwordService;
         }
 
         public async Task<NguoiDungDto?> GetByIdAsync(int id)
@@ -355,18 +357,22 @@ namespace GymManagement.Web.Services
                 var nguoiDung = await _unitOfWork.NguoiDungs.GetWithTaiKhoanAsync(userId);
                 if (nguoiDung?.TaiKhoan == null) return false;
 
-                // For now, simple comparison - you should implement proper password hashing
-                // Verify current password hash
-                if (nguoiDung.TaiKhoan.MatKhauHash != currentPassword) return false;
+                // Verify current password using PasswordService
+                if (!_passwordService.VerifyPassword(currentPassword, nguoiDung.TaiKhoan.Salt, nguoiDung.TaiKhoan.MatKhauHash))
+                {
+                    return false;
+                }
 
-                // Update password (should be hashed in real implementation)
-                nguoiDung.TaiKhoan.MatKhauHash = newPassword;
+                // Hash new password with existing salt
+                nguoiDung.TaiKhoan.MatKhauHash = _passwordService.HashPassword(newPassword, nguoiDung.TaiKhoan.Salt);
 
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                // Log the exception for debugging
+                // You might want to inject ILogger here for better error tracking
                 return false;
             }
         }

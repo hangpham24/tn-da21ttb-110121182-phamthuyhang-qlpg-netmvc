@@ -320,5 +320,80 @@ namespace GymManagement.Web.Controllers
                 return Json(new { todayAttendance = 0, lastUpdated = DateTime.Now.ToString("HH:mm:ss") });
             }
         }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                _logger.LogInformation("🗑️ Attempting to delete attendance record with ID: {AttendanceId}", id);
+
+                // Check if attendance record exists
+                var attendance = await _diemDanhService.GetByIdAsync(id);
+                if (attendance == null)
+                {
+                    _logger.LogWarning("❌ Attendance record not found with ID: {AttendanceId}", id);
+                    return Json(new {
+                        success = false,
+                        message = "Không tìm thấy bản ghi điểm danh."
+                    });
+                }
+
+                // Get current user for authorization check
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    _logger.LogWarning("❌ Unauthorized delete attempt - no user ID found");
+                    return Json(new {
+                        success = false,
+                        message = "Không có quyền thực hiện thao tác này."
+                    });
+                }
+
+                // Check if user has permission to delete (admin or the record owner)
+                var isAdmin = User.IsInRole("Admin") || User.IsInRole("Manager");
+                var isOwner = attendance.ThanhVienId.ToString() == currentUserId;
+
+                if (!isAdmin && !isOwner)
+                {
+                    _logger.LogWarning("❌ Unauthorized delete attempt by user {UserId} for attendance {AttendanceId}",
+                        currentUserId, id);
+                    return Json(new {
+                        success = false,
+                        message = "Bạn không có quyền xóa bản ghi này."
+                    });
+                }
+
+                // Perform deletion
+                var result = await _diemDanhService.DeleteAsync(id);
+
+                if (result)
+                {
+                    _logger.LogInformation("✅ Successfully deleted attendance record {AttendanceId} by user {UserId}",
+                        id, currentUserId);
+
+                    return Json(new {
+                        success = true,
+                        message = "Đã xóa bản ghi điểm danh thành công."
+                    });
+                }
+                else
+                {
+                    _logger.LogError("❌ Failed to delete attendance record {AttendanceId}", id);
+                    return Json(new {
+                        success = false,
+                        message = "Không thể xóa bản ghi điểm danh. Vui lòng thử lại."
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Error occurred while deleting attendance record {AttendanceId}", id);
+                return Json(new {
+                    success = false,
+                    message = "Có lỗi xảy ra khi xóa bản ghi. Vui lòng thử lại sau."
+                });
+            }
+        }
     }
 }

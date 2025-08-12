@@ -30,7 +30,7 @@ namespace GymManagement.Web.Data.Models
 
         // Face Recognition specific fields
         [StringLength(50)]
-        public string? LoaiCheckIn { get; set; } = "Manual"; // Manual, FaceRecognition
+        public string? LoaiCheckIn { get; set; } = "FaceRecognition"; // Manual, FaceRecognition
 
         public double? DoTinCay { get; set; } // Confidence score for face recognition
 

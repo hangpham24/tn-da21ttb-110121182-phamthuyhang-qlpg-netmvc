@@ -9,6 +9,7 @@ using GymManagement.Web.Data.Models;
 using GymManagement.Web.Data;
 using GymManagement.Web.Models.DTOs;
 using GymManagement.Web.Models.ViewModels;
+using GymManagement.Web.Scripts;
 
 namespace GymManagement.Web.Controllers;
 
@@ -331,47 +332,16 @@ public class HomeController : BaseController
                 .Take(5)
                 .ToList();
 
-            // 3. Check-in Status Today
-            dashboardModel.TodayCheckInStatus = await _diemDanhService.HasCheckedInTodayAsync(memberId);
-            dashboardModel.LatestCheckIn = await _diemDanhService.GetLatestAttendanceAsync(memberId);
+            // 3. Skip attendance/check-in data - handled at reception station
 
             // 4. Unread Notifications
             dashboardModel.UnreadNotifications = (await _thongBaoService.GetUnreadByUserIdAsync(memberId))
                 .Take(5)
                 .ToList();
 
-            // 5. Attendance Statistics
+            // 5. Skip attendance statistics - handled at reception station
             var currentMonth = DateTime.Now.Month;
             var currentYear = DateTime.Now.Year;
-            var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
-            var startOfMonth = new DateTime(currentYear, currentMonth, 1);
-            var endOfMonth = new DateTime(currentYear, currentMonth, DateTime.DaysInMonth(currentYear, currentMonth));
-
-            dashboardModel.AttendanceStats.ThisWeekCount = await _diemDanhService.GetMemberAttendanceCountAsync(
-                memberId, startOfWeek, DateTime.Today.AddDays(1));
-            dashboardModel.AttendanceStats.ThisMonthCount = await _diemDanhService.GetMemberAttendanceCountAsync(
-                memberId, startOfMonth, endOfMonth);
-            dashboardModel.AttendanceStats.TotalCount = await _diemDanhService.GetMemberAttendanceCountAsync(
-                memberId, DateTime.MinValue, DateTime.MaxValue);
-
-            // Calculate attendance rate (this month)
-            var daysInMonth = DateTime.DaysInMonth(currentYear, currentMonth);
-            var daysPassedInMonth = Math.Min(DateTime.Today.Day, daysInMonth);
-            dashboardModel.AttendanceStats.AttendanceRate = daysPassedInMonth > 0 ? 
-                (double)dashboardModel.AttendanceStats.ThisMonthCount / daysPassedInMonth * 100 : 0;
-
-            // Weekly attendance data for chart
-            for (int i = 6; i >= 0; i--)
-            {
-                var date = DateTime.Today.AddDays(-i);
-                var dayCount = await _diemDanhService.GetMemberAttendanceCountAsync(memberId, date, date.AddDays(1));
-                dashboardModel.AttendanceStats.WeeklyData.Add(new DailyAttendanceDto
-                {
-                    Day = date.ToString("ddd", new System.Globalization.CultureInfo("vi-VN")),
-                    Count = dayCount,
-                    Date = date
-                });
-            }
 
             // 6. Payment Statistics
             var memberPayments = await _thanhToanService.GetByMemberIdAsync(memberId);
@@ -396,7 +366,7 @@ public class HomeController : BaseController
             // 7. Basic member info
             dashboardModel.MemberName = User.Identity?.Name ?? "";
             dashboardModel.LastLoginTime = DateTime.Now; // Could be tracked in database
-            dashboardModel.TotalWorkoutDays = dashboardModel.AttendanceStats.TotalCount;
+            dashboardModel.TotalWorkoutDays = 0; // Remove attendance dependency
             dashboardModel.TotalSpent = dashboardModel.PaymentStats.TotalSpent;
             dashboardModel.CurrentMembershipStatus = dashboardModel.ActiveRegistrations.Any() ? "ACTIVE" : "INACTIVE";
 
@@ -411,7 +381,7 @@ public class HomeController : BaseController
             dashboardModel.QuickStats.ActiveRegistrations = dashboardModel.ActiveRegistrations.Count;
             dashboardModel.QuickStats.UpcomingBookings = dashboardModel.UpcomingBookings.Count;
             dashboardModel.QuickStats.UnreadNotifications = dashboardModel.UnreadNotifications.Count;
-            dashboardModel.QuickStats.CheckInsThisWeek = dashboardModel.AttendanceStats.ThisWeekCount;
+            // Removed CheckInsThisWeek and AttendanceStats - not needed
             dashboardModel.QuickStats.HasPendingPayments = dashboardModel.PaymentStats.PendingPayments > 0;
 
             // Next class time
