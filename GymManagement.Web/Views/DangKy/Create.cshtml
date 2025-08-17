@@ -1,0 +1,948 @@
+@model GymManagement.Web.Data.Models.DangKy
+@{
+    ViewData["Title"] = "Tạo đăng ký mới";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">➕ Tạo đăng ký mới</h1>
+            <p class="text-gray-600">Tạo đăng ký gói tập hoặc lớp học cho thành viên</p>
+        </div>
+        <a href="@Url.Action("Index")" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            ← Quay lại danh sách
+        </a>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <form asp-action="Create" method="post" id="dangKyForm" novalidate>
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
+            <!-- Alert Messages -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">❌ Có lỗi xảy ra</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <ul class="list-disc list-inside space-y-1">
+                                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                    {
+                                        <li>@error.ErrorMessage</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-green-800">✅ Thành công</h3>
+                            <div class="mt-2 text-sm text-green-700">
+                                @TempData["SuccessMessage"]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">❌ Lỗi</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                @TempData["ErrorMessage"]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (TempData["WarningMessage"] != null)
+            {
+                <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">⚠️ Cảnh báo</h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                @TempData["WarningMessage"]
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Registration Type Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-3">Loại đăng ký</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="relative">
+                        <input type="radio" id="packageType" name="registrationType" value="package" class="sr-only" checked>
+                        <label for="packageType" class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-blue-300 transition-colors registration-type-option">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">💳</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Gói tập</h3>
+                                    <p class="text-sm text-gray-500">Đăng ký gói tập theo thời hạn</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="relative">
+                        <input type="radio" id="classType" name="registrationType" value="class" class="sr-only">
+                        <label for="classType" class="flex items-center p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-300 transition-colors registration-type-option">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">🎓</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <h3 class="text-lg font-medium text-gray-900">Lớp học</h3>
+                                    <p class="text-sm text-gray-500">Đăng ký lớp học cụ thể</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Member Selection -->
+            <div class="mb-6">
+                <label asp-for="NguoiDungId" class="block text-sm font-medium text-gray-700 mb-2">Thành viên / Khách vãng lai</label>
+                <select asp-for="NguoiDungId" asp-items="ViewBag.Members" id="memberSelect" onchange="loadMemberInfo()" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">-- Chọn thành viên hoặc khách vãng lai --</option>
+                </select>
+                <span asp-validation-for="NguoiDungId" class="text-red-600 text-sm"></span>
+            </div>
+
+            <!-- Member Current Registrations Info -->
+            <div id="memberInfoSection" class="mb-6 hidden">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-blue-900 mb-2">📋 Thông tin đăng ký hiện tại</h4>
+                    <div id="memberInfoContent" class="text-sm text-blue-800">
+                        <div class="flex items-center">
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                            Đang tải thông tin...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Package Registration Section -->
+            <div id="packageSection" class="registration-section">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label asp-for="GoiTapId" class="block text-sm font-medium text-gray-700 mb-2">Gói tập</label>
+                        <select asp-for="GoiTapId" asp-items="ViewBag.Packages" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">-- Chọn gói tập --</option>
+                        </select>
+                        <span asp-validation-for="GoiTapId" class="text-red-600 text-sm"></span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Thời hạn (tháng)</label>
+                        <input type="number" id="packageDuration" min="1" max="24" value="1" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Registration Section -->
+            <div id="classSection" class="registration-section hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label asp-for="LopHocId" class="block text-sm font-medium text-gray-700 mb-2">Lớp học</label>
+                        <select asp-for="LopHocId" asp-items="ViewBag.Classes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <option value="">-- Chọn lớp học --</option>
+                        </select>
+                        <span asp-validation-for="LopHocId" class="text-red-600 text-sm"></span>
+                    </div>
+                    <div>
+                        <label asp-for="NgayBatDau" class="block text-sm font-medium text-gray-700 mb-2">Ngày bắt đầu</label>
+                        <input asp-for="NgayBatDau" type="date" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <span asp-validation-for="NgayBatDau" class="text-red-600 text-sm"></span>
+                    </div>
+                    <div>
+                        <label asp-for="NgayKetThuc" class="block text-sm font-medium text-gray-700 mb-2">Ngày kết thúc</label>
+                        <input asp-for="NgayKetThuc" type="date" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <span asp-validation-for="NgayKetThuc" class="text-red-600 text-sm"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Fields -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label asp-for="TrangThai" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                    <select asp-for="TrangThai" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="PENDING">Chờ xử lý</option>
+                    </select>
+                    <span asp-validation-for="TrangThai" class="text-red-600 text-sm"></span>
+                </div>
+                <div>
+                    <label asp-for="PhiDangKy" class="block text-sm font-medium text-gray-700 mb-2">
+                        Phí đăng ký (VNĐ) <span class="text-sm text-gray-500">- Tự động tính theo gói/lớp</span>
+                    </label>
+                    <input type="text" id="phiDangKyDisplay" readonly
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700 cursor-not-allowed"
+                           placeholder="Chọn gói tập hoặc lớp học để xem giá">
+                    <input asp-for="PhiDangKy" type="hidden" id="phiDangKyValue">
+                    <span asp-validation-for="PhiDangKy" class="text-red-600 text-sm"></span>
+                    <p class="text-xs text-gray-500 mt-1">Giá sẽ được tính tự động dựa trên gói tập/lớp học và thời hạn đã chọn</p>
+                </div>
+            </div>
+
+            <!-- Discount Code Section -->
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div class="flex items-center mb-3">
+                    <span class="text-lg">🎫</span>
+                    <h3 class="text-lg font-medium text-gray-900 ml-2">Mã giảm giá (tùy chọn)</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nhập mã giảm giá</label>
+                        <div class="flex">
+                            <input type="text" id="discountCode" placeholder="Nhập mã giảm giá..."
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <button type="button" id="validateDiscountBtn"
+                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-r-md font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+                                Kiểm tra
+                            </button>
+                        </div>
+                        <div id="discountMessage" class="mt-2 text-sm hidden"></div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Thông tin giảm giá</label>
+                        <div id="discountInfo" class="bg-white border border-gray-200 rounded-md p-3 text-sm">
+                            <div class="text-gray-500 text-center">Chưa áp dụng mã giảm giá</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden fields for discount -->
+                <input type="hidden" id="appliedDiscountCode" name="DiscountCode">
+                <input type="hidden" id="discountAmount" name="DiscountAmount">
+                <input type="hidden" id="originalAmount" name="OriginalAmount">
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-6">
+                <label asp-for="LyDoHuy" class="block text-sm font-medium text-gray-700 mb-2">Lý do hủy (nếu có)</label>
+                <textarea asp-for="LyDoHuy" rows="3" placeholder="Lý do hủy đăng ký (chỉ khi cần thiết)..."
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                <span asp-validation-for="LyDoHuy" class="text-red-600 text-sm"></span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4">
+                <a href="@Url.Action("Index")" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors">
+                    Hủy
+                </a>
+                <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    ✅ Tạo đăng ký
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Registration type toggle
+        document.querySelectorAll('input[name="registrationType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                toggleRegistrationSections();
+                updateFormValidation();
+                updateTabStyles();
+            });
+        });
+
+        function toggleRegistrationSections() {
+            const packageType = document.getElementById('packageType').checked;
+            const packageSection = document.getElementById('packageSection');
+            const classSection = document.getElementById('classSection');
+
+            if (packageType) {
+                packageSection.classList.remove('hidden');
+                classSection.classList.add('hidden');
+                
+                // Clear class fields
+                document.querySelector('select[name="LopHocId"]').value = '';
+                document.querySelector('input[name="NgayBatDau"]').value = '';
+                document.querySelector('input[name="NgayKetThuc"]').value = '';
+            } else {
+                packageSection.classList.add('hidden');
+                classSection.classList.remove('hidden');
+                
+                // Clear package fields
+                document.querySelector('select[name="GoiTapId"]').value = '';
+                
+                // Set default dates for class registration
+                const today = new Date();
+                const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+                
+                document.querySelector('input[name="NgayBatDau"]').value = today.toISOString().split('T')[0];
+                document.querySelector('input[name="NgayKetThuc"]').value = nextMonth.toISOString().split('T')[0];
+            }
+
+            // Update visual selection
+            updateTabStyles();
+        }
+
+        function updateFormValidation() {
+            const packageType = document.getElementById('packageType').checked;
+
+            // Update required attributes based on registration type
+            if (packageType) {
+                document.querySelector('select[name="GoiTapId"]').required = true;
+                document.querySelector('select[name="LopHocId"]').required = false;
+                document.querySelector('input[name="NgayBatDau"]').required = false;
+                document.querySelector('input[name="NgayKetThuc"]').required = false;
+            } else {
+                document.querySelector('select[name="GoiTapId"]').required = false;
+                document.querySelector('select[name="LopHocId"]').required = true;
+                document.querySelector('input[name="NgayBatDau"]').required = true;
+                document.querySelector('input[name="NgayKetThuc"]').required = true;
+            }
+        }
+
+        // Update tab visual styles
+        function updateTabStyles() {
+            const packageType = document.getElementById('packageType').checked;
+
+            // Reset all tab styles
+            document.querySelectorAll('.registration-type-option').forEach(option => {
+                option.classList.remove('border-blue-500', 'border-green-500', 'bg-blue-50', 'bg-green-50');
+                option.classList.add('border-gray-200');
+            });
+
+            // Apply active tab style
+            if (packageType) {
+                document.querySelector('label[for="packageType"]').classList.remove('border-gray-200');
+                document.querySelector('label[for="packageType"]').classList.add('border-blue-500', 'bg-blue-50');
+            } else {
+                document.querySelector('label[for="classType"]').classList.remove('border-gray-200');
+                document.querySelector('label[for="classType"]').classList.add('border-green-500', 'bg-green-50');
+            }
+        }
+
+        // Load member current registrations info
+        async function loadMemberInfo() {
+            const memberSelect = document.getElementById('memberSelect');
+            const memberInfoSection = document.getElementById('memberInfoSection');
+            const memberInfoContent = document.getElementById('memberInfoContent');
+
+            const memberId = memberSelect.value;
+
+            if (!memberId) {
+                memberInfoSection.classList.add('hidden');
+                return;
+            }
+
+            // Show loading
+            memberInfoSection.classList.remove('hidden');
+            memberInfoContent.innerHTML = `
+                <div class="flex items-center">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Đang tải thông tin...
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`/api/dangky/member-info/${memberId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to load member info');
+                }
+
+                const data = await response.json();
+
+                if (data.activeRegistrations && data.activeRegistrations.length > 0) {
+                    let html = '<div class="space-y-2">';
+
+                    data.activeRegistrations.forEach(reg => {
+                        const isPackage = reg.goiTapId != null;
+                        const icon = isPackage ? '💳' : '🎓';
+                        const type = isPackage ? 'Gói tập' : 'Lớp học';
+                        const name = isPackage ? reg.goiTap?.tenGoi : reg.lopHoc?.tenLop;
+                        const startDate = new Date(reg.ngayBatDau).toLocaleDateString('vi-VN');
+                        const endDate = new Date(reg.ngayKetThuc).toLocaleDateString('vi-VN');
+
+                        html += `
+                            <div class="flex items-center justify-between p-2 bg-white rounded border">
+                                <div class="flex items-center">
+                                    <span class="mr-2">${icon}</span>
+                                    <div>
+                                        <span class="font-medium">${type}: ${name}</span>
+                                        <div class="text-xs text-gray-600">
+                                            ${startDate} → ${endDate}
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="px-2 py-1 text-xs bg-green-100 text-green-800 rounded">Đang hoạt động</span>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+
+                    // Add warnings for package and class registrations
+                    const hasActivePackage = data.activeRegistrations.some(r => r.goiTapId != null);
+                    const hasActiveClass = data.activeRegistrations.some(r => r.lopHocId != null);
+
+                    if (hasActivePackage) {
+                        html += `
+                            <div class="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                <div class="flex items-center">
+                                    <span class="text-yellow-600 mr-2">⚠️</span>
+                                    <span class="text-xs text-yellow-800">
+                                        <strong>Gói tập:</strong> Thành viên đã có gói tập đang hoạt động.
+                                        Không thể đăng ký thêm gói tập mới.
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    if (hasActiveClass) {
+                        html += `
+                            <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                                <div class="flex items-center">
+                                    <span class="text-blue-600 mr-2">ℹ️</span>
+                                    <span class="text-xs text-blue-800">
+                                        <strong>Lớp học:</strong> Có thể đăng ký cùng lớp học nhiều lần
+                                        nhưng phải chờ khóa cũ kết thúc (không được overlap thời gian).
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    memberInfoContent.innerHTML = html;
+                } else {
+                    memberInfoContent.innerHTML = `
+                        <div class="flex items-center text-gray-600">
+                            <span class="mr-2">ℹ️</span>
+                            <span>Thành viên chưa có đăng ký nào đang hoạt động</span>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading member info:', error);
+                memberInfoContent.innerHTML = `
+                    <div class="flex items-center text-red-600">
+                        <span class="mr-2">❌</span>
+                        <span>Không thể tải thông tin thành viên</span>
+                    </div>
+                `;
+            }
+        }
+
+        // Package duration change handler
+        document.getElementById('packageDuration').addEventListener('change', function() {
+            const duration = parseInt(this.value);
+            if (duration > 0) {
+                const today = new Date();
+                const endDate = new Date(today.getFullYear(), today.getMonth() + duration, today.getDate());
+
+                // Update hidden fields for package registration
+                document.querySelector('input[name="NgayBatDau"]').value = today.toISOString().split('T')[0];
+                document.querySelector('input[name="NgayKetThuc"]').value = endDate.toISOString().split('T')[0];
+            }
+
+            // Update package price
+            updatePackagePrice();
+        });
+
+        // Package selection change handler
+        document.querySelector('select[name="GoiTapId"]').addEventListener('change', function() {
+            updatePackagePrice();
+        });
+
+        // Class selection change handler
+        document.querySelector('select[name="LopHocId"]').addEventListener('change', function() {
+            updateClassPrice();
+        });
+
+        // Discount code validation
+        document.getElementById('validateDiscountBtn').addEventListener('click', function() {
+            validateDiscountCode();
+        });
+
+        // Enter key on discount code input
+        document.getElementById('discountCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                validateDiscountCode();
+            }
+        });
+
+        // Clear discount when code is cleared
+        document.getElementById('discountCode').addEventListener('input', function() {
+            if (this.value.trim() === '') {
+                clearDiscount();
+            }
+        });
+
+        // Date validation for class registration
+        document.querySelector('input[name="NgayBatDau"]').addEventListener('change', function() {
+            const startDate = new Date(this.value);
+            const endDateInput = document.querySelector('input[name="NgayKetThuc"]');
+            const endDate = new Date(endDateInput.value);
+            
+            if (endDate <= startDate) {
+                const newEndDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, startDate.getDate());
+                endDateInput.value = newEndDate.toISOString().split('T')[0];
+            }
+        });
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleRegistrationSections();
+            updateFormValidation();
+
+            // Set default package duration
+            document.getElementById('packageDuration').dispatchEvent(new Event('change'));
+
+        });
+
+        // Simple form submission handler - NO INTERFERENCE
+        document.getElementById('dangKyForm').addEventListener('submit', function(e) {
+            console.log('🚀 Form submitting - minimal interference');
+
+            const packageType = document.getElementById('packageType').checked;
+
+            if (packageType) {
+                // For package registration, set dates based on duration
+                const duration = parseInt(document.getElementById('packageDuration').value);
+                const today = new Date();
+                const endDate = new Date(today.getFullYear(), today.getMonth() + duration, today.getDate());
+
+                document.querySelector('input[name="NgayBatDau"]').value = today.toISOString().split('T')[0];
+                document.querySelector('input[name="NgayKetThuc"]').value = endDate.toISOString().split('T')[0];
+
+                // Clear class field
+                document.querySelector('select[name="LopHocId"]').value = '';
+            } else {
+                // For class registration, clear package field
+                document.querySelector('select[name="GoiTapId"]').value = '';
+            }
+
+            // Let the form submit naturally - DO NOT PREVENT DEFAULT
+            console.log('✅ Form will submit naturally');
+        });
+
+        // Function to update package price
+        async function updatePackagePrice(skipDiscountClear = false) {
+            const packageSelect = document.querySelector('select[name="GoiTapId"]');
+            const durationInput = document.getElementById('packageDuration');
+            const priceDisplay = document.getElementById('phiDangKyDisplay');
+            const priceValue = document.getElementById('phiDangKyValue');
+
+            const packageId = packageSelect.value;
+            const duration = durationInput.value;
+
+            // Clear discount when price changes (unless called from clearDiscount)
+            if (!skipDiscountClear && document.getElementById('appliedDiscountCode').value) {
+                clearDiscount();
+                return; // Exit to avoid double calculation
+            }
+
+            if (!packageId || !duration) {
+                priceDisplay.value = '';
+                priceValue.value = '';
+                return;
+            }
+
+            try {
+                priceDisplay.value = 'Đang tính giá...';
+
+                const response = await fetch(`/DangKy/GetPackagePrice?packageId=${packageId}&duration=${duration}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    priceDisplay.value = data.formattedPrice;
+                    priceValue.value = data.price;
+                    console.log(`✅ Package price updated: ${data.formattedPrice}`);
+                } else {
+                    priceDisplay.value = 'Không thể tính giá';
+                    priceValue.value = '';
+                    console.error('❌ Error getting package price:', data.message);
+                }
+            } catch (error) {
+                console.error('❌ Error fetching package price:', error);
+                priceDisplay.value = 'Lỗi khi tính giá';
+                priceValue.value = '';
+            }
+        }
+
+        // Function to update class price
+        async function updateClassPrice(skipDiscountClear = false) {
+            const classSelect = document.querySelector('select[name="LopHocId"]');
+            const priceDisplay = document.getElementById('phiDangKyDisplay');
+            const priceValue = document.getElementById('phiDangKyValue');
+
+            const classId = classSelect.value;
+
+            // Clear discount when price changes (unless called from clearDiscount)
+            if (!skipDiscountClear && document.getElementById('appliedDiscountCode').value) {
+                clearDiscount();
+                return; // Exit to avoid double calculation
+            }
+
+            if (!classId) {
+                priceDisplay.value = '';
+                priceValue.value = '';
+                return;
+            }
+
+            try {
+                priceDisplay.value = 'Đang tính giá...';
+
+                const response = await fetch(`/DangKy/GetClassPrice?classId=${classId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    priceDisplay.value = data.formattedPrice;
+                    priceValue.value = data.price;
+                    console.log(`✅ Class price updated: ${data.formattedPrice}`);
+                } else {
+                    priceDisplay.value = 'Không thể tính giá';
+                    priceValue.value = '';
+                    console.error('❌ Error getting class price:', data.message);
+                }
+            } catch (error) {
+                console.error('❌ Error fetching class price:', error);
+                priceDisplay.value = 'Lỗi khi tính giá';
+                priceValue.value = '';
+            }
+        }
+
+        // Discount code validation function
+        async function validateDiscountCode() {
+            const codeInput = document.getElementById('discountCode');
+            const validateBtn = document.getElementById('validateDiscountBtn');
+            const messageDiv = document.getElementById('discountMessage');
+            const infoDiv = document.getElementById('discountInfo');
+
+            const code = codeInput.value.trim();
+            if (!code) {
+                showDiscountMessage('Vui lòng nhập mã giảm giá', 'error');
+                return;
+            }
+
+            const originalAmount = parseFloat(document.getElementById('phiDangKyValue').value) || 0;
+            if (originalAmount <= 0) {
+                showDiscountMessage('Vui lòng chọn gói tập hoặc lớp học trước', 'error');
+                return;
+            }
+
+            try {
+                validateBtn.disabled = true;
+                validateBtn.textContent = 'Đang kiểm tra...';
+
+                const response = await fetch('/KhuyenMai/ValidateCode', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `code=${encodeURIComponent(code)}&amount=${originalAmount}`
+                });
+
+                const result = await response.json();
+
+                if (result.isValid) {
+                    applyDiscount(result);
+                    showDiscountMessage(`✅ Mã giảm giá hợp lệ! Giảm ${formatCurrency(result.discountAmount)}`, 'success');
+                } else {
+                    clearDiscount();
+                    showDiscountMessage(`❌ ${result.errorMessage}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error validating discount code:', error);
+                showDiscountMessage('❌ Có lỗi xảy ra khi kiểm tra mã giảm giá', 'error');
+                clearDiscount();
+            } finally {
+                validateBtn.disabled = false;
+                validateBtn.textContent = 'Kiểm tra';
+            }
+        }
+
+        // Apply discount to the form
+        function applyDiscount(discountResult) {
+            const infoDiv = document.getElementById('discountInfo');
+            const priceDisplay = document.getElementById('phiDangKyDisplay');
+            const priceValue = document.getElementById('phiDangKyValue');
+
+            // Update hidden fields
+            document.getElementById('appliedDiscountCode').value = discountResult.promotion.maCode;
+            document.getElementById('discountAmount').value = discountResult.discountAmount;
+            document.getElementById('originalAmount').value = discountResult.finalAmount + discountResult.discountAmount;
+
+            // Update final price
+            priceValue.value = discountResult.finalAmount;
+            priceDisplay.value = formatCurrency(discountResult.finalAmount);
+
+            // Update discount info display
+            infoDiv.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Mã:</span>
+                        <span class="font-medium text-green-600">${discountResult.promotion.maCode}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Giá gốc:</span>
+                        <span>${formatCurrency(discountResult.finalAmount + discountResult.discountAmount)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Giảm giá:</span>
+                        <span class="text-red-600">-${formatCurrency(discountResult.discountAmount)}</span>
+                    </div>
+                    <hr class="border-gray-200">
+                    <div class="flex justify-between font-bold">
+                        <span>Thành tiền:</span>
+                        <span class="text-green-600">${formatCurrency(discountResult.finalAmount)}</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">
+                        ${discountResult.promotion.moTa || ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Clear discount
+        function clearDiscount() {
+            document.getElementById('appliedDiscountCode').value = '';
+            document.getElementById('discountAmount').value = '';
+            document.getElementById('originalAmount').value = '';
+            document.getElementById('discountCode').value = '';
+
+            const infoDiv = document.getElementById('discountInfo');
+            infoDiv.innerHTML = '<div class="text-gray-500 text-center">Chưa áp dụng mã giảm giá</div>';
+
+            // Hide discount message
+            const messageDiv = document.getElementById('discountMessage');
+            messageDiv.classList.add('hidden');
+        }
+
+        // Show discount message
+        function showDiscountMessage(message, type) {
+            const messageDiv = document.getElementById('discountMessage');
+            messageDiv.className = `mt-2 text-sm ${type === 'success' ? 'text-green-600' : 'text-red-600'}`;
+            messageDiv.textContent = message;
+            messageDiv.classList.remove('hidden');
+
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Format currency helper
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
+        // Preserve tab state on page load (after form submission with errors)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if there are validation errors
+            const hasErrors = @(ViewData.ModelState.IsValid ? "false" : "true");
+
+            if (hasErrors) {
+                // Check which fields have errors to determine the correct tab
+                const hasPackageErrors = @(ViewData.ModelState.ContainsKey("GoiTapId") ? "true" : "false");
+                const hasClassErrors = @(ViewData.ModelState.ContainsKey("LopHocId") || ViewData.ModelState.ContainsKey("NgayBatDau") || ViewData.ModelState.ContainsKey("NgayKetThuc") ? "true" : "false");
+
+                if (hasClassErrors) {
+                    // Switch to class tab if class-related errors
+                    document.getElementById('classType').checked = true;
+                    document.getElementById('packageType').checked = false;
+                    updateFormValidation();
+                    updateTabStyles();
+                } else if (hasPackageErrors) {
+                    // Stay on package tab if package-related errors
+                    document.getElementById('packageType').checked = true;
+                    document.getElementById('classType').checked = false;
+                    updateFormValidation();
+                    updateTabStyles();
+                }
+
+                // Scroll to the error alert
+                const errorAlert = document.querySelector('.bg-red-50');
+                if (errorAlert) {
+                    errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            // Ensure tab styles are applied on page load
+            updateTabStyles();
+        });
+
+        // Store tab state before form submission
+        document.getElementById('dangKyForm').addEventListener('submit', function() {
+            const isClassTab = document.getElementById('classType').checked;
+            sessionStorage.setItem('selectedTab', isClassTab ? 'class' : 'package');
+        });
+
+    </script>
+
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Initialize Select2 -->
+    <script>
+        // Initialize Select2 for member dropdown
+        $(document).ready(function() {
+            $('#memberSelect').select2({
+                placeholder: '-- Chọn thành viên hoặc khách vãng lai --',
+                allowClear: true,
+                width: '100%',
+                minimumResultsForSearch: 0, // Always show search box
+                language: {
+                    noResults: function() {
+                        return "Không tìm thấy kết quả";
+                    },
+                    searching: function() {
+                        return "Đang tìm kiếm...";
+                    },
+                    inputTooShort: function() {
+                        return "Nhập để tìm kiếm...";
+                    }
+                }
+            });
+
+            // Handle Select2 change event
+            $('#memberSelect').on('select2:select', function (e) {
+                loadMemberInfo();
+            });
+
+            $('#memberSelect').on('select2:clear', function (e) {
+                document.getElementById('memberInfoSection').classList.add('hidden');
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        /* Custom Select2 styling to match Tailwind */
+        .select2-container--default .select2-selection--single {
+            height: 42px !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+            padding: 0.5rem 0.75rem !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: 26px !important;
+            padding-left: 0 !important;
+            color: #374151 !important;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 40px !important;
+            right: 8px !important;
+        }
+
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+        }
+
+        .select2-dropdown {
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Search box styling */
+        .select2-search--dropdown .select2-search__field {
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+            padding: 0.5rem !important;
+            margin: 0.5rem !important;
+            width: calc(100% - 1rem) !important;
+            font-size: 14px !important;
+        }
+
+        .select2-search--dropdown .select2-search__field:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+            outline: none !important;
+        }
+
+        /* Results styling */
+        .select2-container--default .select2-results__option {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 14px !important;
+        }
+
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #3b82f6 !important;
+            color: white !important;
+        }
+
+        .select2-container--default .select2-results__option[aria-selected=true] {
+            background-color: #e5e7eb !important;
+            color: #374151 !important;
+        }
+
+        /* No results message */
+        .select2-results__message {
+            padding: 0.75rem !important;
+            color: #6b7280 !important;
+            font-style: italic !important;
+        }
+    </style>
+}
+
+

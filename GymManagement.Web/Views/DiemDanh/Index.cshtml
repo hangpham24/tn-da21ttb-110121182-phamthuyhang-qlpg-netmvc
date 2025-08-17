@@ -1,0 +1,2500 @@
+@model IEnumerable<GymManagement.Web.Data.Models.DiemDanh>
+@{
+    ViewData["Title"] = "Quản lý điểm danh";
+    Layout = "_Layout";
+}
+
+@* CSRF Token for AJAX requests *@
+<form id="csrfForm" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="w-full py-8" style="width: 100% !important; max-width: none !important; margin: 0 !important; padding-left: 0 !important; padding-right: 0 !important;">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">🏋️ Quản lý điểm danh</h1>
+                <p class="text-gray-600 mt-2">Hệ thống check-in tự động bằng nhận diện khuôn mặt và quản lý điểm danh</p>
+            </div>
+            <div class="flex space-x-3">
+                <div class="bg-white rounded-lg shadow-md px-4 py-2">
+                    <div class="text-sm text-gray-600">Trạng thái hệ thống</div>
+                    <div id="systemStatus" class="text-lg font-bold text-yellow-600">Đang khởi tạo...</div>
+                </div>
+                <a href="@Url.Action("AttendanceReport")" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📊 Báo cáo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-lg shadow-md mb-8">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                <button id="faceIdTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" onclick="switchTab('faceId')">
+                    🔍 FaceID
+                </button>
+                <button id="walkInTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" onclick="switchTab('walkIn')">
+                    🚶 Khách Vãng Lai
+                </button>
+                <button id="attendanceTab" class="tab-button active border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" onclick="switchTab('attendance')">
+                    📋 Danh sách điểm danh
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="faceIdContent" class="tab-content hidden">
+        <!-- Face Recognition Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">🔍 Face Recognition Test</h2>
+
+            <!-- Camera Section -->
+            <div class="mb-4">
+                <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="height: 300px;">
+                    <video id="recognizeVideo" class="w-full h-full object-cover" autoplay muted></video>
+                    <canvas id="recognizeCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+
+                    <!-- Status Overlay -->
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <div class="bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm">
+                            <div id="recognizeCameraStatus">📷 Camera not started</div>
+                            <div id="recognizeFaceStatus">👁️ No face detected</div>
+                            <div id="recognizeConfidenceStatus">🎯 Confidence: N/A</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Selection -->
+            <div class="mb-4">
+                <label for="classSelect" class="block text-sm font-medium text-gray-700 mb-2">🎓 Chọn lớp học (tùy chọn)</label>
+                <select id="classSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">🏃‍♂️ Tập tự do</option>
+                    <!-- Classes will be loaded here -->
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Admin có thể chọn lớp học mà thành viên sẽ tham gia</p>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex space-x-3 mb-4">
+                <button id="startRecognizeCameraBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📷 Start Camera
+                </button>
+                <button id="stopRecognizeCameraBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    ⏹️ Stop Camera
+                </button>
+            </div>
+
+            <button id="recognizeButton" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                🔍 Recognize Face & Check-in
+            </button>
+
+            @* <!-- Debug button for testing -->
+            <button onclick="openWalkInModal()" class="w-full bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors mt-2">
+                🧪 Test Walk-in Modal
+            </button> *@
+
+            <!-- Results -->
+            <div id="recognizeResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-medium text-gray-900 mb-2">Recognition Results:</h3>
+                    <div id="recognizeResultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Walk-in Tab Content -->
+    <div id="walkInContent" class="tab-content hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Walk-in Registration Form -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">🚶 Đăng Ký Khách Vãng Lai</h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên *</label>
+                        <input type="text" id="guestName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nguyễn Văn A">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại *</label>
+                        <input type="tel" id="guestPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0123456789">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email (tùy chọn)</label>
+                        <input type="email" id="guestEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="example@email.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                        <textarea id="guestNote" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ghi chú thêm..."></textarea>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-blue-800">Vé tập một buổi</span>
+                            <span class="text-lg font-bold text-blue-900">50,000 VNĐ</span>
+                        </div>
+                        <p class="text-xs text-blue-600">Bao gồm: Sử dụng thiết bị, phòng tập, khăn tắm</p>
+                    </div>
+
+                    <button id="walkInCheckInBtn" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        🚶 Đăng Ký & Check-in
+                    </button>
+                </div>
+            </div>
+
+            <!-- Walk-in Statistics & Recent -->
+            <div class="space-y-6">
+                <!-- Today's Walk-ins -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">📊 Khách Vãng Lai Hôm Nay</h3>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600" id="todayWalkIns">0</div>
+                            <div class="text-sm text-gray-600">Đã đăng ký</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="todayWalkInRevenue">0</div>
+                            <div class="text-sm text-gray-600">Doanh thu (VNĐ)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Walk-ins -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">🕐 Khách Vãng Lai Gần Đây</h3>
+
+                    <div id="recentWalkIns" class="space-y-3">
+                        <div class="text-center text-gray-500 py-8">
+                            <div class="text-4xl mb-2">🚶</div>
+                            <p>Chưa có khách vãng lai nào hôm nay</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance List Tab Content - FULL WIDTH REDESIGN -->
+    <div id="attendanceContent" class="tab-content active" style="width: 100% !important; max-width: none !important;">
+
+        <!-- Statistics Cards - Full Width -->
+        <div class="w-full mb-6" style="width: 100% !important; max-width: none !important;">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Today's Attendance -->
+                <div class="bg-green-600 rounded-xl shadow-lg p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-green-100 text-sm font-medium">Hôm nay</p>
+                            <p class="text-3xl font-bold" id="todayAttendance">@(Model?.Count(d => d.ThoiGian.Date == DateTime.Today) ?? 0)</p>
+                            <p class="text-green-100 text-xs mt-1">Lượt check-in</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-full p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Attendance -->
+                <div class="bg-blue-600 rounded-xl shadow-lg p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-blue-100 text-sm font-medium">Tổng cộng</p>
+                            <p class="text-3xl font-bold">@(Model?.Count() ?? 0)</p>
+                            <p class="text-blue-100 text-xs mt-1">Tất cả thời gian</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-full p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- This Week -->
+                <div class="bg-yellow-600 rounded-xl shadow-lg p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-yellow-100 text-sm font-medium">Tuần này</p>
+                            <p class="text-3xl font-bold">@(Model?.Count(d => d.ThoiGian >= DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek)) ?? 0)</p>
+                            <p class="text-yellow-100 text-xs mt-1">Lượt check-in</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-full p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Successful Recognition -->
+                <div class="bg-purple-600 rounded-xl shadow-lg p-6 text-white">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium">Nhận diện thành công</p>
+                            <p class="text-3xl font-bold">@(Model?.Count(d => d.KetQuaNhanDang == true) ?? 0)</p>
+                            <p class="text-purple-100 text-xs mt-1">Tỷ lệ: @(Model?.Any() == true ? Math.Round((double)(Model.Count(d => d.KetQuaNhanDang == true) * 100) / Model.Count(), 1) : 0)%</p>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-full p-3">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Filters - Full Width -->
+        <div class="w-full bg-white rounded-xl shadow-lg p-6 mb-6" style="width: 100% !important; max-width: none !important;">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    Bộ lọc nâng cao
+                </h3>
+                <button onclick="resetFilters()" class="text-sm text-gray-500 hover:text-gray-700 flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Đặt lại
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+                <!-- Search -->
+                <div class="lg:col-span-2">
+                    <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-2">🔍 Tìm kiếm thành viên</label>
+                    <input type="text" id="searchInput" placeholder="Nhập tên, email hoặc ID..."
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+                </div>
+
+                <!-- Status Filter -->
+                <div>
+                    <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">📊 Trạng thái</label>
+                    <select id="statusFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Tất cả</option>
+                        <option value="Present">✅ Có mặt</option>
+                        <option value="Absent">❌ Vắng mặt</option>
+                        <option value="Late">⏰ Đi muộn</option>
+                    </select>
+                </div>
+
+                <!-- Recognition Filter -->
+                <div>
+                    <label for="recognitionFilter" class="block text-sm font-medium text-gray-700 mb-2">🤖 Nhận diện</label>
+                    <select id="recognitionFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Tất cả</option>
+                        <option value="face">🤖 Face ID</option>
+                        <option value="qr">📱 QR Code</option>
+                        <option value="true">✅ AI Thành công</option>
+                        <option value="false">❌ AI Thất bại</option>
+                        <option value="manual">👤 Thủ công</option>
+                    </select>
+                </div>
+
+                <!-- Date Filter -->
+                <div>
+                    <label for="dateFilter" class="block text-sm font-medium text-gray-700 mb-2">📅 Ngày</label>
+                    <input type="date" id="dateFilter"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Export Button -->
+                <div class="bg-green-600 flex items-end">
+                    <button onclick="exportAttendance()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Xuất Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Data Table or Empty State - Full Width -->
+        @if (Model != null && Model.Any())
+        {
+            <!-- Modern Data Table -->
+            <div class="w-full bg-white rounded-xl shadow-lg overflow-hidden" style="width: 100% !important; max-width: none !important;">
+                <!-- Table Header -->
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Danh sách điểm danh
+                        </h3>
+                        <div class="flex items-center space-x-2 text-sm text-gray-600">
+                            <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                                Tổng: @Model.Count() bản ghi
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <span>👤 Thành viên</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <span>⏰ Thời gian</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <span>🎓 Lớp học</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <span>📊 Trạng thái</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <span>🤖 Nhận diện</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <span>📝 Ghi chú</span>
+                                    </div>
+                                </th>
+                                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <div class="flex items-center space-x-1">
+                                        <span>⚡ Hành động</span>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTable" class="bg-white divide-y divide-gray-200">
+                            @foreach (var diemDanh in Model.OrderByDescending(d => d.ThoiGian))
+                            {
+                                var recognitionType = diemDanh.LoaiCheckIn == "FaceRecognition" ? "face" :
+                                                     diemDanh.LoaiCheckIn == "QRCode" ? "qr" :
+                                                     diemDanh.KetQuaNhanDang.HasValue ? (diemDanh.KetQuaNhanDang.Value ? "true" : "false") : "manual";
+
+                                <tr class="hover:bg-blue-50 attendance-row transition-colors duration-200"
+                                    data-member="@((diemDanh.ThanhVien?.Ho + " " + diemDanh.ThanhVien?.Ten)?.ToLower())"
+                                    data-status="@diemDanh.TrangThai"
+                                    data-recognition="@recognitionType"
+                                    data-date="@diemDanh.ThoiGian.ToString("yyyy-MM-dd")"
+                                    data-checkin-type="@diemDanh.LoaiCheckIn">
+
+                                    <!-- Member -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-12 w-12">
+                                                <div class="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center shadow-md">
+                                                    <span class="text-lg font-bold text-white">
+                                                        @(diemDanh.ThanhVien?.Ho?.FirstOrDefault() ?? 'U')
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-semibold text-gray-900">
+                                                    @diemDanh.ThanhVien?.Ho @diemDanh.ThanhVien?.Ten
+                                                </div>
+                                                <div class="text-sm text-gray-500">
+                                                    @diemDanh.ThanhVien?.Email
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Time -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">@diemDanh.ThoiGian.ToString("dd/MM/yyyy")</div>
+                                        <div class="text-sm text-gray-500 font-mono">@diemDanh.ThoiGian.ToString("HH:mm:ss")</div>
+                                    </td>
+
+                                    <!-- Class -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if (diemDanh.LopHoc != null)
+                                        {
+                                            <div class="text-sm font-medium text-gray-900">@diemDanh.LopHoc.TenLop</div>
+                                            <div class="text-sm text-gray-500">@diemDanh.LopHoc.GioBatDau.ToString("HH:mm") - @diemDanh.LopHoc.GioKetThuc.ToString("HH:mm")</div>
+                                        }
+                                        else
+                                        {
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                🏃‍♂️ Tự do
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <!-- Status -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                            @switch (diemDanh.TrangThai)
+                                            {
+                                                case "Present": <text>bg-green-100 text-green-800 border border-green-200</text>; break;
+                                                case "Absent": <text>bg-red-100 text-red-800 border border-red-200</text>; break;
+                                                case "Late": <text>bg-yellow-100 text-yellow-800 border border-yellow-200</text>; break;
+                                                default: <text>bg-gray-100 text-gray-800 border border-gray-200</text>; break;
+                                            }">
+                                            @switch (diemDanh.TrangThai)
+                                            {
+                                                case "Present": <text>✅ Có mặt</text>; break;
+                                                case "Absent": <text>❌ Vắng mặt</text>; break;
+                                                case "Late": <text>⏰ Đi muộn</text>; break;
+                                                default: <text>@diemDanh.TrangThai</text>; break;
+                                            }
+                                        </span>
+                                    </td>
+
+                                    <!-- Recognition -->
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @{
+                                            // Determine display based on LoaiCheckIn first, then KetQuaNhanDang
+                                            string displayText = "";
+                                            string cssClass = "";
+
+                                            if (diemDanh.LoaiCheckIn == "FaceRecognition")
+                                            {
+                                                displayText = "🤖 Face ID";
+                                                cssClass = "bg-blue-100 text-blue-800 border border-blue-200";
+                                            }
+                                            else if (diemDanh.LoaiCheckIn == "QRCode")
+                                            {
+                                                displayText = "📱 QR Code";
+                                                cssClass = "bg-green-100 text-green-800 border border-green-200";
+                                            }
+                                            else if (diemDanh.KetQuaNhanDang.HasValue)
+                                            {
+                                                if (diemDanh.KetQuaNhanDang.Value)
+                                                {
+                                                    displayText = "🤖 AI Thành công";
+                                                    cssClass = "bg-blue-100 text-blue-800 border border-blue-200";
+                                                }
+                                                else
+                                                {
+                                                    displayText = "🚫 AI Thất bại";
+                                                    cssClass = "bg-red-100 text-red-800 border border-red-200";
+                                                }
+                                            }
+                                            else
+                                            {
+                                                displayText = "👤 Thủ công";
+                                                cssClass = "bg-purple-100 text-purple-800 border border-purple-200";
+                                            }
+                                        }
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium @cssClass">
+                                            @displayText
+                                        </span>
+                                    </td>
+
+                                    <!-- Notes -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        @if (!string.IsNullOrEmpty(diemDanh.GhiChu))
+                                        {
+                                            <span title="@diemDanh.GhiChu" class="inline-flex items-center px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs">
+                                                📝 @(diemDanh.GhiChu.Length > 20 ? diemDanh.GhiChu.Substring(0, 20) + "..." : diemDanh.GhiChu)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-gray-400">-</span>
+                                        }
+                                    </td>
+
+                                    <!-- Actions -->
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <button onclick="viewAttendanceDetails(@diemDanh.DiemDanhId)"
+                                                    class="inline-flex items-center px-3 py-1 rounded-md text-blue-600 hover:text-blue-900 hover:bg-blue-50 transition-colors">
+                                                👁️ Chi tiết
+                                            </button>
+                                            @if (!string.IsNullOrEmpty(diemDanh.AnhMinhChung))
+                                            {
+                                                <button onclick="viewImage('@diemDanh.AnhMinhChung')"
+                                                        class="inline-flex items-center px-3 py-1 rounded-md text-green-600 hover:text-green-900 hover:bg-green-50 transition-colors">
+                                                    🖼️ Ảnh
+                                                </button>
+                                            }
+                                            @* ✅ NEW: Nút checkout cho người đã check-in nhưng chưa check-out *@
+                                            @if (diemDanh.ThoiGianCheckOut == null && diemDanh.ThoiGianCheckIn.Date == DateTime.Today)
+                                            {
+                                                <button onclick="manualCheckOut(@diemDanh.DiemDanhId, '@(diemDanh.ThanhVien?.Ho + " " + diemDanh.ThanhVien?.Ten)')"
+                                                        class="inline-flex items-center px-3 py-1 rounded-md text-orange-600 hover:text-orange-900 hover:bg-orange-50 transition-colors"
+                                                        title="Check-out thủ công">
+                                                    🚪 Check-out
+                                                </button>
+                                            }
+                                            <button onclick="deleteAttendance(@diemDanh.DiemDanhId, '@(diemDanh.ThanhVien?.Ho + " " + diemDanh.ThanhVien?.Ten)')"
+                                                    class="inline-flex items-center px-3 py-1 rounded-md text-red-600 hover:text-red-900 hover:bg-red-50 transition-colors"
+                                                    title="Xóa bản ghi điểm danh">
+                                                🗑️ Xóa
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Modern Empty State -->
+            <div class="w-full bg-white rounded-xl shadow-lg p-12 text-center" style="width: 100% !important; max-width: none !important;">
+                <div class="max-w-md mx-auto">
+                    <div class="bg-gradient-to-r from-blue-100 to-purple-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3">Chưa có dữ liệu điểm danh</h3>
+                    <p class="text-gray-600 mb-6">Hệ thống chưa có bản ghi điểm danh nào. Hãy bắt đầu check-in để xem dữ liệu tại đây.</p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button onclick="switchTab('faceId')" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            Bắt đầu FaceID
+                        </button>
+                        <button onclick="switchTab('walkIn')" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            Khách vãng lai
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+</div>
+
+<!-- Attendance Details Modal -->
+<div id="attendanceModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Chi tiết điểm danh</h3>
+                    <button onclick="closeAttendanceModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="attendanceDetails">
+                    <!-- Attendance details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Ảnh minh chứng</h3>
+                    <button onclick="closeImageModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="imageContent" class="text-center">
+                    <!-- Image will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* ===== MODERN FULL-WIDTH LAYOUT SYSTEM ===== */
+
+        /* Global Box Sizing */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Main Container Overrides - Remove all width restrictions */
+        .container, .max-w-7xl, .mx-auto, .max-w-6xl, .max-w-5xl, .max-w-4xl,
+        .w-full.py-8, .w-full.mx-auto.px-4.sm\\:px-6.lg\\:px-8.py-8 {
+            max-width: none !important;
+            width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
+
+        /* Layout Container - Keep sidebar space but remove padding */
+        .p-4.sm\\:ml-64, .pt-16 {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            margin-left: 256px !important; /* Sidebar space */
+        }
+
+        /* Tab System Styles */
+        .tab-button {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .tab-button:hover::before {
+            left: 100%;
+        }
+
+        .tab-button.active {
+            color: #3B82F6;
+            border-color: #3B82F6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .tab-content {
+            display: none;
+            width: 100% !important;
+            max-width: none !important;
+            min-height: 500px;
+        }
+
+        .tab-content.active {
+            display: block;
+            width: 100% !important;
+            animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Enhanced Animations */
+        @@keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Attendance Content Full Width System */
+        #attendanceContent {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 0 1rem !important;
+        }
+
+        #attendanceContent > * {
+            width: 100% !important;
+            max-width: none !important;
+        }
+
+        /* Statistics Cards Enhancements */
+        .bg-gradient-to-r {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-gradient-to-r::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .bg-gradient-to-r:hover::before {
+            left: 100%;
+        }
+
+        /* Filter Section Enhancements */
+        .bg-white.rounded-xl.shadow-lg {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .bg-white.rounded-xl.shadow-lg:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+
+        /* Table Enhancements */
+        .attendance-row {
+            transition: all 0.2s ease;
+        }
+
+        .attendance-row:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 197, 253, 0.05));
+            transform: translateX(4px);
+            box-shadow: 4px 0 12px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Button Hover Effects */
+        .inline-flex.items-center.px-3.py-1.rounded-md {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .inline-flex.items-center.px-3.py-1.rounded-md::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.4s;
+        }
+
+        .inline-flex.items-center.px-3.py-1.rounded-md:hover::before {
+            left: 100%;
+        }
+
+        /* Grid System Full Width */
+        .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4,
+        .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-6 {
+            width: 100% !important;
+            display: grid !important;
+        }
+
+        /* Responsive Design */
+        @@media (max-width: 1024px) {
+            .p-4.sm\\:ml-64 {
+                margin-left: 0 !important;
+                padding: 1rem !important;
+            }
+
+            #attendanceContent {
+                padding: 0 0.5rem !important;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+
+            .grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-6 {
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+            }
+        }
+
+        @@media (max-width: 640px) {
+            .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+                grid-template-columns: 1fr !important;
+            }
+
+            .flex.flex-col.sm\\:flex-row {
+                flex-direction: column !important;
+            }
+        }
+
+        /* Loading States */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+        @@keyframes loading {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Scroll Enhancements */
+        .overflow-x-auto {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(59, 130, 246, 0.3) transparent;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 3px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 3px;
+        }
+
+        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.5);
+        }
+    </style>
+}
+
+<!-- Walk-in Registration Modal -->
+<div id="walkInModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 hidden">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-2/3 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">🚶 Đăng Ký Khách Vãng Lai</h3>
+                <button onclick="closeWalkInModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Walk-in Form - Step 1: Information -->
+            <div id="walkInStep1" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên *</label>
+                    <input type="text" id="modalGuestName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nguyễn Văn A">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại *</label>
+                    <input type="tel" id="modalGuestPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0123456789">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email (tùy chọn)</label>
+                    <input type="email" id="modalGuestEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="example@email.com">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                    <textarea id="modalGuestNote" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ghi chú thêm..."></textarea>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-blue-800">Vé tập một buổi</span>
+                        <span class="text-lg font-bold text-blue-900">50,000 VNĐ</span>
+                    </div>
+                    <p class="text-xs text-blue-600">Bao gồm: Sử dụng thiết bị, phòng tập, khăn tắm</p>
+                </div>
+
+                <button id="continueToPaymentBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    💳 Tiếp tục thanh toán
+                </button>
+            </div>
+
+            <!-- Walk-in Form - Step 2: Payment Method -->
+            <div id="walkInStep2" class="space-y-4 hidden">
+                <!-- Customer Info Summary -->
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Thông tin khách hàng:</h4>
+                    <div class="text-sm text-gray-600">
+                        <div id="customerSummaryName"></div>
+                        <div id="customerSummaryPhone"></div>
+                    </div>
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Chọn phương thức thanh toán *</label>
+                    <div class="space-y-3">
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="paymentMethod" value="CASH" class="mr-3" checked>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">💵</span>
+                                <div>
+                                    <div class="font-medium">Tiền mặt</div>
+                                    <div class="text-sm text-gray-500">Thanh toán trực tiếp tại quầy</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        @* <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                            <input type="radio" name="paymentMethod" value="VNPAY" class="mr-3">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-3">🏦</span>
+                                <div>
+                                    <div class="font-medium">VNPay</div>
+                                    <div class="text-sm text-gray-500">Thanh toán online qua VNPay</div>
+                                </div>
+                            </div>
+                        </label> *@
+                    </div>
+                </div>
+
+                <!-- Price Summary -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-blue-800">Tổng thanh toán</span>
+                        <span class="text-xl font-bold text-blue-900">50,000 VNĐ</span>
+                    </div>
+                    <p class="text-xs text-blue-600">Vé tập một buổi - Bao gồm: Sử dụng thiết bị, phòng tập, khăn tắm</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex space-x-3">
+                    <button id="backToInfoBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        ← Quay lại
+                    </button>
+                    <button id="processPaymentBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        💳 Thanh toán & Check-in
+                    </button>
+                </div>
+            </div>
+
+            <!-- Walk-in Results -->
+            <div id="modalWalkInResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="font-medium text-gray-900 mb-2">Kết quả đăng ký:</h4>
+                    <div id="modalWalkInResultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Debug: Check if script is loading
+        console.log('🚀 DiemDanh Station JavaScript is loading...');
+
+        // ✅ ENHANCED: Function to remove Vietnamese accents for better search
+        function removeVietnameseAccents(str) {
+            if (!str) return '';
+            return str
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'D')
+                .toLowerCase();
+        }
+
+        // Tab Management Functions
+        function switchTab(tabName) {
+            console.log('🔄 Switching to tab:', tabName);
+
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                content.classList.add('hidden');
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab content
+            const targetContent = document.getElementById(tabName + 'Content');
+            const targetButton = document.getElementById(tabName + 'Tab');
+
+            if (targetContent && targetButton) {
+                targetContent.classList.add('active');
+                targetContent.classList.remove('hidden');
+                targetButton.classList.add('active');
+
+                console.log('✅ Tab switched to:', tabName);
+
+                // Special handling for different tabs
+                if (tabName === 'faceId') {
+                    // Initialize face recognition if needed
+                    initializeFaceRecognition();
+                } else if (tabName === 'walkIn') {
+                    // Load walk-in statistics
+                    loadWalkInStats();
+                } else if (tabName === 'attendance') {
+                    // Load attendance data
+                    loadAttendanceData();
+                }
+            } else {
+                console.error('❌ Tab elements not found:', tabName);
+            }
+        }
+
+        function initializeFaceRecognition() {
+            console.log('🔍 Initializing face recognition...');
+            // Load available classes
+            loadAvailableClasses();
+            // Face recognition initialization will be handled by existing code
+        }
+
+        async function loadAvailableClasses() {
+            try {
+                const response = await fetch('@Url.Action("GetAvailableClasses")', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    const classSelect = document.getElementById('classSelect');
+                    // Clear existing options except the first one
+                    classSelect.innerHTML = '<option value="">🏃‍♂️ Tập tự do</option>';
+
+                    result.classes.forEach(cls => {
+                        const option = document.createElement('option');
+                        option.value = cls.lopHocId;
+                        option.textContent = `🎓 ${cls.tenLop} (${cls.gioBatDau}-${cls.gioKetThuc})`;
+                        classSelect.appendChild(option);
+                    });
+
+                    console.log('✅ Loaded', result.classes.length, 'classes');
+                } else {
+                    console.error('❌ Failed to load classes:', result.message);
+                }
+            } catch (error) {
+                console.error('❌ Error loading classes:', error);
+            }
+        }
+
+        function loadWalkInStats() {
+            console.log('📊 Loading walk-in statistics...');
+            // Load today's walk-in statistics
+            loadTodayWalkInStats();
+            loadRecentWalkIns();
+        }
+
+        function loadAttendanceData() {
+            console.log('📋 Loading attendance data...');
+            // Refresh attendance statistics
+            updateRealtimeStats();
+        }
+
+        async function updateRealtimeStats() {
+            try {
+                // Reload the page to get fresh data
+                // In a real implementation, you would use AJAX to update specific sections
+                console.log('🔄 Updating real-time stats...');
+
+                // For now, we'll just refresh the attendance tab content
+                if (document.getElementById('attendanceTab').classList.contains('active')) {
+                    // Only refresh if attendance tab is active
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('❌ Error updating real-time stats:', error);
+            }
+        }
+
+        // Function to refresh attendance data after successful check-in
+        function refreshAttendanceAfterCheckIn() {
+            console.log('🔄 Refreshing attendance data after check-in...');
+            // Update statistics
+            updateRealtimeStats();
+        }
+
+        async function loadTodayWalkInStats() {
+            try {
+                // This would call an API to get today's walk-in stats
+                // For now, we'll use placeholder data
+                document.getElementById('todayWalkIns').textContent = '0';
+                document.getElementById('todayWalkInRevenue').textContent = '0';
+            } catch (error) {
+                console.error('❌ Error loading walk-in stats:', error);
+            }
+        }
+
+        async function loadRecentWalkIns() {
+            try {
+                // This would call an API to get recent walk-ins
+                // For now, we'll show placeholder
+                const recentContainer = document.getElementById('recentWalkIns');
+                recentContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <div class="text-4xl mb-2">🚶</div>
+                        <p>Chưa có khách vãng lai nào hôm nay</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('❌ Error loading recent walk-ins:', error);
+            }
+        }
+
+        // Global variables for face recognition
+        let video = null;
+        let canvas = null;
+        let ctx = null;
+        let isModelLoaded = false;
+        let isCameraRunning = false;
+        let recognitionInterval = null;
+        let lastRecognitionTime = 0;
+        let recognitionCooldown = 3000; // 3 seconds cooldown
+
+        // DOM elements (học theo FaceTest)
+        let recognizeVideo, recognizeCanvas;
+        let startRecognizeCameraBtn, stopRecognizeCameraBtn, recognizeButton;
+        let recognizeCameraStatus, recognizeFaceStatus, recognizeConfidenceStatus, systemStatus;
+        let recognizeResults, recognizeResultContent;
+        let currentRecognizeDescriptor = null;
+
+        // Walk-in face descriptor storage
+        let pendingWalkInFaceDescriptor = null;
+        let pendingWalkInFaceData = null;
+        let walkInModalTimeout = null;
+
+        // Walk-in elements
+        const guestName = document.getElementById('guestName');
+        const guestPhone = document.getElementById('guestPhone');
+        const walkInCheckInBtn = document.getElementById('walkInCheckInBtn');
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(updateRealtimeStats, 30000);
+
+        // Initialize when page loads (học theo FaceTest)
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🎯 DOM Content Loaded - Initializing DiemDanh Station...');
+
+            // Initialize DOM elements (học theo FaceTest)
+            recognizeVideo = document.getElementById('recognizeVideo');
+            recognizeCanvas = document.getElementById('recognizeCanvas');
+            startRecognizeCameraBtn = document.getElementById('startRecognizeCameraBtn');
+            stopRecognizeCameraBtn = document.getElementById('stopRecognizeCameraBtn');
+            recognizeButton = document.getElementById('recognizeButton');
+            recognizeCameraStatus = document.getElementById('recognizeCameraStatus');
+            recognizeFaceStatus = document.getElementById('recognizeFaceStatus');
+            recognizeConfidenceStatus = document.getElementById('recognizeConfidenceStatus');
+            systemStatus = document.getElementById('systemStatus');
+            recognizeResults = document.getElementById('recognizeResults');
+            recognizeResultContent = document.getElementById('recognizeResultContent');
+
+            // Load Face-API models
+            await loadModels();
+
+            // Setup event listeners
+            setupEventListeners();
+
+            // Default to attendance tab (instead of faceId)
+            switchTab('attendance');
+
+            console.log('✅ DiemDanh Station initialized successfully');
+        });
+
+        // Load Face-API models using global manager
+        async function loadModels() {
+            try {
+                systemStatus.textContent = 'Đang kiểm tra models...';
+                systemStatus.className = 'text-lg font-bold text-yellow-600';
+
+                console.log('🔍 Checking global Face-API models...');
+
+                // Use global models manager
+                if (window.FaceAPIGlobal) {
+                    if (window.FaceAPIGlobal.isReady()) {
+                        console.log('✅ Global Face-API models already ready!');
+                        isModelLoaded = true;
+                        systemStatus.textContent = 'Sẵn sàng';
+                        systemStatus.className = 'text-lg font-bold text-green-600';
+                        return;
+                    }
+
+                    console.log('⏳ Waiting for global Face-API models...');
+                    systemStatus.textContent = 'Đang chờ models...';
+
+                    await window.FaceAPIGlobal.waitForModels(30000);
+
+                    isModelLoaded = true;
+                    systemStatus.textContent = 'Sẵn sàng';
+                    systemStatus.className = 'text-lg font-bold text-green-600';
+
+                    console.log('✅ Global Face-API models ready for DiemDanh Station');
+                } else {
+                    throw new Error('Global Face-API manager not available');
+                }
+            } catch (error) {
+                console.error('❌ Error loading models:', error);
+                systemStatus.textContent = 'Lỗi tải models';
+                systemStatus.className = 'text-lg font-bold text-red-600';
+
+                // Fallback: try to load models locally
+                console.log('🔄 Attempting fallback model loading...');
+                await loadModelsFallback();
+            }
+        }
+
+        // Fallback method to load models locally if global loading fails
+        async function loadModelsFallback() {
+            try {
+                systemStatus.textContent = 'Đang tải models (fallback)...';
+                systemStatus.className = 'text-lg font-bold text-yellow-600';
+
+                const baseUrl = window.location.origin;
+                const modelsPath = `${baseUrl}/FaceTest/models`;
+
+                console.log('📦 Fallback loading models from:', modelsPath);
+
+                await faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
+
+                isModelLoaded = true;
+                systemStatus.textContent = 'Sẵn sàng (fallback)';
+                systemStatus.className = 'text-lg font-bold text-green-600';
+
+                console.log('✅ Fallback models loaded successfully');
+            } catch (error) {
+                console.error('❌ Fallback model loading failed:', error);
+                systemStatus.textContent = 'Lỗi tải models';
+                systemStatus.className = 'text-lg font-bold text-red-600';
+            }
+        }
+
+        // Setup event listeners (học theo FaceTest)
+        function setupEventListeners() {
+            // Face Recognition buttons (học theo FaceTest)
+            if (startRecognizeCameraBtn) startRecognizeCameraBtn.addEventListener('click', startRecognizeCamera);
+            if (stopRecognizeCameraBtn) stopRecognizeCameraBtn.addEventListener('click', stopRecognizeCamera);
+            if (recognizeButton) recognizeButton.addEventListener('click', testRecognizeFace);
+
+            // Walk-in registration
+            if (walkInCheckInBtn) walkInCheckInBtn.addEventListener('click', registerWalkIn);
+
+            // Search and filter functionality (for attendance tab)
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const recognitionFilter = document.getElementById('recognitionFilter');
+            const dateFilter = document.getElementById('dateFilter');
+
+            if (searchInput) searchInput.addEventListener('input', filterAttendance);
+            if (statusFilter) statusFilter.addEventListener('change', filterAttendance);
+            if (recognitionFilter) recognitionFilter.addEventListener('change', filterAttendance);
+            if (dateFilter) dateFilter.addEventListener('change', filterAttendance);
+
+            console.log('✅ Event listeners setup completed');
+        }
+
+        function filterAttendance() {
+            const searchTerm = removeVietnameseAccents(document.getElementById('searchInput').value);
+            const status = document.getElementById('statusFilter').value;
+            const recognition = document.getElementById('recognitionFilter').value;
+            const date = document.getElementById('dateFilter').value;
+
+            const attendanceRows = document.querySelectorAll('.attendance-row');
+
+            attendanceRows.forEach(row => {
+                const member = removeVietnameseAccents(row.getAttribute('data-member') || '');
+                const rowStatus = row.getAttribute('data-status');
+                const rowRecognition = row.getAttribute('data-recognition');
+                const rowDate = row.getAttribute('data-date');
+
+                let show = true;
+
+                // Search filter - now supports accent-insensitive search
+                if (searchTerm && !member.includes(searchTerm)) {
+                    show = false;
+                }
+
+                // Status filter
+                if (status && show && rowStatus !== status) {
+                    show = false;
+                }
+
+                // Recognition filter
+                if (recognition && show && rowRecognition !== recognition) {
+                    show = false;
+                }
+
+                // Date filter
+                if (date && show && rowDate !== date) {
+                    show = false;
+                }
+
+                row.style.display = show ? '' : 'none';
+            });
+        }
+
+        // Reset all filters to default state
+        function resetFilters() {
+            console.log('🔄 Resetting all filters...');
+
+            // Reset all filter inputs
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const recognitionFilter = document.getElementById('recognitionFilter');
+            const dateFilter = document.getElementById('dateFilter');
+
+            if (searchInput) searchInput.value = '';
+            if (statusFilter) statusFilter.value = '';
+            if (recognitionFilter) recognitionFilter.value = '';
+            if (dateFilter) dateFilter.value = '';
+
+            // Show all rows
+            const rows = document.querySelectorAll('.attendance-row');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+
+            console.log('✅ All filters reset successfully');
+
+            // Add visual feedback
+            const resetButton = event.target.closest('button');
+            if (resetButton) {
+                resetButton.classList.add('loading');
+                setTimeout(() => {
+                    resetButton.classList.remove('loading');
+                }, 500);
+            }
+        }
+
+        function updateRealtimeStats() {
+            fetch('@Url.Action("GetRealtimeStats")')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('todayAttendance').textContent = data.todayAttendance;
+                })
+                .catch(error => console.error('Error updating stats:', error));
+        }
+
+        function viewAttendanceDetails(attendanceId) {
+            // Show loading
+            document.getElementById('attendanceDetails').innerHTML = '<div class="text-center py-4">Đang tải...</div>';
+            document.getElementById('attendanceModal').classList.remove('hidden');
+
+            // Load attendance details (placeholder - implement with actual API call)
+            setTimeout(() => {
+                document.getElementById('attendanceDetails').innerHTML = `
+                    <div class="space-y-4">
+                        <p><strong>ID Điểm danh:</strong> ${attendanceId}</p>
+                        <p><strong>Chi tiết:</strong> Sẽ được cập nhật sau</p>
+                    </div>
+                `;
+            }, 500);
+        }
+
+        function viewImage(imagePath) {
+            document.getElementById('imageContent').innerHTML = `
+                <img src="${imagePath}" alt="Ảnh minh chứng" class="max-w-full h-auto rounded-lg">
+            `;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+
+        // ✅ NEW: Manual checkout function
+        function manualCheckOut(attendanceId, memberName) {
+            console.log('🚪 Manual checkout requested for:', attendanceId, memberName);
+
+            const confirmMessage = `Xác nhận check-out cho "${memberName}"?\n\nThao tác này sẽ ghi nhận thời gian check-out hiện tại.`;
+
+            if (confirm(confirmMessage)) {
+                // Show loading state
+                const checkoutButton = event.target.closest('button');
+                if (checkoutButton) {
+                    checkoutButton.disabled = true;
+                    checkoutButton.innerHTML = '⏳ Đang xử lý...';
+                    checkoutButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+
+                // Make API call to checkout
+                const checkoutUrl = `/DiemDanh/CheckOut/${attendanceId}`;
+                console.log('🔗 Checkout URL:', checkoutUrl);
+
+                fetch(checkoutUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    }
+                })
+                .then(response => {
+                    console.log('📡 Response status:', response.status, response.statusText);
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Hide checkout button (member has checked out)
+                        if (checkoutButton) {
+                            checkoutButton.style.display = 'none';
+                        }
+
+                        // Update statistics
+                        updateRealtimeStats();
+
+                        // Show success message
+                        showNotification(`✅ Check-out thành công cho ${memberName}!`, 'success');
+
+                        // Refresh page to show updated data
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        throw new Error(data.message || 'Không thể check-out');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error during manual checkout:', error);
+
+                    // Restore button state
+                    if (checkoutButton) {
+                        checkoutButton.disabled = false;
+                        checkoutButton.innerHTML = '🚪 Check-out';
+                        checkoutButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+
+                    // Show error message
+                    showNotification('❌ Lỗi: ' + error.message, 'error');
+                });
+            }
+        }
+
+        // Delete attendance record with confirmation
+        function deleteAttendance(attendanceId, memberName) {
+            console.log('🗑️ Delete attendance requested for:', attendanceId, memberName);
+
+            // Show confirmation dialog with member name
+            const confirmMessage = `Bạn có chắc chắn muốn xóa bản ghi điểm danh của "${memberName}"?\n\nHành động này không thể hoàn tác!`;
+
+            if (confirm(confirmMessage)) {
+                // Show loading state
+                const deleteButton = event.target.closest('button');
+                if (deleteButton) {
+                    deleteButton.disabled = true;
+                    deleteButton.innerHTML = '⏳ Đang xóa...';
+                    deleteButton.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+
+                // Make API call to delete
+                fetch(`@Url.Action("Delete", "DiemDanh")/${attendanceId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Không thể xóa bản ghi');
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Remove row from table with animation
+                        const row = deleteButton.closest('tr');
+                        if (row) {
+                            row.style.transition = 'all 0.3s ease';
+                            row.style.transform = 'translateX(-100%)';
+                            row.style.opacity = '0';
+
+                            setTimeout(() => {
+                                row.remove();
+                                // Update statistics
+                                updateRealtimeStats();
+                                // Show success message
+                                showNotification('✅ Đã xóa bản ghi điểm danh thành công!', 'success');
+                            }, 300);
+                        }
+                    } else {
+                        throw new Error(data.message || 'Không thể xóa bản ghi');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error deleting attendance:', error);
+
+                    // Restore button state
+                    if (deleteButton) {
+                        deleteButton.disabled = false;
+                        deleteButton.innerHTML = '🗑️ Xóa';
+                        deleteButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+
+                    // Show error message
+                    showNotification('❌ Lỗi: ' + error.message, 'error');
+                });
+            }
+        }
+
+        // Show notification helper function
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white font-medium transition-all duration-300 transform translate-x-full`;
+
+            // Set color based on type
+            switch(type) {
+                case 'success':
+                    notification.classList.add('bg-green-500');
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-500');
+                    break;
+                default:
+                    notification.classList.add('bg-blue-500');
+            }
+
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        function exportAttendance() {
+            const startDate = document.getElementById('dateFilter').value || new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0];
+            const endDate = new Date().toISOString().split('T')[0];
+
+            window.location.href = `@Url.Action("ExportAttendance")?startDate=${startDate}&endDate=${endDate}&format=csv`;
+        }
+
+        function closeAttendanceModal() {
+            document.getElementById('attendanceModal').classList.add('hidden');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('attendanceModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAttendanceModal();
+        });
+
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) closeImageModal();
+        });
+
+        // Camera Functions (học theo FaceTest)
+        async function startRecognizeCamera() {
+            try {
+                console.log('📷 Starting recognize camera...');
+                recognizeCameraStatus.textContent = '📷 Starting camera...';
+
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480 }
+                });
+
+                recognizeVideo.srcObject = stream;
+                video = recognizeVideo;
+                canvas = recognizeCanvas;
+                ctx = canvas.getContext('2d');
+
+                // Set canvas size to match video
+                recognizeVideo.addEventListener('loadedmetadata', () => {
+                    canvas.width = recognizeVideo.videoWidth;
+                    canvas.height = recognizeVideo.videoHeight;
+                });
+
+                isCameraRunning = true;
+                recognizeCameraStatus.textContent = '📷 Camera active';
+                recognizeButton.disabled = false;
+
+                // Start continuous face detection
+                startContinuousDetection();
+
+                console.log('✅ Recognize camera started successfully');
+            } catch (error) {
+                console.error('❌ Error starting recognize camera:', error);
+                recognizeCameraStatus.textContent = '📷 Camera error';
+            }
+        }
+
+        function stopRecognizeCamera() {
+            try {
+                console.log('⏹️ Stopping recognize camera...');
+
+                if (recognizeVideo.srcObject) {
+                    const tracks = recognizeVideo.srcObject.getTracks();
+                    tracks.forEach(track => track.stop());
+                    recognizeVideo.srcObject = null;
+                }
+
+                if (recognitionInterval) {
+                    clearInterval(recognitionInterval);
+                    recognitionInterval = null;
+                }
+
+                isCameraRunning = false;
+                recognizeCameraStatus.textContent = '📷 Camera stopped';
+                recognizeFaceStatus.textContent = '👁️ No face detected';
+                recognizeConfidenceStatus.textContent = '🎯 Confidence: N/A';
+                recognizeButton.disabled = true;
+
+                // Clear canvas
+                if (ctx) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+
+                console.log('✅ Recognize camera stopped');
+            } catch (error) {
+                console.error('❌ Error stopping recognize camera:', error);
+            }
+        }
+
+        // Continuous face detection (học theo FaceTest)
+        function startContinuousDetection() {
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+            }
+
+            recognitionInterval = setInterval(async () => {
+                if (!isCameraRunning || !isModelLoaded || !video) return;
+
+                try {
+                    const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptors();
+
+                    // Clear canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    if (detections.length > 0) {
+                        recognizeFaceStatus.textContent = `👁️ ${detections.length} face(s) detected`;
+
+                        // Draw face boxes
+                        const resizedDetections = faceapi.resizeResults(detections, {
+                            width: canvas.width,
+                            height: canvas.height
+                        });
+
+                        faceapi.draw.drawDetections(canvas, resizedDetections);
+                        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+                        // Store the first face descriptor for recognition
+                        if (detections[0].descriptor) {
+                            currentRecognizeDescriptor = detections[0].descriptor;
+                            console.log('🔍 Face descriptor captured:', currentRecognizeDescriptor.length, 'dimensions');
+                        }
+                    } else {
+                        recognizeFaceStatus.textContent = '👁️ No face detected';
+                        currentRecognizeDescriptor = null;
+                    }
+                } catch (error) {
+                    console.error('❌ Error in continuous detection:', error);
+                }
+            }, 100); // Check every 100ms
+        }
+
+        // Face Recognition Test (CHÍNH XÁC như Reception/Station)
+        async function testRecognizeFace() {
+            if (!currentRecognizeDescriptor) {
+                alert('Không phát hiện khuôn mặt. Vui lòng đảm bảo có khuôn mặt trong camera.');
+                return;
+            }
+
+            try {
+                console.log('🔍 Testing face recognition...');
+                recognizeButton.disabled = true;
+                recognizeButton.textContent = '🔍 Đang nhận diện...';
+
+                // Get selected class
+                const classSelect = document.getElementById('classSelect');
+                const selectedClassId = classSelect.value ? parseInt(classSelect.value) : null;
+
+                // Call DiemDanh FaceRecognitionCheckInWithClass API
+                const response = await fetch('@Url.Action("FaceRecognitionCheckInWithClass")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        descriptor: Array.from(currentRecognizeDescriptor),
+                        classId: selectedClassId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    recognizeConfidenceStatus.textContent = `🎯 Confidence: ${result.confidence}%`;
+
+                    if (result.action === 'checkin') {
+                        // Successful CHECK-IN
+                        recognizeResultContent.innerHTML = `
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-green-800">✅ CHECK-IN THÀNH CÔNG!</h3>
+                                        <div class="mt-2 text-sm text-green-700">
+                                            <p><strong>Thành viên:</strong> ${result.memberName}</p>
+                                            <p><strong>Thời gian:</strong> ${result.time}</p>
+                                            <p><strong>Độ tin cậy:</strong> ${result.confidence}%</p>
+                                            ${result.className ? `<p><strong>Lớp học:</strong> ${result.className}</p>` : ''}
+                                            ${result.packageInfo ? `
+                                                <div class="mt-2 p-2 bg-green-100 rounded border-l-4 border-green-400">
+                                                    <p><strong>📦 Gói tập:</strong> ${result.packageInfo.packageName}</p>
+                                                    ${result.packageInfo.hasPackage ? `
+                                                        <p><strong>📅 Hết hạn:</strong> ${result.packageInfo.expiryDate}</p>
+                                                        <p><strong>⏰ Còn lại:</strong> ${result.packageInfo.remainingDays} ngày</p>
+                                                        <p class="font-medium ${result.packageInfo.isExpired ? 'text-red-600' : result.packageInfo.isExpiring ? 'text-yellow-600' : 'text-green-600'}">
+                                                            <strong>📊 Trạng thái:</strong> ${result.packageInfo.status}
+                                                        </p>
+                                                    ` : `
+                                                        <p class="text-yellow-600"><strong>⚠️ Trạng thái:</strong> ${result.packageInfo.status}</p>
+                                                    `}
+                                                </div>
+                                            ` : ''}
+                                            <p class="mt-2 font-medium text-green-800">${result.message}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (result.action === 'checkout') {
+                        // Successful CHECK-OUT
+                        recognizeResultContent.innerHTML = `
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-blue-800">✅ CHECK-OUT THÀNH CÔNG!</h3>
+                                        <div class="mt-2 text-sm text-blue-700">
+                                            <p><strong>Thành viên:</strong> ${result.memberName}</p>
+                                            <p><strong>Thời gian tập:</strong> ${result.duration}</p>
+                                            <p><strong>Độ tin cậy:</strong> ${result.confidence}%</p>
+                                            <p class="mt-2 font-medium text-blue-800">${result.message}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Recognition successful but cannot check-in/checkout (e.g., already checked in)
+                        // Check if this is a walk-in case that should redirect
+                        const isWalkInCase = result.message && (
+                            result.message.includes('khách vãng lai') ||
+                            result.message.includes('không tìm thấy') ||
+                            result.message.includes('không khớp') ||
+                            result.message.includes('không nhận diện') ||
+                            result.message.includes('không có trong hệ thống')
+                        );
+
+                        if (isWalkInCase) {
+                            // Store face descriptor for walk-in registration
+                            if (currentRecognizeDescriptor && currentRecognizeDescriptor.length > 0) {
+                                pendingWalkInFaceDescriptor = Array.from(currentRecognizeDescriptor);
+                                pendingWalkInFaceData = {
+                                    embedding: pendingWalkInFaceDescriptor,
+                                    ngayTao: new Date().toISOString(),
+                                    thuatToan: 'face-api.js'
+                                };
+                                console.log('💾 Face descriptor stored for walk-in registration (success case):', pendingWalkInFaceDescriptor.length, 'dimensions');
+                            } else {
+                                console.warn('⚠️ No face descriptor to store (success case)');
+                            }
+
+                            // Redirect to walk-in registration
+                            recognizeResultContent.innerHTML = `
+                                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-orange-800">🚶 Khách vãng lai được phát hiện!</h3>
+                                            <div class="mt-2 text-sm text-orange-700">
+                                                <p>${result.message}</p>
+                                                <p class="font-medium">Đang mở form đăng ký khách vãng lai...</p>
+                                                ${pendingWalkInFaceDescriptor ? '<p class="text-xs text-green-600">✅ Khuôn mặt đã được lưu tạm thời</p>' : ''}
+                                            </div>
+                                            <div class="mt-3">
+                                                <div class="flex items-center">
+                                                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                                                    <span class="text-sm text-orange-600">Mở form trong 3 giây...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+
+                            // Auto open walk-in modal after 3 seconds
+                            walkInModalTimeout = setTimeout(() => {
+                                try {
+                                    console.log('🚶 Opening walk-in registration modal...');
+                                    console.log('🔍 currentRecognizeDescriptor:', currentRecognizeDescriptor);
+
+                                    // Open modal directly
+                                    openWalkInModal();
+                                } catch (error) {
+                                    console.error('❌ Error opening modal:', error);
+                                }
+                            }, 3000);
+                        } else {
+                            // Just show warning message without redirect
+                            recognizeResultContent.innerHTML = `
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-yellow-800">⚠️ NHẬN DIỆN THÀNH CÔNG</h3>
+                                            <div class="mt-2 text-sm text-yellow-700">
+                                                <p><strong>Thành viên:</strong> ${result.memberName || 'Đã nhận diện'}</p>
+                                                <p><strong>Độ tin cậy:</strong> ${result.confidence}%</p>
+                                                <p class="mt-2 font-medium text-yellow-800">${result.message}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // Refresh statistics after successful check-in/out
+                    updateRealtimeStats();
+
+                } else {
+                    // Recognition failed or no match found - Redirect to Walk-in Registration
+                    recognizeConfidenceStatus.textContent = '🎯 Confidence: Low';
+
+                    // Check if this should trigger walk-in registration
+                    const shouldRedirectToWalkIn = !result.success ||
+                        (result.message && (
+                            result.message.includes('không tìm thấy') ||
+                            result.message.includes('không khớp') ||
+                            result.message.includes('không nhận diện') ||
+                            result.message.includes('không có trong hệ thống')
+                        ));
+
+                    if (shouldRedirectToWalkIn) {
+                        // Store face descriptor for walk-in registration
+                        if (currentRecognizeDescriptor && currentRecognizeDescriptor.length > 0) {
+                            pendingWalkInFaceDescriptor = Array.from(currentRecognizeDescriptor);
+                            pendingWalkInFaceData = {
+                                embedding: pendingWalkInFaceDescriptor,
+                                ngayTao: new Date().toISOString(),
+                                thuatToan: 'face-api.js'
+                            };
+                            console.log('💾 Face descriptor stored for walk-in registration:', pendingWalkInFaceDescriptor.length, 'dimensions');
+                        } else {
+                            console.warn('⚠️ No face descriptor to store');
+                        }
+
+                        recognizeResultContent.innerHTML = `
+                            <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-orange-800">🚶 Khách vãng lai được phát hiện!</h3>
+                                        <div class="mt-2 text-sm text-orange-700">
+                                            <p>${result.message || 'Khuôn mặt không khớp với thành viên nào trong hệ thống.'}</p>
+                                            <p class="font-medium">Đang mở form đăng ký khách vãng lai...</p>
+                                            ${pendingWalkInFaceDescriptor ? '<p class="text-xs text-green-600">✅ Khuôn mặt đã được lưu tạm thời</p>' : ''}
+                                        </div>
+                                        <div class="mt-3">
+                                            <div class="flex items-center">
+                                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                                                <span class="text-sm text-orange-600">Mở form trong 3 giây...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Auto open walk-in modal after 3 seconds
+                        walkInModalTimeout = setTimeout(() => {
+                            try {
+                                console.log('🚶 Opening walk-in registration modal...');
+                                console.log('🔍 currentRecognizeDescriptor:', currentRecognizeDescriptor);
+
+                                // Open modal directly
+                                openWalkInModal();
+                            } catch (error) {
+                                console.error('❌ Error opening modal:', error);
+                            }
+                        }, 3000);
+                    } else {
+                        // Just show error message without redirect
+                        recognizeResultContent.innerHTML = `
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">❌ Không thể thực hiện</h3>
+                                        <div class="mt-2 text-sm text-red-700">
+                                            <p>${result.message || 'Có lỗi xảy ra khi xử lý yêu cầu.'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                recognizeResults.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('❌ Error in face recognition:', error);
+                recognizeConfidenceStatus.textContent = '🎯 Confidence: Error';
+
+                recognizeResultContent.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-red-800">❌ Lỗi kết nối</h3>
+                                <div class="mt-2 text-sm text-red-700">
+                                    <p>Có lỗi xảy ra khi kết nối với hệ thống nhận diện.</p>
+                                    <p>Vui lòng thử lại hoặc liên hệ hỗ trợ kỹ thuật.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                recognizeResults.classList.remove('hidden');
+            } finally {
+                recognizeButton.disabled = false;
+                recognizeButton.textContent = '🔍 Recognize Face';
+            }
+        }
+
+
+
+        // Walk-in registration function (sử dụng Reception API)
+        async function registerWalkIn() {
+            const name = document.getElementById('guestName').value.trim();
+            const phone = document.getElementById('guestPhone').value.trim();
+            const email = document.getElementById('guestEmail').value.trim();
+            const note = document.getElementById('guestNote').value.trim();
+
+            if (!name || !phone) {
+                alert('Vui lòng nhập họ tên và số điện thoại');
+                return;
+            }
+
+            try {
+                walkInCheckInBtn.disabled = true;
+                walkInCheckInBtn.textContent = '🚶 Đang đăng ký...';
+
+                // Sử dụng Reception WalkInRegisterQuick API (như trang cũ)
+                const response = await fetch('/Reception/WalkInRegisterQuick', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        fullName: name,
+                        phoneNumber: phone,
+                        email: email
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`✅ Đăng ký khách vãng lai thành công! Mã khách: ${result.guestCode || 'N/A'}`);
+
+                    // Clear form
+                    document.getElementById('guestName').value = '';
+                    document.getElementById('guestPhone').value = '';
+                    document.getElementById('guestEmail').value = '';
+                    document.getElementById('guestNote').value = '';
+
+                    // Refresh walk-in stats
+                    loadWalkInStats();
+                    updateRealtimeStats();
+                } else {
+                    alert('❌ Lỗi đăng ký: ' + (result.message || 'Không thể đăng ký khách vãng lai'));
+                }
+            } catch (error) {
+                console.error('❌ Error registering walk-in:', error);
+                alert('❌ Lỗi kết nối khi đăng ký');
+            } finally {
+                walkInCheckInBtn.disabled = false;
+                walkInCheckInBtn.textContent = '🚶 Đăng Ký & Check-in';
+            }
+        }
+
+        // ===== WALK-IN MODAL FUNCTIONS =====
+
+        // Notification function
+        function showNotification(type, message) {
+            // Simple alert for now - can be enhanced later
+            if (type === 'success') {
+                alert('✅ ' + message);
+            } else if (type === 'error') {
+                alert('❌ ' + message);
+            } else if (type === 'info') {
+                alert('ℹ️ ' + message);
+            } else {
+                alert(message);
+            }
+        }
+
+        // Update Recognition Results after successful walk-in registration
+        function updateRecognitionResultsAfterWalkIn(customerName, transactionId) {
+            // Clear any pending timeout
+            if (walkInModalTimeout) {
+                clearTimeout(walkInModalTimeout);
+                walkInModalTimeout = null;
+                console.log('🗑️ Walk-in modal timeout cleared');
+            }
+
+            const recognizeResultContent = document.getElementById('recognizeResultContent');
+            if (recognizeResultContent) {
+                recognizeResultContent.innerHTML = `
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-sm font-medium text-green-800">✅ ĐĂNG KÝ & CHECK-IN THÀNH CÔNG!</h3>
+                                <div class="mt-2 text-sm text-green-700">
+                                    <p><strong>Khách vãng lai:</strong> ${customerName}</p>
+                                    <p><strong>Mã giao dịch:</strong> ${transactionId}</p>
+                                    <p><strong>Trạng thái:</strong> Đã check-in</p>
+                                    <p class="mt-2 font-medium text-green-800">🎉 Khuôn mặt đã được lưu để checkout!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Update confidence status
+                const recognizeConfidenceStatus = document.getElementById('recognizeConfidenceStatus');
+                if (recognizeConfidenceStatus) {
+                    recognizeConfidenceStatus.textContent = '🎯 Confidence: High (Walk-in Registered)';
+                }
+            }
+        }
+
+        function openWalkInModal() {
+            console.log('🚶 Opening walk-in modal');
+            console.log('💾 Pending face descriptor:', pendingWalkInFaceDescriptor ? pendingWalkInFaceDescriptor.length + ' dimensions' : 'None');
+
+            // Update modal header to show face descriptor status
+            const modalHeader = document.querySelector('#walkInModal h3');
+            if (modalHeader) {
+                if (pendingWalkInFaceDescriptor) {
+                    modalHeader.innerHTML = '🚶 Đăng Ký Khách Vãng Lai <span class="text-xs text-green-600">(✅ Có khuôn mặt)</span>';
+                } else {
+                    modalHeader.innerHTML = '🚶 Đăng Ký Khách Vãng Lai <span class="text-xs text-red-600">(❌ Không có khuôn mặt)</span>';
+                }
+            }
+
+            document.getElementById('walkInModal').classList.remove('hidden');
+        }
+
+        function closeWalkInModal() {
+            console.log('❌ Closing walk-in modal');
+
+            // Clear any pending timeout
+            if (walkInModalTimeout) {
+                clearTimeout(walkInModalTimeout);
+                walkInModalTimeout = null;
+                console.log('🗑️ Walk-in modal timeout cleared on close');
+            }
+
+            document.getElementById('walkInModal').classList.add('hidden');
+
+            // Reset to step 1
+            showInfoStep();
+
+            // Clear form
+            document.getElementById('modalGuestName').value = '';
+            document.getElementById('modalGuestPhone').value = '';
+            document.getElementById('modalGuestEmail').value = '';
+            document.getElementById('modalGuestNote').value = '';
+
+            // Reset payment method
+            document.querySelector('input[name="paymentMethod"][value="CASH"]').checked = true;
+        }
+
+        // Walk-in Step Navigation
+        function showPaymentStep() {
+            const name = document.getElementById('modalGuestName').value.trim();
+            const phone = document.getElementById('modalGuestPhone').value.trim();
+
+            if (!name || !phone) {
+                alert('Vui lòng nhập đầy đủ họ tên và số điện thoại');
+                return;
+            }
+
+            // Update customer summary
+            document.getElementById('customerSummaryName').textContent = `Họ tên: ${name}`;
+            document.getElementById('customerSummaryPhone').textContent = `SĐT: ${phone}`;
+
+            // Show step 2, hide step 1
+            document.getElementById('walkInStep1').classList.add('hidden');
+            document.getElementById('walkInStep2').classList.remove('hidden');
+        }
+
+        function showInfoStep() {
+            // Show step 1, hide step 2
+            document.getElementById('walkInStep1').classList.remove('hidden');
+            document.getElementById('walkInStep2').classList.add('hidden');
+        }
+
+        // Walk-in Payment Processing
+        async function processWalkInPayment() {
+            const name = document.getElementById('modalGuestName').value.trim();
+            const phone = document.getElementById('modalGuestPhone').value.trim();
+            const email = document.getElementById('modalGuestEmail').value.trim();
+            const note = document.getElementById('modalGuestNote').value.trim();
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+            if (!name || !phone) {
+                alert('Vui lòng nhập đầy đủ thông tin');
+                return;
+            }
+
+            const processBtn = document.getElementById('processPaymentBtn');
+            processBtn.disabled = true;
+            processBtn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>Đang xử lý...';
+
+            try {
+                if (paymentMethod === 'CASH') {
+                    // Cash payment - direct registration and check-in
+                    await processCashPayment(name, phone, email, note);
+                } else if (paymentMethod === 'VNPAY') {
+                    // VNPay payment - redirect to payment gateway
+                    await processVNPayPayment(name, phone, email, note);
+                }
+            } catch (error) {
+                console.error('❌ Payment processing error:', error);
+                alert('Có lỗi xảy ra khi xử lý thanh toán');
+            } finally {
+                processBtn.disabled = false;
+                processBtn.innerHTML = '💳 Thanh toán & Check-in';
+            }
+        }
+
+        // Cash Payment Processing
+        async function processCashPayment(name, phone, email, note) {
+            try {
+                // Get face descriptor from pending storage
+                let faceDescriptor = null;
+                if (pendingWalkInFaceDescriptor && pendingWalkInFaceDescriptor.length > 0) {
+                    faceDescriptor = pendingWalkInFaceDescriptor;
+                    console.log('💾 Using pending face descriptor for registration:', faceDescriptor.length, 'dimensions');
+                } else {
+                    console.warn('⚠️ No pending face descriptor available');
+                }
+
+                const requestData = {
+                    fullName: name,
+                    phoneNumber: phone,
+                    email: email,
+                    note: note,
+                    paymentMethod: 'CASH',
+                    amount: 50000,
+                    faceDescriptor: faceDescriptor
+                };
+
+                console.log('🔍 DEBUG: Sending request data:', {
+                    ...requestData,
+                    faceDescriptor: faceDescriptor ? `Array[${faceDescriptor.length}]` : 'null'
+                });
+
+                const response = await fetch('/Reception/WalkInRegisterWithPayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Clear pending face descriptor after successful registration
+                    if (faceDescriptor) {
+                        pendingWalkInFaceDescriptor = null;
+                        pendingWalkInFaceData = null;
+                        console.log('🗑️ Pending face descriptor cleared after successful registration');
+                        alert('✅ Thanh toán tiền mặt và check-in thành công! Khuôn mặt đã được lưu để checkout.');
+                    } else {
+                        alert('✅ Thanh toán tiền mặt và check-in thành công!');
+                    }
+                    closeWalkInModal();
+
+                    // Update Recognition Results to show success
+                    updateRecognitionResultsAfterWalkIn(name, result.transactionId || 'CASH_' + Date.now());
+
+                    // Show payment confirmation
+                    showPaymentConfirmation({
+                        customerName: name,
+                        amount: 50000,
+                        paymentMethod: 'Tiền mặt',
+                        transactionId: result.transactionId || 'CASH_' + Date.now()
+                    });
+
+                    // Refresh stats
+                    updateRealtimeStats();
+                } else {
+                    alert('❌ ' + (result.message || 'Thanh toán thất bại'));
+                }
+            } catch (error) {
+                console.error('❌ Cash payment error:', error);
+                throw error;
+            }
+        }
+
+        // VNPay Payment Processing
+        async function processVNPayPayment(name, phone, email, note) {
+            try {
+                // Step 1: Create walk-in VNPay payment record
+                const response = await fetch('/Reception/CreateWalkInVNPayPayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        fullName: name,
+                        phoneNumber: phone,
+                        email: email,
+                        note: note,
+                        amount: 50000
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.thanhToanId) {
+                    // Step 2: Create VNPay payment URL using VNPay API
+                    const vnpayResponse = await fetch('/VNPayAPI/Home/CreatePayment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({
+                            thanhToanId: result.thanhToanId
+                        })
+                    });
+
+                    const vnpayResult = await vnpayResponse.json();
+
+                    if (vnpayResult.success && vnpayResult.paymentUrl) {
+                        alert('ℹ️ Đang chuyển hướng đến VNPay...');
+
+                        // Store customer info for after payment return
+                        sessionStorage.setItem('walkInCustomerInfo', JSON.stringify({
+                            name, phone, email, note, thanhToanId: result.thanhToanId
+                        }));
+
+                        // Redirect to VNPay
+                        window.location.href = vnpayResult.paymentUrl;
+                    } else {
+                        alert('❌ ' + (vnpayResult.message || 'Không thể tạo URL thanh toán VNPay'));
+                    }
+                } else {
+                    alert('❌ ' + (result.message || 'Không thể tạo thanh toán VNPay'));
+                }
+            } catch (error) {
+                console.error('❌ VNPay payment error:', error);
+                throw error;
+            }
+        }
+
+        // Show Payment Confirmation
+        function showPaymentConfirmation(paymentInfo) {
+            const confirmationHtml = `
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <div class="text-center">
+                            <div class="text-green-500 text-6xl mb-4">✅</div>
+                            <h3 class="text-lg font-bold text-gray-900 mb-4">Thanh toán thành công!</h3>
+
+                            <div class="text-left space-y-2 mb-6">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Khách hàng:</span>
+                                    <span class="font-medium">${paymentInfo.customerName}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Số tiền:</span>
+                                    <span class="font-medium">${paymentInfo.amount.toLocaleString()} VNĐ</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Phương thức:</span>
+                                    <span class="font-medium">${paymentInfo.paymentMethod}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Mã GD:</span>
+                                    <span class="font-medium">${paymentInfo.transactionId}</span>
+                                </div>
+                            </div>
+
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()"
+                                    class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend', confirmationHtml);
+        }
+
+        // Setup walk-in modal event listeners
+        function setupWalkInModalListeners() {
+            const continueToPaymentBtn = document.getElementById('continueToPaymentBtn');
+            const backToInfoBtn = document.getElementById('backToInfoBtn');
+            const processPaymentBtn = document.getElementById('processPaymentBtn');
+
+            if (continueToPaymentBtn) continueToPaymentBtn.addEventListener('click', showPaymentStep);
+            if (backToInfoBtn) backToInfoBtn.addEventListener('click', showInfoStep);
+            if (processPaymentBtn) processPaymentBtn.addEventListener('click', processWalkInPayment);
+        }
+
+        // Call setup when DOM is ready
+        setupWalkInModalListeners();
+
+        // Handle VNPay return for walk-in customers
+        function handleVNPayReturn() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentStatus = urlParams.get('paymentStatus');
+            const walkIn = urlParams.get('walkIn');
+            const message = urlParams.get('message');
+
+            if (walkIn === 'true' && paymentStatus) {
+                if (paymentStatus === 'success') {
+                    // Get stored customer info
+                    const customerInfo = sessionStorage.getItem('walkInCustomerInfo');
+                    if (customerInfo) {
+                        const info = JSON.parse(customerInfo);
+
+                        // Show success message
+                        alert('✅ ' + decodeURIComponent(message || 'Thanh toán VNPay thành công!'));
+
+                        // Auto check-in the customer
+                        processWalkInCheckInAfterPayment(info);
+
+                        // Clear stored info
+                        sessionStorage.removeItem('walkInCustomerInfo');
+                    } else {
+                        alert('✅ ' + decodeURIComponent(message || 'Thanh toán VNPay thành công!'));
+                    }
+                } else if (paymentStatus === 'error') {
+                    alert('❌ ' + decodeURIComponent(message || 'Thanh toán VNPay thất bại!'));
+                }
+
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        // Process walk-in check-in after successful VNPay payment
+        async function processWalkInCheckInAfterPayment(customerInfo) {
+            try {
+                // Find the payment record and auto check-in
+                const response = await fetch('/Reception/WalkInConfirmPayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        paymentId: customerInfo.thanhToanId,
+                        guestId: 0 // Will be found by payment record
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Show payment confirmation
+                    showPaymentConfirmation({
+                        customerName: customerInfo.name,
+                        amount: 50000,
+                        paymentMethod: 'VNPay',
+                        transactionId: customerInfo.thanhToanId
+                    });
+
+                    // Update stats
+                    updateRealtimeStats();
+                } else {
+                    console.error('Auto check-in failed:', result.message);
+                }
+            } catch (error) {
+                console.error('Error in auto check-in after VNPay:', error);
+            }
+        }
+
+        // Check for VNPay return on page load
+        handleVNPayReturn();
+    </script>
+}

@@ -1,0 +1,714 @@
+@using GymManagement.Web.Models.DTOs
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "_MemberLayout";
+}
+
+<!-- Hero Section -->
+<section class="bg-blue-600 text-white">
+    <div class="max-w-screen-xl mx-auto px-4 py-24 lg:py-32">
+        <div class="text-center">
+            <h1 class="mb-6 text-4xl font-extrabold tracking-tight leading-none md:text-5xl lg:text-6xl">
+                Chào mừng đến với <span class="text-yellow-300">GymFitness </span>
+            </h1>
+            <p class="mb-10 text-lg font-normal lg:text-xl sm:px-16 lg:px-48">
+                Hệ thống quản lý phòng gym hiện đại và chuyên nghiệp
+            </p>
+            <div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
+                @if (User.Identity?.IsAuthenticated != true)
+                {
+                    <a href="@Url.Action("Register", "Auth")" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                       <strong>Đăng ký ngay</strong>
+                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                        </svg>
+                    </a>
+                    <a href="@Url.Action("Login", "Auth")" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg border border-white hover:bg-gray-100 hover:text-gray-900 focus:ring-4 focus:ring-gray-400">
+                        Đăng nhập
+                    </a>
+                }
+                else if (User.IsInRole("Admin"))
+                {
+                    <a href="@Url.Action("Dashboard", "Home")" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                        Vào Dashboard Admin
+                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                        </svg>
+                    </a>
+                }
+                else if (User.IsInRole("Member"))
+                {
+                    <a href="@Url.Action("Dashboard", "Member")" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                        Vào Dashboard Member
+                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                        </svg>
+                    </a>
+                }
+                else
+                {
+                    <a href="@Url.Action("Dashboard", "Home")" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                        Vào Dashboard
+                        <svg class="w-3.5 h-3.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                        </svg>
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+@* <section class="py-20 bg-white">
+    <div class="max-w-screen-xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Tính năng nổi bật</h2>
+            <p class="text-lg text-gray-600">Quản lý toàn diện mọi hoạt động của phòng gym</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Feature 1: Quản lý thành viên -->
+            <div class="text-center p-6 bg-gray-50 rounded-lg">
+                <div class="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-users text-2xl text-blue-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Quản lý thành viên</h3>
+                <p class="text-gray-600">Quản lý thông tin thành viên, gói tập, và lịch sử hoạt động một cách dễ dàng và hiệu quả.</p>
+            </div>
+
+            <!-- Feature 2: Điểm danh thông minh -->
+            <div class="text-center p-6 bg-gray-50 rounded-lg">
+                <div class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-check-circle text-2xl text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Điểm danh thông minh</h3>
+                <p class="text-gray-600">Hệ thống điểm danh tự động với nhận diện khuôn mặt và theo dõi thời gian tập luyện.</p>
+            </div>
+
+            <!-- Feature 3: Thanh toán linh hoạt -->
+            <div class="text-center p-6 bg-gray-50 rounded-lg">
+                <div class="w-16 h-16 mx-auto mb-4 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-credit-card text-2xl text-yellow-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Thanh toán linh hoạt</h3>
+                <p class="text-gray-600">Tích hợp nhiều phương thức thanh toán hiện đại, giúp việc thanh toán trở nên dễ dàng.</p>
+            </div>
+
+            <!-- Feature 4: Quản lý lớp học -->
+            <div class="text-center p-6 bg-gray-50 rounded-lg">
+                <div class="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-calendar-alt text-2xl text-purple-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Quản lý lớp học</h3>
+                <p class="text-gray-600">Tạo và quản lý lịch học, đăng ký lớp học và theo dõi sức chứa một cách chính xác.</p>
+            </div>
+
+            <!-- Feature 5: Báo cáo thống kê -->
+            <div class="text-center p-6 bg-gray-50 rounded-lg">
+                <div class="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chart-bar text-2xl text-red-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Báo cáo thống kê</h3>
+                <p class="text-gray-600">Thống kê doanh thu, số lượng thành viên và hiệu suất hoạt động của phòng gym.</p>
+            </div>
+
+            <!-- Feature 6: Quản lý lương -->
+            <div class="text-center p-6 bg-gray-50 rounded-lg">
+                <div class="w-16 h-16 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-money-bill-wave text-2xl text-indigo-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Quản lý lương</h3>
+                <p class="text-gray-600">Tính toán lương và hoa hồng cho huấn luyện viên một cách tự động và chính xác.</p>
+            </div>
+        </div>
+
+        <!-- Quick Links for Members -->
+        @if (User.IsInRole("Member"))
+        {
+            <div class="text-center mt-16">
+                <h3 class="text-2xl font-bold text-gray-900 mb-8">Truy cập nhanh</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <a href="@Url.Action("Dashboard", "Member")" class="block p-6 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                        <div class="text-3xl mb-3">📊</div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Dashboard</h4>
+                        <p class="text-sm text-gray-600">Xem tổng quan hoạt động</p>
+                    </a>
+                    <a href="@Url.Action("Packages", "Member")" class="block p-6 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+                        <div class="text-3xl mb-3">💳</div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Gói tập</h4>
+                        <p class="text-sm text-gray-600">Xem và đăng ký gói tập</p>
+                    </a>
+                    <a href="@Url.Action("Classes", "Member")" class="block p-6 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+                        <div class="text-3xl mb-3">🎓</div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Lớp học</h4>
+                        <p class="text-sm text-gray-600">Tham gia lớp học</p>
+                    </a>
+                    <a href="@Url.Action("MyRegistrations", "Member")" class="block p-6 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+                        <div class="text-3xl mb-3">📅</div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Đăng ký của tôi</h4>
+                        <p class="text-sm text-gray-600">Quản lý đăng ký</p>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</section> *@
+
+<!-- News Section -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-screen-xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Tin tức mới nhất</h2>
+            <p class="text-lg text-gray-600">Cập nhật những thông tin và tin tức mới nhất từ phòng gym</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @if (ViewBag.News != null && ((IEnumerable<TinTucPublicDto>)ViewBag.News).Any())
+            {
+                @foreach (var news in (IEnumerable<TinTucPublicDto>)ViewBag.News)
+                {
+                    <article class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                        @if (!string.IsNullOrEmpty(news.AnhDaiDien))
+                        {
+                            <div class="aspect-w-16 aspect-h-9 overflow-hidden">
+                                <img src="@news.AnhDaiDien" alt="@news.TieuDe" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-300" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="w-full h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                                <svg class="w-16 h-16 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                                </svg>
+                            </div>
+                        }
+                        
+                        <div class="p-6">
+                            @if (news.NoiBat)
+                            {
+                                <div class="mb-3">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        ⭐ Nổi bật
+                                    </span>
+                                </div>
+                            }
+                            
+                            <h3 class="font-bold text-xl text-gray-900 mb-3 line-clamp-2 hover:text-blue-600 transition-colors duration-200">
+                                <a href="@Url.Action("ChiTietTinTuc", "Home", new { slug = news.Slug })">@news.TieuDe</a>
+                            </h3>
+                            
+                            <p class="text-gray-600 mb-4 line-clamp-3">@news.MoTaNgan</p>
+                            
+                            <div class="flex items-center justify-between text-sm text-gray-500">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    @if (news.NgayXuatBan.HasValue)
+                                    {
+                                        <span>@news.NgayXuatBan.Value.ToString("dd/MM/yyyy")</span>
+                                    }
+                                </div>
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    <span>@news.LuotXem lượt xem</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <a href="@Url.Action("ChiTietTinTuc", "Home", new { slug = news.Slug })" 
+                                   class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
+                                    Đọc thêm
+                                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            }
+            else
+            {
+                <div class="col-span-full text-center py-12">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-medium text-gray-900">Chưa có tin tức nào</h3>
+                    <p class="mt-1 text-sm text-gray-500">Các tin tức sẽ được cập nhật sớm nhất có thể.</p>
+                </div>
+            }
+        </div>
+
+        @if (ViewBag.News != null && ((IEnumerable<TinTucPublicDto>)ViewBag.News).Any())
+        {
+            <div class="text-center mt-12">
+                <a href="@Url.Action("TinTuc", "Home")" 
+                   class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+                    Xem tất cả tin tức
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </a>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="py-20">
+    <div class="max-w-screen-xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Gói tập phổ biến</h2>
+            <p class="text-lg text-gray-600 mb-5">Chọn gói tập phù hợp với nhu cầu của bạn</p>
+        </div>
+
+        <!-- Swiper Container -->
+        <div class="swiper packagesSwiper relative">
+            <div class="swiper-wrapper">
+                @if (ViewBag.Packages != null && ((IEnumerable<GoiTapDto>)ViewBag.Packages).Any())
+                {
+                    @foreach (var package in (IEnumerable<GoiTapDto>)ViewBag.Packages)
+                    {
+                        <div class="swiper-slide">
+                            <div class="bg-white rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 text-center h-full border border-gray-100 hover:border-blue-200 transform hover:-translate-y-2">
+                                <!-- Package Header -->
+                                <div class="mb-6">
+                                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <span class="text-white text-2xl font-bold">💪</span>
+                                    </div>
+                                    <h3 class="text-2xl font-bold text-gray-900 mb-2">@package.TenGoi</h3>
+                                    <p class="text-gray-600 text-sm leading-relaxed">@package.MoTa</p>
+                                </div>
+
+                                <!-- Price -->
+                                <div class="mb-8">
+                                    <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+                                        @package.Gia.ToString("N0")
+                                        <span class="text-lg">VNĐ</span>
+                                    </div>
+                                    <p class="text-gray-500 text-sm">@package.ThoiHanThang tháng</p>
+                                </div>
+
+                                <!-- Features -->
+                                <div class="mb-8 space-y-3">
+                                    @if (package.SoBuoiToiDa.HasValue)
+                                    {
+                                        <div class="flex items-center justify-center text-gray-600">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                            </svg>
+                                            <span class="text-sm">Tối đa @package.SoBuoiToiDa buổi tập</span>
+                                        </div>
+                                    }
+                                    <div class="flex items-center justify-center text-gray-600">
+                                        <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-sm">Hỗ trợ huấn luyện viên</span>
+                                    </div>
+                                    <div class="flex items-center justify-center text-gray-600">
+                                        <svg class="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <span class="text-sm">Thiết bị hiện đại</span>
+                                    </div>
+                                </div>
+
+                                <!-- CTA Button -->
+                                <div class="mt-auto">
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <a href="@Url.Action("Packages", "Member")" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg transition-all duration-300 inline-block font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                            Đăng ký ngay
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("Login", "Auth")" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg transition-all duration-300 inline-block font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                            Đăng nhập để đăng ký
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- Default packages if no data -->
+                    <div class="swiper-slide">
+                        <div class="bg-white rounded-xl shadow-xl p-8 text-center h-full border border-gray-100">
+                            <div class="mb-6">
+                                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span class="text-white text-2xl font-bold">💪</span>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Gói Cơ Bản</h3>
+                                <p class="text-gray-600 text-sm">Gói tập cơ bản phù hợp cho người mới bắt đầu</p>
+                            </div>
+                            <div class="mb-8">
+                                <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 mb-2">
+                                    500,000 <span class="text-lg">VNĐ</span>
+                                </div>
+                                <p class="text-gray-500 text-sm">1 tháng</p>
+                            </div>
+                            <a href="@Url.Action("Login", "Auth")" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg transition-all duration-300 inline-block font-semibold">
+                                Đăng nhập để đăng ký
+                            </a>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="bg-white rounded-xl shadow-xl p-8 text-center h-full border border-gray-100">
+                            <div class="mb-6">
+                                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span class="text-white text-2xl font-bold">🏋️</span>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Gói Nâng Cao</h3>
+                                <p class="text-gray-600 text-sm">Gói tập nâng cao với nhiều tiện ích</p>
+                            </div>
+                            <div class="mb-8">
+                                <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-blue-600 mb-2">
+                                    1,200,000 <span class="text-lg">VNĐ</span>
+                                </div>
+                                <p class="text-gray-500 text-sm">3 tháng</p>
+                            </div>
+                            <a href="@Url.Action("Login", "Auth")" class="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white py-3 px-6 rounded-lg transition-all duration-300 inline-block font-semibold">
+                                Đăng nhập để đăng ký
+                            </a>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="bg-white rounded-xl shadow-xl p-8 text-center h-full border border-gray-100">
+                            <div class="mb-6">
+                                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <span class="text-white text-2xl font-bold">👑</span>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Gói VIP</h3>
+                                <p class="text-gray-600 text-sm">Gói tập VIP với dịch vụ cao cấp</p>
+                            </div>
+                            <div class="mb-8">
+                                <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 mb-2">
+                                    2,500,000 <span class="text-lg">VNĐ</span>
+                                </div>
+                                <p class="text-gray-500 text-sm">6 tháng</p>
+                            </div>
+                            <a href="@Url.Action("Login", "Auth")" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-6 rounded-lg transition-all duration-300 inline-block font-semibold">
+                                Đăng nhập để đăng ký
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Navigation buttons -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+
+            <!-- Pagination -->
+            <div class="swiper-pagination mt-8"></div>
+        </div>
+
+        <!-- View All Packages Button -->
+        <div class="text-center mt-12">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a href="@Url.Action("Packages", "Member")" class="inline-flex items-center px-6 py-3 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300">
+                    <span>Xem tất cả gói tập</span>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("Login", "Auth")" class="inline-flex items-center px-6 py-3 border border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-600 hover:text-white transition-all duration-300">
+                    <span>Đăng nhập để xem thêm</span>
+                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-blue-600 text-white py-24 mt-8">
+    <div class="max-w-screen-xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-6">Sẵn sàng bắt đầu?</h2>
+        <p class="text-lg mb-10">Tham gia cùng chúng tôi để có trải nghiệm tập luyện tuyệt vời</p>
+        @if (User.Identity?.IsAuthenticated != true)
+        {
+            <a href="@Url.Action("Register", "Auth")" class="inline-flex justify-center items-center py-3 px-6 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                <strong>Đăng ký thành viên</strong>
+            </a>
+        }
+        else if (User.IsInRole("Admin"))
+        {
+            <a href="@Url.Action("Dashboard", "Home")" class="inline-flex justify-center items-center py-3 px-6 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                Vào Dashboard Admin
+            </a>
+        }
+        else if (User.IsInRole("Member"))
+        {
+            <a href="@Url.Action("Dashboard", "Member")" class="inline-flex justify-center items-center py-3 px-6 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                Vào Dashboard Member
+            </a>
+        }
+        else
+        {
+            <a href="@Url.Action("Dashboard", "Home")" class="inline-flex justify-center items-center py-3 px-6 text-base font-medium text-center text-blue-600 rounded-lg bg-yellow-300 hover:bg-yellow-400 focus:ring-4 focus:ring-yellow-300">
+                Vào Dashboard
+            </a>
+        }
+    </div>
+</section>
+
+@section Styles {
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <style>
+        .packagesSwiper {
+            padding: 20px 0 60px 0;
+            overflow: visible;
+        }
+
+        .packagesSwiper .swiper-slide {
+            height: auto;
+            padding: 0 10px;
+        }
+
+        .packagesSwiper .swiper-slide > div {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .packagesSwiper .swiper-button-next,
+        .packagesSwiper .swiper-button-prev {
+            color: #2563eb !important;
+            background: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            box-shadow: 0 8px 25px -8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+        }
+
+        .packagesSwiper .swiper-button-next:hover,
+        .packagesSwiper .swiper-button-prev:hover {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            color: white !important;
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px -8px rgba(37, 99, 235, 0.4);
+            border-color: transparent;
+        }
+
+        .packagesSwiper .swiper-button-next::after,
+        .packagesSwiper .swiper-button-prev::after {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .packagesSwiper .swiper-pagination {
+            position: relative;
+            margin-top: 30px;
+        }
+
+        .packagesSwiper .swiper-pagination-bullet {
+            background: #cbd5e1;
+            opacity: 1;
+            width: 12px;
+            height: 12px;
+            margin: 0 6px;
+            transition: all 0.3s ease;
+        }
+
+        .packagesSwiper .swiper-pagination-bullet-active {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        /* Card hover effects */
+        .packagesSwiper .swiper-slide > div:hover {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) {
+            .packagesSwiper .swiper-button-next,
+            .packagesSwiper .swiper-button-prev {
+                width: 40px;
+                height: 40px;
+            }
+
+            .packagesSwiper .swiper-button-next::after,
+            .packagesSwiper .swiper-button-prev::after {
+                font-size: 16px;
+            }
+
+            .packagesSwiper .swiper-slide {
+                padding: 0 5px;
+            }
+        }
+
+        /* Loading animation */
+        .packages-loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+        }
+
+        .packages-loading .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+}
+
+@section Scripts {
+    <!-- Swiper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Packages Swiper
+            const packagesSwiper = new Swiper('.packagesSwiper', {
+                // Basic settings
+                slidesPerView: 1,
+                spaceBetween: 20,
+                loop: true,
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true
+                },
+
+                // Navigation
+                navigation: {
+                    nextEl: '.packagesSwiper .swiper-button-next',
+                    prevEl: '.packagesSwiper .swiper-button-prev',
+                },
+
+                // Pagination
+                pagination: {
+                    el: '.packagesSwiper .swiper-pagination',
+                    clickable: true,
+                    dynamicBullets: true,
+                },
+
+                // Responsive breakpoints
+                breakpoints: {
+                    // Mobile
+                    320: {
+                        slidesPerView: 1,
+                        spaceBetween: 15
+                    },
+                    // Tablet
+                    768: {
+                        slidesPerView: 2,
+                        spaceBetween: 20
+                    },
+                    // Desktop
+                    1024: {
+                        slidesPerView: 3,
+                        spaceBetween: 30
+                    },
+                    // Large Desktop
+                    1280: {
+                        slidesPerView: 3,
+                        spaceBetween: 40
+                    }
+                },
+
+                // Effects
+                effect: 'slide',
+                speed: 600,
+
+                // Accessibility
+                a11y: {
+                    prevSlideMessage: 'Gói tập trước',
+                    nextSlideMessage: 'Gói tập tiếp theo',
+                    paginationBulletMessage: 'Đi đến gói tập {{index}}'
+                },
+
+                // Events
+                on: {
+                    init: function() {
+                        console.log('Packages Swiper initialized');
+                    },
+                    slideChange: function() {
+                        // Add any slide change effects here
+                        const activeSlide = this.slides[this.activeIndex];
+                        if (activeSlide) {
+                            activeSlide.querySelector('.bg-white').classList.add('animate-pulse');
+                            setTimeout(() => {
+                                activeSlide.querySelector('.bg-white').classList.remove('animate-pulse');
+                            }, 300);
+                        }
+                    }
+                }
+            });
+
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    packagesSwiper.slidePrev();
+                } else if (e.key === 'ArrowRight') {
+                    packagesSwiper.slideNext();
+                }
+            });
+
+            // Add touch gestures for mobile
+            let startX = 0;
+            let endX = 0;
+
+            document.querySelector('.packagesSwiper').addEventListener('touchstart', function(e) {
+                startX = e.changedTouches[0].screenX;
+            });
+
+            document.querySelector('.packagesSwiper').addEventListener('touchend', function(e) {
+                endX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+
+            function handleSwipe() {
+                const threshold = 50;
+                if (endX < startX - threshold) {
+                    packagesSwiper.slideNext();
+                }
+                if (endX > startX + threshold) {
+                    packagesSwiper.slidePrev();
+                }
+            }
+
+            // Auto-pause on hover
+            const swiperContainer = document.querySelector('.packagesSwiper');
+            swiperContainer.addEventListener('mouseenter', function() {
+                packagesSwiper.autoplay.stop();
+            });
+
+            swiperContainer.addEventListener('mouseleave', function() {
+                packagesSwiper.autoplay.start();
+            });
+        });
+    </script>
+}

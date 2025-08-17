@@ -1,0 +1,448 @@
+@{
+    ViewData["Title"] = "Đăng ký gói tập";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">💳 Đăng ký gói tập</h1>
+            <p class="text-gray-600">Chọn gói tập phù hợp với nhu cầu của bạn</p>
+        </div>
+        <a href="@Url.Action("Index")" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            ← Quay lại
+        </a>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <form asp-action="RegisterPackage" method="post" data-loading="true">
+            <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
+            <!-- Package Selection -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Chọn gói tập</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="packageGrid">
+                    @if (ViewBag.Packages != null)
+                    {
+                        @foreach (var package in ViewBag.Packages as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)
+                        {
+                            <div class="package-card border-2 border-gray-200 rounded-lg p-6 cursor-pointer hover:border-blue-300 transition-colors" 
+                                 data-package-id="@package.Value" 
+                                 data-package-name="@package.Text">
+                                <div class="text-center">
+                                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <span class="text-2xl">💳</span>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">@package.Text</h3>
+                                    <div class="text-sm text-gray-500 mb-4">Gói tập chuyên nghiệp</div>
+                                    <div class="text-2xl font-bold text-blue-600 mb-4">Liên hệ</div>
+                                    <button type="button" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition-colors select-package-btn">
+                                        Chọn gói này
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                
+                <!-- Hidden input for selected package -->
+                <input type="hidden" name="packageId" id="selectedPackageId" required>
+                <div id="packageError" class="text-red-600 text-sm mt-2 hidden">Vui lòng chọn một gói tập.</div>
+            </div>
+
+            <!-- Duration Selection -->
+            <div class="mb-8" id="durationSection" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Chọn thời hạn</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="duration-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-300 transition-colors" data-duration="1">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 mb-1">1</div>
+                            <div class="text-sm text-gray-600">Tháng</div>
+                        </div>
+                    </div>
+                    <div class="duration-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-300 transition-colors" data-duration="3">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 mb-1">3</div>
+                            <div class="text-sm text-gray-600">Tháng</div>
+                            <div class="text-xs text-green-600 font-medium">Phổ biến</div>
+                        </div>
+                    </div>
+                    <div class="duration-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-300 transition-colors" data-duration="6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 mb-1">6</div>
+                            <div class="text-sm text-gray-600">Tháng</div>
+                            <div class="text-xs text-blue-600 font-medium">Tiết kiệm</div>
+                        </div>
+                    </div>
+                    <div class="duration-option border-2 border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-300 transition-colors" data-duration="12">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 mb-1">12</div>
+                            <div class="text-sm text-gray-600">Tháng</div>
+                            <div class="text-xs text-purple-600 font-medium">Tốt nhất</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hidden input for selected duration -->
+                <input type="hidden" name="duration" id="selectedDuration" required>
+                <div id="durationError" class="text-red-600 text-sm mt-2 hidden">Vui lòng chọn thời hạn.</div>
+            </div>
+
+            <!-- Promotion Code Section -->
+            <div class="mb-8" id="promotionSection" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">🎫 Mã khuyến mãi (tùy chọn)</h2>
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="promotionCode" class="block text-sm font-medium text-gray-700 mb-2">
+                                Nhập mã khuyến mãi
+                            </label>
+                            <div class="flex">
+                                <input type="text"
+                                       id="promotionCode"
+                                       name="promotionCode"
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Ví dụ: SUMMER2024"
+                                       autocomplete="off">
+                                <button type="button"
+                                        id="validatePromoBtn"
+                                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-md font-medium transition-colors">
+                                    Kiểm tra
+                                </button>
+                            </div>
+                            <div id="promotionMessage" class="text-sm mt-2"></div>
+                        </div>
+                        <div id="promotionDetails" class="hidden">
+                            <div class="bg-white border-2 border-green-300 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Mã khuyến mãi:</span>
+                                    <span class="text-sm font-bold text-green-600" id="validPromoCode"></span>
+                                </div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Giảm giá:</span>
+                                    <span class="text-sm font-bold text-green-600" id="discountPercent"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Hết hạn:</span>
+                                    <span class="text-sm text-gray-600" id="promoExpiry"></span>
+                                </div>
+                                <button type="button"
+                                        id="removePromoBtn"
+                                        class="mt-3 w-full text-xs text-red-600 hover:text-red-800 font-medium">
+                                    Xóa mã khuyến mãi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Summary -->
+            <div class="mb-8" id="summarySection" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Tóm tắt đăng ký</h2>
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Gói tập đã chọn</label>
+                            <p class="text-lg font-semibold text-gray-900" id="summaryPackage">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Thời hạn</label>
+                            <p class="text-lg font-semibold text-gray-900" id="summaryDuration">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
+                            <p class="text-gray-900" id="summaryStartDate">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày kết thúc</label>
+                            <p class="text-gray-900" id="summaryEndDate">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Price Summary -->
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Giá gốc:</span>
+                                <span class="text-gray-900" id="originalPrice">0 VNĐ</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-green-600" id="discountRow" style="display: none;">
+                                <span>Giảm giá:</span>
+                                <span id="discountAmount">-0 VNĐ</span>
+                            </div>
+                            <div class="flex justify-between text-lg font-semibold border-t pt-2">
+                                <span class="text-gray-900">Tổng thanh toán:</span>
+                                <span class="text-blue-600" id="finalPrice">0 VNĐ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4">
+                <a href="@Url.Action("Index")" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors">
+                    Hủy
+                </a>
+                <button type="submit" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium transition-colors" disabled>
+                    ✅ Đăng ký gói tập
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedPackage = null;
+        let selectedDuration = null;
+        let appliedPromotion = null;
+        let originalPrice = 0;
+        let finalPrice = 0;
+
+        // Package selection
+        document.querySelectorAll('.package-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.package-card').forEach(c => {
+                    c.classList.remove('border-blue-500', 'bg-blue-50');
+                    c.classList.add('border-gray-200');
+                });
+
+                // Add selection to current card
+                this.classList.remove('border-gray-200');
+                this.classList.add('border-blue-500', 'bg-blue-50');
+
+                // Store selection
+                selectedPackage = {
+                    id: this.dataset.packageId,
+                    name: this.dataset.packageName
+                };
+
+                document.getElementById('selectedPackageId').value = selectedPackage.id;
+                document.getElementById('packageError').classList.add('hidden');
+
+                // Show duration section
+                document.getElementById('durationSection').style.display = 'block';
+
+                updateSummary();
+            });
+        });
+
+        // Duration selection
+        document.querySelectorAll('.duration-option').forEach(option => {
+            option.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.duration-option').forEach(o => {
+                    o.classList.remove('border-green-500', 'bg-green-50');
+                    o.classList.add('border-gray-200');
+                });
+
+                // Add selection to current option
+                this.classList.remove('border-gray-200');
+                this.classList.add('border-green-500', 'bg-green-50');
+
+                // Store selection
+                selectedDuration = parseInt(this.dataset.duration);
+                document.getElementById('selectedDuration').value = selectedDuration;
+                document.getElementById('durationError').classList.add('hidden');
+
+                // Show promotion section
+                document.getElementById('promotionSection').style.display = 'block';
+
+                // Show summary section
+                document.getElementById('summarySection').style.display = 'block';
+
+                updateSummary();
+                updateSubmitButton();
+            });
+        });
+
+        function updateSummary() {
+            if (selectedPackage) {
+                document.getElementById('summaryPackage').textContent = selectedPackage.name;
+            }
+
+            if (selectedDuration) {
+                document.getElementById('summaryDuration').textContent = selectedDuration + ' tháng';
+
+                // Calculate dates
+                const startDate = new Date();
+                const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + selectedDuration, startDate.getDate());
+
+                document.getElementById('summaryStartDate').textContent = startDate.toLocaleDateString('vi-VN');
+                document.getElementById('summaryEndDate').textContent = endDate.toLocaleDateString('vi-VN');
+
+                // Calculate price (mock calculation - should be from server)
+                originalPrice = selectedDuration * 500000; // 500k per month
+                updatePriceDisplay();
+            }
+        }
+
+        function updatePriceDisplay() {
+            document.getElementById('originalPrice').textContent = originalPrice.toLocaleString('vi-VN') + ' VNĐ';
+
+            if (appliedPromotion) {
+                const discountAmount = originalPrice * appliedPromotion.discount / 100;
+                finalPrice = originalPrice - discountAmount;
+
+                document.getElementById('discountAmount').textContent = '-' + discountAmount.toLocaleString('vi-VN') + ' VNĐ';
+                document.getElementById('discountRow').style.display = 'flex';
+            } else {
+                finalPrice = originalPrice;
+                document.getElementById('discountRow').style.display = 'none';
+            }
+
+            document.getElementById('finalPrice').textContent = finalPrice.toLocaleString('vi-VN') + ' VNĐ';
+        }
+
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submitBtn');
+            if (selectedPackage && selectedDuration) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            let hasError = false;
+
+            if (!selectedPackage) {
+                document.getElementById('packageError').classList.remove('hidden');
+                hasError = true;
+            }
+
+            if (!selectedDuration) {
+                document.getElementById('durationError').classList.remove('hidden');
+                hasError = true;
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                showNotification('Vui lòng chọn đầy đủ gói tập và thời hạn.', 'error');
+            }
+        });
+
+        // Promotion code validation
+        document.getElementById('validatePromoBtn').addEventListener('click', function() {
+            const promoCode = document.getElementById('promotionCode').value.trim();
+            const messageDiv = document.getElementById('promotionMessage');
+
+            if (!promoCode) {
+                messageDiv.innerHTML = '<span class="text-red-600">Vui lòng nhập mã khuyến mãi</span>';
+                return;
+            }
+
+            // Show loading
+            this.disabled = true;
+            this.textContent = 'Đang kiểm tra...';
+            messageDiv.innerHTML = '<span class="text-blue-600">Đang kiểm tra mã khuyến mãi...</span>';
+
+            // AJAX call to validate promotion
+            fetch('@Url.Action("ValidateCode", "KhuyenMai")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `code=${encodeURIComponent(promoCode)}&amount=${originalPrice}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.isValid) {
+                    // Valid promotion
+                    appliedPromotion = {
+                        code: data.promotion.maCode,
+                        discount: data.promotion.phanTramGiam,
+                        description: data.promotion.moTa,
+                        endDate: data.promotion.ngayKetThuc
+                    };
+
+                    // Show promotion details
+                    document.getElementById('validPromoCode').textContent = appliedPromotion.code;
+                    document.getElementById('discountPercent').textContent = appliedPromotion.discount + '%';
+                    document.getElementById('promoExpiry').textContent = appliedPromotion.endDate;
+                    document.getElementById('promotionDetails').classList.remove('hidden');
+
+                    // Hide input and show success message
+                    document.getElementById('promotionCode').style.display = 'none';
+                    this.style.display = 'none';
+                    messageDiv.innerHTML = '<span class="text-green-600">✓ Mã khuyến mãi hợp lệ</span>';
+
+                    // Update price display
+                    updatePriceDisplay();
+                } else {
+                    // Invalid promotion
+                    messageDiv.innerHTML = `<span class="text-red-600">✗ ${data.errorMessage}</span>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.innerHTML = '<span class="text-red-600">Có lỗi xảy ra khi kiểm tra mã khuyến mãi</span>';
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.textContent = 'Kiểm tra';
+            });
+        });
+
+        // Remove promotion
+        document.getElementById('removePromoBtn').addEventListener('click', function() {
+            appliedPromotion = null;
+
+            // Reset UI
+            document.getElementById('promotionCode').value = '';
+            document.getElementById('promotionCode').style.display = 'block';
+            document.getElementById('validatePromoBtn').style.display = 'block';
+            document.getElementById('promotionDetails').classList.add('hidden');
+            document.getElementById('promotionMessage').innerHTML = '';
+
+            // Update price display
+            updatePriceDisplay();
+        });
+
+        // Enter key support for promotion code
+        document.getElementById('promotionCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('validatePromoBtn').click();
+            }
+        });
+
+        // Auto-select package if pre-selected from Member/Packages
+        @if (ViewBag.PreSelectedPackageId != null && ViewBag.PreSelectedDuration != null)
+        {
+            <script>
+                // Auto-select the pre-selected package
+                const preSelectedPackageId = @ViewBag.PreSelectedPackageId;
+                const preSelectedDuration = @ViewBag.PreSelectedDuration;
+                const preSelectedPackageName = '@ViewBag.PreSelectedPackageName';
+                const preSelectedPackagePrice = @(ViewBag.PreSelectedPackagePrice ?? 0);
+
+                // Find and select the package card
+                const packageCard = document.querySelector(`[data-package-id="${preSelectedPackageId}"]`);
+                if (packageCard) {
+                    packageCard.click();
+
+                    // Auto-select duration
+                    setTimeout(() => {
+                        const durationCard = document.querySelector(`[data-duration="${preSelectedDuration}"]`);
+                        if (durationCard) {
+                            durationCard.click();
+                        }
+                    }, 100);
+                }
+            </script>
+        }
+
+        // Initialize
+        updateSubmitButton();
+    </script>
+}

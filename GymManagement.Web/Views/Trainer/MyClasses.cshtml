@@ -1,0 +1,223 @@
+@model IEnumerable<GymManagement.Web.Data.Models.LopHoc>
+@{
+    ViewData["Title"] = "Lớp của tôi - Huấn luyện viên";
+    Layout = "_TrainerLayout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">🎓 Lớp học của tôi</h1>
+        <p class="text-gray-600">Quản lý các lớp học được phân công</p>
+    </div>
+
+    <!-- Filter and Search -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm lớp học</label>
+                <input type="text" id="searchInput" placeholder="Nhập tên lớp học..." 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div class="md:w-48">
+                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả</option>
+                    <option value="OPEN">Hoạt động</option>
+                    <option value="CLOSED">Tạm dừng</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Classes Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="classesGrid">
+            @foreach (var lopHoc in Model)
+            {
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow class-card" 
+                     data-name="@lopHoc.TenLop.ToLower()" data-status="@lopHoc.TrangThai">
+                    <!-- Class Header -->
+                    <div class="bg-gradient-to-r from-purple-500 to-blue-500 p-4 text-white">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-semibold">@lopHoc.TenLop</h3>
+                            <span class="px-2 py-1 text-xs rounded-full @(lopHoc.TrangThai == "OPEN" ? "bg-green-500" : "bg-gray-500")">
+                                @(lopHoc.TrangThai == "OPEN" ? "Hoạt động" : "Tạm dừng")
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Class Details -->
+                    <div class="p-4">
+                        <div class="space-y-3">
+                            <!-- Time -->
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>@lopHoc.GioBatDau.ToString("HH:mm") - @lopHoc.GioKetThuc.ToString("HH:mm")</span>
+                            </div>
+
+                            <!-- Days -->
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>@lopHoc.ThuTrongTuan</span>
+                            </div>
+
+                            <!-- Capacity -->
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span>Sức chứa: @lopHoc.SucChua người</span>
+                            </div>
+
+                            <!-- Duration -->
+                            @if (lopHoc.ThoiLuong.HasValue)
+                            {
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                    <span>Thời lượng: @lopHoc.ThoiLuong phút</span>
+                                </div>
+                            }
+
+                            <!-- Description -->
+                            @if (!string.IsNullOrEmpty(lopHoc.MoTa))
+                            {
+                                <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                                    <p class="font-medium mb-1">Mô tả:</p>
+                                    <p>@lopHoc.MoTa</p>
+                                </div>
+                            }
+
+                            <!-- Custom Price -->
+                            @if (lopHoc.GiaTuyChinh.HasValue)
+                            {
+                                <div class="flex items-center text-green-600 font-semibold">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                    <span>Giá: @lopHoc.GiaTuyChinh.Value.ToString("N0") VNĐ</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <div class="flex gap-2">
+                                <button onclick="viewClassDetails(@lopHoc.LopHocId)" 
+                                        class="flex-1 bg-purple-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-purple-700 transition-colors">
+                                    📊 Chi tiết
+                                </button>
+                                <button onclick="viewStudents(@lopHoc.LopHocId)" 
+                                        class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
+                                    👥 Học viên
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Chưa có lớp học nào</h3>
+            <p class="text-gray-600 mb-4">Bạn chưa được phân công lớp học nào. Vui lòng liên hệ quản trị viên để được phân công.</p>
+            <a href="@Url.Action("Dashboard", "Trainer")" class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                ← Quay lại Dashboard
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Class Details Modal -->
+<div id="classDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Chi tiết lớp học</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="classDetailsContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Search and filter functionality
+        document.getElementById('searchInput').addEventListener('input', filterClasses);
+        document.getElementById('statusFilter').addEventListener('change', filterClasses);
+
+        function filterClasses() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            const classCards = document.querySelectorAll('.class-card');
+
+            classCards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                const status = card.getAttribute('data-status');
+                
+                const matchesSearch = name.includes(searchTerm);
+                const matchesStatus = !statusFilter || status === statusFilter;
+                
+                if (matchesSearch && matchesStatus) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function viewClassDetails(classId) {
+            // Show loading
+            document.getElementById('classDetailsContent').innerHTML = '<div class="text-center py-4">Đang tải...</div>';
+            document.getElementById('classDetailsModal').classList.remove('hidden');
+            
+            // Load class details (placeholder - implement with actual API call)
+            setTimeout(() => {
+                document.getElementById('classDetailsContent').innerHTML = `
+                    <div class="space-y-4">
+                        <p><strong>ID Lớp học:</strong> ${classId}</p>
+                        <p><strong>Thống kê:</strong> Sẽ được cập nhật sau</p>
+                        <p><strong>Lịch sử:</strong> Sẽ được cập nhật sau</p>
+                    </div>
+                `;
+            }, 500);
+        }
+
+        function viewStudents(classId) {
+            window.location.href = '@Url.Action("Students", "Trainer")?classId=' + classId;
+        }
+
+        function closeModal() {
+            document.getElementById('classDetailsModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('classDetailsModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+}

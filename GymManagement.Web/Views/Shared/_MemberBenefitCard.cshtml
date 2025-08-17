@@ -1,0 +1,166 @@
+@model GymManagement.Web.Services.MemberBenefitInfo
+
+@{
+    var cardClass = Model.HasActivePackage ? "border-green-200 bg-green-50" : "border-orange-200 bg-orange-50";
+    var iconClass = Model.HasActivePackage ? "text-green-600" : "text-orange-600";
+    var statusClass = Model.HasActivePackage ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800";
+}
+
+<!-- Card hiển thị quyền lợi member - Logic đơn giản và rõ ràng -->
+<div class="@cardClass border rounded-xl p-6 mb-6 shadow-sm">
+    <div class="flex items-start justify-between">
+        <div class="flex items-center">
+            <div class="w-12 h-12 @iconClass bg-white rounded-lg flex items-center justify-center mr-4 shadow-sm">
+                @if (Model.HasActivePackage)
+                {
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                }
+                else
+                {
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                }
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">@Model.StatusText</h3>
+                @if (Model.HasActivePackage)
+                {
+                    <p class="text-sm text-gray-600">
+                        <strong>@Model.PackageName</strong>
+                        @if (Model.PackageExpiry.HasValue)
+                        {
+                            <span> - Hết hạn: @Model.PackageExpiry.Value.ToString("dd/MM/yyyy")</span>
+                        }
+                    </p>
+                }
+                else
+                {
+                    <p class="text-sm text-gray-600">Mua gói tập để được nhiều ưu đãi hơn</p>
+                }
+            </div>
+        </div>
+        <span class="@statusClass px-3 py-1 rounded-full text-sm font-medium">
+            @(Model.HasActivePackage ? "✅ Có gói tập" : "⚠️ Chưa có gói")
+        </span>
+    </div>
+
+    <!-- Quyền lợi chi tiết -->
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Quyền vào gym -->
+        <div class="flex items-center p-3 bg-white rounded-lg border">
+            <div class="w-8 h-8 flex items-center justify-center mr-3">
+                @if (Model.CanAccessGym)
+                {
+                    <span class="text-green-600 text-xl">🏋️</span>
+                }
+                else
+                {
+                    <span class="text-gray-400 text-xl">🏋️</span>
+                }
+            </div>
+            <div class="flex-1">
+                <p class="font-medium text-gray-900">Tập gym</p>
+                <p class="text-sm @(Model.CanAccessGym ? "text-green-600" : "text-gray-500")">
+                    @Model.GymAccessText
+                </p>
+            </div>
+        </div>
+
+        <!-- Quyền booking lớp học -->
+        <div class="flex items-center p-3 bg-white rounded-lg border">
+            <div class="w-8 h-8 flex items-center justify-center mr-3">
+                @if (Model.CanBookClassesFree)
+                {
+                    <span class="text-green-600 text-xl">🎓</span>
+                }
+                else
+                {
+                    <span class="text-orange-600 text-xl">🎓</span>
+                }
+            </div>
+            <div class="flex-1">
+                <p class="font-medium text-gray-900">Lớp học</p>
+                <p class="text-sm @(Model.CanBookClassesFree ? "text-green-600" : "text-orange-600")">
+                    @Model.ClassAccessText
+                </p>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.HasActivePackage)
+    {
+        <!-- Call to action cho member chưa có gói -->
+        <div class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h4 class="font-semibold text-gray-900">🎯 Mua gói tập ngay!</h4>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Tiết kiệm chi phí và được nhiều ưu đãi hơn
+                    </p>
+                </div>
+                <a href="/Member/Packages" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Xem gói tập
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Script để load thông tin quyền lợi -->
+<script>
+// Function để load và hiển thị thông tin quyền lợi member
+function loadMemberBenefits() {
+    // Có thể gọi API để refresh thông tin nếu cần
+    console.log('Member benefits loaded');
+}
+
+// Function để kiểm tra phí booking trước khi đặt lịch
+async function checkBookingFee(classId) {
+    try {
+        const response = await fetch(`/Booking/CheckBookingFee?classId=${classId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            return {
+                canBook: data.canBook,
+                isFree: data.isFree,
+                fee: data.fee,
+                feeText: data.feeText,
+                reason: data.reason
+            };
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        console.error('Error checking booking fee:', error);
+        return null;
+    }
+}
+
+// Function để hiển thị thông tin phí trước khi booking
+function showBookingFeeInfo(classId, className) {
+    checkBookingFee(classId).then(feeInfo => {
+        if (feeInfo) {
+            const message = feeInfo.isFree 
+                ? `✅ Miễn phí với gói tập\n\nBạn có muốn đặt lịch lớp "${className}" không?`
+                : `💰 Phí: ${feeInfo.feeText}\n\n${feeInfo.reason}\n\nBạn có muốn tiếp tục không?`;
+            
+            if (confirm(message)) {
+                if (feeInfo.isFree) {
+                    // Proceed with booking
+                    bookClass(classId);
+                } else {
+                    // Redirect to payment
+                    alert('Vui lòng thanh toán trước khi đặt lịch.');
+                }
+            }
+        }
+    });
+}
+
+// Load benefits when page loads
+document.addEventListener('DOMContentLoaded', loadMemberBenefits);
+</script>

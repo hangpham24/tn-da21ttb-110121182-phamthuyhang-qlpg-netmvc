@@ -1,0 +1,244 @@
+@model GymManagement.Web.Models.DTOs.EditTinTucDto
+@{
+    ViewData["Title"] = "Chỉnh sửa tin tức";
+    Layout = "_Layout";
+}
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Header Section -->
+    <div class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-6">
+                <div class="flex items-center space-x-4">
+                    <a href="@Url.Action("Index")" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Chỉnh sửa tin tức</h1>
+                        <p class="text-sm text-gray-600">Cập nhật thông tin tin tức</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data" class="space-y-6">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="TinTucId" />
+            <input type="hidden" asp-for="CurrentAnhDaiDien" />
+            
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="p-6 space-y-6">
+                    <!-- Tiêu đề -->
+                    <div>
+                        <label asp-for="TieuDe" class="block text-sm font-medium text-gray-700 mb-2">
+                            Tiêu đề <span class="text-red-500">*</span>
+                        </label>
+                        <input asp-for="TieuDe" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        <span asp-validation-for="TieuDe" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Mô tả ngắn -->
+                    <div>
+                        <label asp-for="MoTaNgan" class="block text-sm font-medium text-gray-700 mb-2">
+                            Mô tả ngắn <span class="text-red-500">*</span>
+                        </label>
+                        <textarea asp-for="MoTaNgan" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                        <span asp-validation-for="MoTaNgan" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Ảnh đại diện -->
+                    <div>
+                        <label asp-for="AnhDaiDien" class="block text-sm font-medium text-gray-700 mb-2">
+                            Ảnh đại diện
+                        </label>
+                        
+                        <!-- Current Image Display -->
+                        @if (!string.IsNullOrEmpty(Model.CurrentAnhDaiDien))
+                        {
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-600 mb-2">Ảnh hiện tại:</p>
+                                <div class="relative inline-block">
+                                    <img src="@Model.CurrentAnhDaiDien" alt="Current image" class="h-48 w-auto rounded-lg shadow-md" />
+                                    <div class="mt-2">
+                                        <label class="inline-flex items-center">
+                                            <input type="checkbox" asp-for="RemoveImage" class="rounded border-gray-300 text-red-600 shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
+                                            <span class="ml-2 text-sm text-red-600">Xóa ảnh hiện tại</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        <div class="mt-1 flex items-center">
+                            <div class="flex-1">
+                                <input asp-for="AnhDaiDien" type="file" accept="image/*" class="hidden" id="imageInput" onchange="previewImage(event)" />
+                                <label for="imageInput" class="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    Chọn ảnh mới
+                                </label>
+                            </div>
+                        </div>
+                        <div id="imagePreview" class="mt-4 hidden">
+                            <p class="text-sm text-gray-600 mb-2">Ảnh mới:</p>
+                            <img id="preview" class="h-48 w-auto rounded-lg shadow-md" />
+                        </div>
+                    </div>
+
+                    <!-- Nội dung với CKEditor -->
+                    <div>
+                        <label asp-for="NoiDung" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nội dung <span class="text-red-500">*</span>
+                        </label>
+                        <textarea asp-for="NoiDung" id="ckeditor-content" rows="10">@Model.NoiDung</textarea>
+                        <span asp-validation-for="NoiDung" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Trạng thái -->
+                        <div>
+                            <label asp-for="TrangThai" class="block text-sm font-medium text-gray-700 mb-2">
+                                Trạng thái
+                            </label>
+                            <select asp-for="TrangThai" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                @foreach (var option in (List<SelectListItem>)ViewBag.TrangThaiOptions)
+                                {
+                                    <option value="@option.Value" selected="@(Model.TrangThai == option.Value)">@option.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Ngày xuất bản -->
+                        <div>
+                            <label asp-for="NgayXuatBan" class="block text-sm font-medium text-gray-700 mb-2">
+                                Ngày xuất bản
+                            </label>
+                            <input asp-for="NgayXuatBan" type="datetime-local" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                        </div>
+                    </div>
+
+                    <!-- Tin nổi bật -->
+                    <div class="flex items-center">
+                        <input asp-for="NoiBat" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                        <label asp-for="NoiBat" class="ml-2 block text-sm text-gray-900">
+                            Đánh dấu là tin tức nổi bật
+                        </label>
+                    </div>
+
+                    <!-- SEO Section -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4">SEO & Meta Tags</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Meta Title -->
+                            <div>
+                                <label asp-for="MetaTitle" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Meta Title
+                                </label>
+                                <input asp-for="MetaTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="Nếu để trống sẽ lấy tiêu đề chính" />
+                            </div>
+
+                            <!-- Meta Description -->
+                            <div>
+                                <label asp-for="MetaDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Meta Description
+                                </label>
+                                <textarea asp-for="MetaDescription" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                          placeholder="Nếu để trống sẽ lấy mô tả ngắn"></textarea>
+                            </div>
+
+                            <!-- Meta Keywords -->
+                            <div>
+                                <label asp-for="MetaKeywords" class="block text-sm font-medium text-gray-700 mb-2">
+                                    Meta Keywords
+                                </label>
+                                <input asp-for="MetaKeywords" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="Các từ khóa cách nhau bởi dấu phẩy" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                    <div class="flex justify-end space-x-3">
+                        <a href="@Url.Action("Index")" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Hủy
+                        </a>
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Cập nhật tin tức
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
+    <script>
+        // Initialize CKEditor
+        ClassicEditor
+            .create(document.querySelector('#ckeditor-content'), {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'link', '|',
+                        'bulletedList', 'numberedList', '|',
+                        'outdent', 'indent', '|',
+                        'imageUpload', 'blockQuote', 'insertTable', '|',
+                        'undo', 'redo'
+                    ]
+                },
+                language: 'vi',
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:full',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+        // Image preview
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview').src = e.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Handle remove image checkbox
+        document.getElementById('RemoveImage')?.addEventListener('change', function() {
+            if (this.checked) {
+                document.querySelector('.relative.inline-block img')?.classList.add('opacity-50');
+            } else {
+                document.querySelector('.relative.inline-block img')?.classList.remove('opacity-50');
+            }
+        });
+    </script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

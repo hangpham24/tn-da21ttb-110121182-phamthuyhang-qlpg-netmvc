@@ -1,0 +1,284 @@
+@model IEnumerable<GymManagement.Web.Models.DTOs.GoiTapDto>
+@{
+    ViewData["Title"] = "Quản lý gói tập";
+    Layout = "_Layout";
+}
+
+<!-- Hidden antiforgery token for AJAX requests -->
+@Html.AntiForgeryToken()
+
+<div class="p-6">
+    <!-- Simple Header -->
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">💳 Quản lý gói tập</h1>
+            <p class="text-gray-600">Quản lý các gói tập của phòng gym</p>
+        </div>
+        @if (User.IsInRole("Admin"))
+        {
+            <a href="@Url.Action("Create")" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                ➕ Thêm gói tập mới
+            </a>
+        }
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+                <input type="text" id="searchInput" placeholder="Nhập tên gói..."
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+            <div>
+                <label for="priceFilter" class="block text-sm font-medium text-gray-700 mb-2">Khoảng giá</label>
+                <select id="priceFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả</option>
+                    <option value="0-500000">Dưới 500K</option>
+                    <option value="500000-1000000">500K - 1M</option>
+                    <option value="1000000-2000000">1M - 2M</option>
+                    <option value="2000000-999999999">Trên 2M</option>
+                </select>
+            </div>
+            <div>
+                <label for="durationFilter" class="block text-sm font-medium text-gray-700 mb-2">Thời hạn</label>
+                <select id="durationFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả</option>
+                    <option value="1">1 tháng</option>
+                    <option value="3">3 tháng</option>
+                    <option value="6">6 tháng</option>
+                    <option value="12">12 tháng</option>
+                </select>
+            </div>
+            <div>
+                <label for="statusFilter" class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                <select id="statusFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Tất cả</option>
+                    <option value="ACTIVE">Hoạt động</option>
+                    <option value="INACTIVE">Tạm dừng</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Packages Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="packagesGrid">
+            @foreach (var goiTap in Model)
+            {
+                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow package-card"
+                     data-name="@goiTap.TenGoi.ToLower()"
+                     data-price="@goiTap.Gia"
+                     data-duration="@goiTap.ThoiHanThang"
+                     data-status="@goiTap.TrangThai">
+                    
+                    <!-- Package Header -->
+                    <div class="bg-blue-600 p-6 text-white">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold">@goiTap.TenGoi</h3>
+                            <span class="px-3 py-1 text-xs rounded-full @(goiTap.TrangThai == "ACTIVE" ? "bg-green-500" : "bg-gray-500")">
+                                @(goiTap.TrangThai == "ACTIVE" ? "Hoạt động" : "Tạm dừng")
+                            </span>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold mb-1">@goiTap.Gia.ToString("N0")</div>
+                            <div class="text-sm opacity-90">VNĐ / @goiTap.ThoiHanThang tháng</div>
+                        </div>
+                    </div>
+
+                    <!-- Package Details -->
+                    <div class="p-6">
+                        <div class="space-y-3 mb-6">
+                            <!-- Duration -->
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span>Thời hạn: @goiTap.ThoiHanThang tháng</span>
+                            </div>
+
+                            <!-- Sessions -->
+                            @if (goiTap.SoBuoiToiDa.HasValue)
+                            {
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-4 h-4 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span>Số buổi: @goiTap.SoBuoiToiDa buổi</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-4 h-4 mr-3 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                    <span>Không giới hạn buổi</span>
+                                </div>
+                            }
+
+                            <!-- Registrations -->
+                            @if (goiTap.SoLuongDangKy.HasValue)
+                            {
+                                <div class="flex items-center text-gray-600">
+                                    <svg class="w-4 h-4 mr-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    <span>Đã đăng ký: @goiTap.SoLuongDangKy người</span>
+                                </div>
+                            }
+
+                            <!-- Description -->
+                            @if (!string.IsNullOrEmpty(goiTap.MoTa))
+                            {
+                                <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                                    <p>@goiTap.MoTa</p>
+                                </div>
+                            }
+
+                            <!-- Special Offer -->
+                            @if (!string.IsNullOrEmpty(goiTap.UuDaiDacBiet))
+                            {
+                                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                                    <div class="flex items-center">
+                                        <svg class="w-4 h-4 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium text-yellow-800">@goiTap.UuDaiDacBiet</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3">
+                            <a href="@Url.Action("Details", new { id = goiTap.GoiTapId })"
+                               class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-xl text-sm font-semibold text-center transition-all duration-200 hover:shadow-md">
+                                <div class="flex items-center justify-center space-x-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                    <span>Chi tiết</span>
+                                </div>
+                            </a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a href="@Url.Action("Edit", new { id = goiTap.GoiTapId })"
+                                   class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl text-sm font-semibold text-center transition-all duration-200 hover:shadow-md">
+                                    <div class="flex items-center justify-center space-x-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                        <span>Sửa</span>
+                                    </div>
+                                </a>
+                                <button type="button" onclick="deletePackage(@goiTap.GoiTapId, '@goiTap.TenGoi')"
+                                        class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl text-sm font-semibold text-center transition-all duration-200 hover:shadow-md">
+                                    <div class="flex items-center justify-center space-x-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                        <span>Xóa</span>
+                                    </div>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="bg-white rounded-2xl shadow-xl p-16 text-center">
+                <div class="bg-blue-50 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-3">Chưa có gói tập nào</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">Hệ thống chưa có gói tập nào. Hãy tạo gói tập đầu tiên để bắt đầu quản lý.</p>
+                @if (User.IsInRole("Admin"))
+                {
+                    <a href="@Url.Action("Create")" class="inline-flex items-center space-x-2 px-8 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl font-semibold">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span>Tạo gói tập đầu tiên</span>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Search and filter functionality
+        document.getElementById('searchInput').addEventListener('input', filterPackages);
+        document.getElementById('priceFilter').addEventListener('change', filterPackages);
+        document.getElementById('durationFilter').addEventListener('change', filterPackages);
+        document.getElementById('statusFilter').addEventListener('change', filterPackages);
+
+        function filterPackages() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const priceRange = document.getElementById('priceFilter').value;
+            const duration = document.getElementById('durationFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            const packageCards = document.querySelectorAll('.package-card');
+
+            packageCards.forEach(card => {
+                const name = card.getAttribute('data-name');
+                const price = parseFloat(card.getAttribute('data-price'));
+                const cardDuration = card.getAttribute('data-duration');
+                const cardStatus = card.getAttribute('data-status');
+                
+                let show = true;
+                
+                // Search filter
+                if (searchTerm && !name.includes(searchTerm)) {
+                    show = false;
+                }
+                
+                // Price filter
+                if (priceRange && show) {
+                    const [minPrice, maxPrice] = priceRange.split('-').map(Number);
+                    if (price < minPrice || price > maxPrice) {
+                        show = false;
+                    }
+                }
+                
+                // Duration filter
+                if (duration && show && cardDuration !== duration) {
+                    show = false;
+                }
+                
+                // Status filter
+                if (status && show && cardStatus !== status) {
+                    show = false;
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        // Delete package function
+        function deletePackage(packageId, packageName) {
+            confirmDelete({
+                url: '@Url.Action("DeleteConfirmed")' + '?id=' + packageId,
+                itemName: packageName,
+                itemType: 'gói tập',
+                onSuccess: function(data) {
+                    location.reload();
+                },
+                onError: function(error) {
+                    showNotification('Có lỗi xảy ra khi xóa gói tập.', 'error');
+                }
+            });
+        }
+    </script>
+}

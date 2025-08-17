@@ -1,0 +1,1201 @@
+@{
+    ViewData["Title"] = "Reception Check-in Station";
+    Layout = "_Layout";
+}
+
+@* CSRF Token for AJAX requests *@
+<form id="csrfForm" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">🏋️ Reception Check-in Station</h1>
+                <p class="text-gray-600 mt-2">Hệ thống check-in tự động bằng nhận diện khuôn mặt</p>
+            </div>
+            <div class="flex space-x-3">
+                <div class="bg-white rounded-lg shadow-md px-4 py-2">
+                    <div class="text-sm text-gray-600">Trạng thái hệ thống</div>
+                    <div id="systemStatus" class="text-lg font-bold text-yellow-600">Đang khởi tạo...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    👥
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Hôm nay</p>
+                    <p class="text-2xl font-bold text-gray-900" id="todayCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    🏃
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Đang tập</p>
+                    <p class="text-2xl font-bold text-gray-900" id="currentCount">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    📊
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Tỷ lệ thành công</p>
+                    <p class="text-2xl font-bold text-gray-900" id="successRate">0%</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    🕐
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Cập nhật cuối</p>
+                    <p class="text-2xl font-bold text-gray-900" id="lastUpdate">--:--</p>
+                </div>
+            </div>
+        </div>
+    </div> *@
+
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-lg shadow-md mb-8">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                <button id="faceIdTab" class="tab-button active border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" onclick="switchTab('faceId')">
+                    🔍 FaceID
+                </button>
+                <button id="walkInTab" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" onclick="switchTab('walkIn')">
+                    🚶 Khách Vãng Lai
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div id="faceIdContent" class="tab-content active">
+        <!-- Face Recognition Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">🔍 Face Recognition Test</h2>
+            
+            <!-- Camera Section -->
+            <div class="mb-4">
+                <div class="relative bg-gray-100 rounded-lg overflow-hidden" style="height: 300px;">
+                    <video id="recognizeVideo" class="w-full h-full object-cover" autoplay muted></video>
+                    <canvas id="recognizeCanvas" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                    
+                    <!-- Status Overlay -->
+                    <div class="absolute bottom-4 left-4 right-4">
+                        <div class="bg-black bg-opacity-75 text-white px-3 py-2 rounded-lg text-sm">
+                            <div id="recognizeCameraStatus">📷 Camera not started</div>
+                            <div id="recognizeFaceStatus">👁️ No face detected</div>
+                            <div id="recognizeConfidenceStatus">🎯 Confidence: N/A</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex space-x-3 mb-4">
+                <button id="startRecognizeCameraBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    📷 Start Camera
+                </button>
+                <button id="stopRecognizeCameraBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    ⏹️ Stop Camera
+                </button>
+            </div>
+
+            <button id="recognizeButton" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors" disabled>
+                🔍 Recognize Face
+            </button>
+
+            <!-- Results -->
+            <div id="recognizeResults" class="mt-4 hidden">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-medium text-gray-900 mb-2">Recognition Results:</h3>
+                    <div id="recognizeResultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Walk-in Tab Content -->
+    <div id="walkInContent" class="tab-content hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Walk-in Registration Form -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">🚶 Đăng Ký Khách Vãng Lai</h2>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Họ và tên *</label>
+                        <input type="text" id="guestName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Nguyễn Văn A">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại *</label>
+                        <input type="tel" id="guestPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0123456789">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email (tùy chọn)</label>
+                        <input type="email" id="guestEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="example@email.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Ghi chú</label>
+                        <textarea id="guestNote" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ghi chú thêm..."></textarea>
+                    </div>
+
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-blue-800">Vé tập một buổi</span>
+                            <span class="text-lg font-bold text-blue-900">50,000 VNĐ</span>
+                        </div>
+                        <p class="text-xs text-blue-600">Bao gồm: Sử dụng thiết bị, phòng tập, khăn tắm</p>
+                    </div>
+
+                    <button id="walkInCheckInBtn" class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                        🚶 Đăng Ký & Check-in
+                    </button>
+                </div>
+            </div>
+
+            <!-- Walk-in Statistics & Recent -->
+            <div class="space-y-6">
+                <!-- Today's Walk-ins -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">📊 Khách Vãng Lai Hôm Nay</h3>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600" id="todayWalkIns">0</div>
+                            <div class="text-sm text-gray-600">Đã đăng ký</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="todayWalkInRevenue">0</div>
+                            <div class="text-sm text-gray-600">Doanh thu (VNĐ)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Walk-ins -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">🕐 Khách Vãng Lai Gần Đây</h3>
+
+                    <div id="recentWalkIns" class="space-y-3">
+                        <div class="text-center text-gray-500 py-8">
+                            <div class="text-4xl mb-2">🚶</div>
+                            <p>Chưa có khách vãng lai nào hôm nay</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Check-in Results -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">📋 Kết Quả Check-in</h3>
+                    <div id="checkInResults" class="space-y-3">
+                        <div class="text-center text-gray-500 py-8">
+                            <div class="text-4xl mb-2">📝</div>
+                            <p>Chưa có hoạt động check-in nào</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        /* Tab Styles */
+        .tab-button {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .tab-button.active {
+            color: #3B82F6;
+            border-color: #3B82F6;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Animation for tab switching */
+        .tab-content.active {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Debug: Check if script is loading
+        console.log('🚀 Reception Station JavaScript is loading...');
+
+        // Tab Management Functions
+        function switchTab(tabName) {
+            console.log('🔄 Switching to tab:', tabName);
+
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                content.classList.add('hidden');
+            });
+
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+
+            // Show selected tab content
+            const targetContent = document.getElementById(tabName + 'Content');
+            const targetButton = document.getElementById(tabName + 'Tab');
+
+            if (targetContent && targetButton) {
+                targetContent.classList.add('active');
+                targetContent.classList.remove('hidden');
+                targetButton.classList.add('active');
+
+                console.log('✅ Tab switched to:', tabName);
+
+                // Special handling for FaceID tab
+                if (tabName === 'faceId') {
+                    // Initialize face recognition if needed
+                    initializeFaceRecognition();
+                } else if (tabName === 'walkIn') {
+                    // Load walk-in statistics
+                    loadWalkInStats();
+                }
+            } else {
+                console.error('❌ Tab elements not found:', tabName);
+            }
+        }
+
+        function initializeFaceRecognition() {
+            console.log('🔍 Initializing face recognition...');
+            // Face recognition initialization will be handled by existing code
+        }
+
+        function loadWalkInStats() {
+            console.log('📊 Loading walk-in statistics...');
+            // Load today's walk-in statistics
+            loadTodayWalkInStats();
+            loadRecentWalkIns();
+        }
+
+        async function loadTodayWalkInStats() {
+            try {
+                // This would call an API to get today's walk-in stats
+                // For now, we'll use placeholder data
+                document.getElementById('todayWalkIns').textContent = '0';
+                document.getElementById('todayWalkInRevenue').textContent = '0';
+            } catch (error) {
+                console.error('❌ Error loading walk-in stats:', error);
+            }
+        }
+
+        async function loadRecentWalkIns() {
+            try {
+                // This would call an API to get recent walk-ins
+                // For now, we'll show placeholder
+                const recentContainer = document.getElementById('recentWalkIns');
+                recentContainer.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <div class="text-4xl mb-2">🚶</div>
+                        <p>Chưa có khách vãng lai nào hôm nay</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('❌ Error loading recent walk-ins:', error);
+            }
+        }
+
+        // Global variables
+        let video = null;
+        let canvas = null;
+        let ctx = null;
+        let isModelLoaded = false;
+        let isCameraRunning = false;
+        let recognitionInterval = null;
+        let lastRecognitionTime = 0;
+        let recognitionCooldown = 3000; // 3 seconds cooldown
+
+        // DOM elements (học theo FaceTest)
+        let recognizeVideo, recognizeCanvas;
+        let startRecognizeCameraBtn, stopRecognizeCameraBtn, recognizeButton;
+        let recognizeCameraStatus, recognizeFaceStatus, recognizeConfidenceStatus, systemStatus;
+        let recognizeResults, recognizeResultContent;
+        let currentRecognizeDescriptor = null;
+
+        // Statistics elements (may not exist in all tabs)
+        const todayCount = document.getElementById('todayCount');
+        const currentCount = document.getElementById('currentCount');
+        const successRate = document.getElementById('successRate');
+        const lastUpdate = document.getElementById('lastUpdate');
+
+        // Manual check-in elements (may not exist in all tabs)
+        const memberSearch = document.getElementById('memberSearch');
+        const memberSearchResults = document.getElementById('memberSearchResults');
+        const manualCheckInBtn = document.getElementById('manualCheckInBtn');
+
+        // Walk-in elements
+        const guestName = document.getElementById('guestName');
+        const guestPhone = document.getElementById('guestPhone');
+        const walkInCheckInBtn = document.getElementById('walkInCheckInBtn');
+
+        // Check-in results
+        const checkInResults = document.getElementById('checkInResults');
+
+        // Debug: Log element availability
+        console.log('🔍 Element availability check:', {
+            guestName: !!guestName,
+            guestPhone: !!guestPhone,
+            walkInCheckInBtn: !!walkInCheckInBtn,
+            checkInResults: !!checkInResults,
+            todayCount: !!todayCount,
+            currentCount: !!currentCount
+        });
+
+        // Initialize when page loads (học theo FaceTest)
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🎯 DOM Content Loaded - Initializing Reception Station...');
+
+            // Initialize DOM elements (học theo FaceTest)
+            recognizeVideo = document.getElementById('recognizeVideo');
+            recognizeCanvas = document.getElementById('recognizeCanvas');
+            startRecognizeCameraBtn = document.getElementById('startRecognizeCameraBtn');
+            stopRecognizeCameraBtn = document.getElementById('stopRecognizeCameraBtn');
+            recognizeButton = document.getElementById('recognizeButton');
+            recognizeCameraStatus = document.getElementById('recognizeCameraStatus');
+            recognizeFaceStatus = document.getElementById('recognizeFaceStatus');
+            recognizeConfidenceStatus = document.getElementById('recognizeConfidenceStatus');
+            systemStatus = document.getElementById('systemStatus');
+            recognizeResults = document.getElementById('recognizeResults');
+            recognizeResultContent = document.getElementById('recognizeResultContent');
+
+            // Load Face-API models
+            await loadModels();
+
+            // Setup event listeners
+            setupEventListeners();
+
+            // Load initial statistics
+            loadStatistics();
+
+            // Update last update time
+            updateLastUpdateTime();
+
+            console.log('✅ Reception Station initialized successfully');
+        });
+
+        // Load Face-API models using global manager
+        async function loadModels() {
+            try {
+                systemStatus.textContent = 'Đang kiểm tra models...';
+                systemStatus.className = 'text-lg font-bold text-yellow-600';
+
+                console.log('🔍 Checking global Face-API models...');
+
+                // Use global models manager
+                if (window.FaceAPIGlobal) {
+                    if (window.FaceAPIGlobal.isReady()) {
+                        console.log('✅ Global Face-API models already ready!');
+                        isModelLoaded = true;
+                        systemStatus.textContent = 'Sẵn sàng';
+                        systemStatus.className = 'text-lg font-bold text-green-600';
+                        return;
+                    }
+
+                    console.log('⏳ Waiting for global Face-API models...');
+                    systemStatus.textContent = 'Đang chờ models...';
+
+                    await window.FaceAPIGlobal.waitForModels(30000);
+
+                    isModelLoaded = true;
+                    systemStatus.textContent = 'Sẵn sàng';
+                    systemStatus.className = 'text-lg font-bold text-green-600';
+
+                    console.log('✅ Global Face-API models ready for Reception Station');
+                } else {
+                    throw new Error('Global Face-API manager not available');
+                }
+            } catch (error) {
+                console.error('❌ Error loading models:', error);
+                systemStatus.textContent = 'Lỗi tải models';
+                systemStatus.className = 'text-lg font-bold text-red-600';
+
+                // Fallback: try to load models locally
+                console.log('🔄 Attempting fallback model loading...');
+                await loadModelsFallback();
+            }
+        }
+
+        // Fallback method to load models locally if global loading fails
+        async function loadModelsFallback() {
+            try {
+                systemStatus.textContent = 'Đang tải models (fallback)...';
+                systemStatus.className = 'text-lg font-bold text-yellow-600';
+
+                const baseUrl = window.location.origin;
+                const modelsPath = `${baseUrl}/FaceTest/models`;
+
+                console.log('📦 Fallback loading models from:', modelsPath);
+
+                await faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(modelsPath);
+
+                isModelLoaded = true;
+                systemStatus.textContent = 'Sẵn sàng (fallback)';
+                systemStatus.className = 'text-lg font-bold text-green-600';
+
+                console.log('✅ Fallback models loaded successfully');
+            } catch (error) {
+                console.error('❌ Fallback model loading failed:', error);
+                systemStatus.textContent = 'Lỗi tải models';
+                systemStatus.className = 'text-lg font-bold text-red-600';
+            }
+        }
+
+        // Setup event listeners (học theo FaceTest)
+        function setupEventListeners() {
+            // Face Recognition buttons (học theo FaceTest)
+            startRecognizeCameraBtn.addEventListener('click', startRecognizeCamera);
+            stopRecognizeCameraBtn.addEventListener('click', stopRecognizeCamera);
+            recognizeButton.addEventListener('click', testRecognizeFace);
+
+            // Member search
+            if (memberSearch) memberSearch.addEventListener('input', debounce(searchMembers, 300));
+            if (manualCheckInBtn) manualCheckInBtn.addEventListener('click', performManualCheckIn);
+
+            // Walk-in registration
+            if (walkInCheckInBtn) walkInCheckInBtn.addEventListener('click', registerWalkIn);
+
+            console.log('✅ Event listeners setup completed');
+        }
+
+        // Start camera (học theo FaceTest)
+        async function startRecognizeCamera() {
+            try {
+                // Check HTTPS requirement
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                    showError('Camera requires HTTPS connection. Please use HTTPS URL.');
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    showError('AI models not loaded yet. Please wait.');
+                    return;
+                }
+
+                // Check if getUserMedia is available
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    showError('Camera not supported in this browser.');
+                    return;
+                }
+
+                console.log('Requesting camera access for recognition...');
+                recognizeStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                });
+
+                recognizeVideo.srcObject = recognizeStream;
+                updateStatus('recognizeCameraStatus', '📷 Camera running');
+
+                // Start face detection
+                startRecognizeDetection();
+
+                console.log('✅ Recognition camera started successfully');
+            } catch (error) {
+                console.error('Recognition camera error:', error);
+                updateStatus('recognizeCameraStatus', '📷 Camera error');
+                showError('Failed to access camera. Please check permissions.');
+            }
+        }
+
+        // Stop camera (học theo FaceTest)
+        async function stopRecognizeCamera() {
+            if (recognizeStream) {
+                recognizeStream.getTracks().forEach(track => track.stop());
+                recognizeStream = null;
+            }
+            if (recognizeDetectionInterval) {
+                clearInterval(recognizeDetectionInterval);
+                recognizeDetectionInterval = null;
+            }
+            updateStatus('recognizeCameraStatus', '📷 Camera stopped');
+            updateStatus('recognizeFaceStatus', '👁️ No face detected');
+            updateStatus('recognizeConfidenceStatus', '🎯 Confidence: N/A');
+            recognizeButton.disabled = true;
+        }
+
+        // Helper functions (học theo FaceTest)
+        function updateStatus(elementId, text) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = text;
+            }
+        }
+
+        function showError(message) {
+            console.error('❌ Error:', message);
+            alert(message);
+        }
+
+        function showSuccess(message) {
+            console.log('✅ Success:', message);
+        }
+
+        function showWarning(message) {
+            console.warn('⚠️ Warning:', message);
+        }
+
+        function clearCanvas(canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawFaceBox(canvas, box) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(box.x, box.y, box.width, box.height);
+        }
+
+        // Face Detection Functions (học theo FaceTest)
+        function startRecognizeDetection() {
+            console.log('🔍 Starting recognize detection...');
+            console.log('📹 Video dimensions:', recognizeVideo.videoWidth, 'x', recognizeVideo.videoHeight);
+            console.log('🤖 Models loaded:', isModelLoaded);
+
+            recognizeDetectionInterval = setInterval(async () => {
+                if (!recognizeVideo.videoWidth || !recognizeVideo.videoHeight) {
+                    console.log('⚠️ Video not ready:', recognizeVideo.videoWidth, recognizeVideo.videoHeight);
+                    return;
+                }
+
+                if (!isModelLoaded) {
+                    console.log('⚠️ Models not loaded yet');
+                    updateStatus('recognizeFaceStatus', '🔄 Loading models...');
+                    return;
+                }
+
+                try {
+                    console.log('🔍 Attempting face detection...');
+                    console.log('📹 Video element:', recognizeVideo);
+                    console.log('📹 Video ready state:', recognizeVideo.readyState);
+                    console.log('📹 Video dimensions:', recognizeVideo.videoWidth, 'x', recognizeVideo.videoHeight);
+
+                    // Check if Face-API.js is available
+                    if (typeof faceapi === 'undefined') {
+                        throw new Error('Face-API.js is not loaded');
+                    }
+
+                    // Detect face with landmarks and descriptor
+                    const detection = await faceapi
+                        .detectSingleFace(recognizeVideo, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
+
+                    if (detection) {
+                        updateStatus('recognizeFaceStatus', '✅ Face detected');
+                        currentRecognizeDescriptor = detection.descriptor;
+                        recognizeButton.disabled = false;
+
+                        // Draw face box
+                        drawFaceBox(recognizeCanvas, detection.detection.box);
+                    } else {
+                        updateStatus('recognizeFaceStatus', '👁️ Searching for face...');
+                        updateStatus('recognizeConfidenceStatus', '🎯 Confidence: N/A');
+                        currentRecognizeDescriptor = null;
+                        recognizeButton.disabled = true;
+                        clearCanvas(recognizeCanvas);
+                    }
+                } catch (error) {
+                    console.error('Recognize detection error:', error);
+                }
+            }, 500);
+        }
+
+        // Test Functions (học theo FaceTest)
+        async function testRecognizeFace() {
+            if (!currentRecognizeDescriptor) {
+                showError('No face detected. Please ensure your face is visible.');
+                return;
+            }
+
+            console.log('🔍 Testing face recognition...');
+
+            try {
+                const response = await fetch('/FaceTest/TestRecognizeFace', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        descriptor: Array.from(currentRecognizeDescriptor)
+                    })
+                });
+
+                const result = await response.json();
+
+                // Show results
+                showRecognizeResults(result);
+
+                // Update confidence status
+                if (result.success) {
+                    updateStatus('recognizeConfidenceStatus', `🎯 Confidence: ${(result.confidence * 100).toFixed(1)}%`);
+                    showSuccess(`Recognized: ${result.memberName}`);
+
+                    // Perform auto check-in for Reception Station
+                    await performReceptionCheckIn(result);
+                } else {
+                    updateStatus('recognizeConfidenceStatus', `🎯 Confidence: ${(result.confidence * 100).toFixed(1)}% (Below threshold)`);
+                    showWarning(result.message);
+                }
+
+            } catch (error) {
+                console.error('Error recognizing face:', error);
+                showError('Network error occurred.');
+            }
+        }
+
+        // Show results function (học theo FaceTest)
+        function showRecognizeResults(result) {
+            const resultsDiv = recognizeResults;
+            const contentDiv = recognizeResultContent;
+
+            contentDiv.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Status:</span>
+                        <span class="${result.success ? 'text-green-600' : 'text-red-600'}">${result.success ? 'Recognized' : 'Not Recognized'}</span>
+                    </div>
+                    ${result.success ? `
+                    <div class="flex justify-between">
+                        <span class="font-medium">Member:</span>
+                        <span class="text-gray-700">${result.memberName}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Member ID:</span>
+                        <span class="text-gray-700">${result.memberId}</span>
+                    </div>
+                    ` : ''}
+                    <div class="flex justify-between">
+                        <span class="font-medium">Confidence:</span>
+                        <span class="text-gray-700">${(result.confidence * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Processing Time:</span>
+                        <span class="text-gray-700">${result.processingTime || 0}ms</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Timestamp:</span>
+                        <span class="text-gray-700">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        // Reception-specific check-in function
+        async function performReceptionCheckIn(recognitionResult) {
+            try {
+                console.log('🏃‍♂️ Performing reception check-in for:', recognitionResult.memberName);
+
+                // Call Reception AutoCheckIn API with face descriptor
+                const response = await fetch('/Reception/AutoCheckIn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        descriptor: Array.from(currentRecognizeDescriptor)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ Check-in successful:', result);
+                    showCheckInResult({
+                        fullName: recognitionResult.memberName,
+                        id: recognitionResult.memberId
+                    }, result.action || 'check-in', recognitionResult.confidence, 'auto');
+
+                    // Refresh statistics
+                    loadStatistics();
+                } else {
+                    console.log('❌ Check-in failed:', result.message);
+                    showError(result.message || 'Check-in failed');
+                }
+            } catch (error) {
+                console.error('❌ Reception check-in error:', error);
+                showError('Check-in system error');
+            }
+        }
+
+        // Start continuous recognition
+        function startContinuousRecognition() {
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+            }
+
+            recognitionInterval = setInterval(async () => {
+                if (isCameraRunning && isModelLoaded && video.readyState === 4) {
+                    const now = Date.now();
+                    if (now - lastRecognitionTime >= recognitionCooldown) {
+                        await performRecognition();
+                        lastRecognitionTime = now;
+                    }
+                }
+            }, 1000); // Check every second
+        }
+
+        // Perform face recognition
+        async function performRecognition() {
+            try {
+                if (!isModelLoaded || !isCameraRunning) {
+                    return;
+                }
+
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors();
+
+                // Clear previous drawings
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (detections.length > 0) {
+                    faceStatus.textContent = `👁️ ${detections.length} face(s) detected`;
+
+                    // Draw face detection boxes
+                    const resizedDetections = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+                    faceapi.draw.drawDetections(canvas, resizedDetections);
+                    faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+                    // Get the best detection (largest face)
+                    const bestDetection = detections.reduce((prev, current) =>
+                        (prev.detection.box.area > current.detection.box.area) ? prev : current
+                    );
+
+                    const confidence = Math.round(bestDetection.detection.score * 100);
+                    confidenceStatus.textContent = `🎯 Confidence: ${confidence}%`;
+
+                    // If confidence is high enough, try to recognize
+                    if (confidence >= 70) {
+                        await recognizeAndCheckIn(bestDetection.descriptor);
+                    }
+                } else {
+                    faceStatus.textContent = '👁️ No face detected';
+                    confidenceStatus.textContent = '🎯 Confidence: N/A';
+                }
+            } catch (error) {
+                console.error('❌ Recognition error:', error);
+            }
+        }
+
+        // Manual recognition trigger
+        async function recognizeFace() {
+            console.log('🔍 Manual face recognition triggered');
+            await performRecognition();
+        }
+
+        // Recognize face and perform check-in
+        async function recognizeAndCheckIn(faceDescriptor) {
+            try {
+                console.log('🔍 Attempting to recognize face...');
+
+                // Gửi trực tiếp face descriptor đến AutoCheckIn API
+                const response = await fetch('/Reception/AutoCheckIn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        descriptor: Array.from(faceDescriptor)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('✅ Face recognized and checked in:', result.memberName || result.member?.fullName);
+
+                    // Hiển thị kết quả check-in
+                    showCheckInResult(
+                        {
+                            fullName: result.memberName || result.member?.fullName || 'Unknown',
+                            id: result.memberId || result.member?.id
+                        },
+                        result.action || 'check-in',
+                        result.confidence || 0.8,
+                        'auto'
+                    );
+
+                    loadStatistics(); // Refresh statistics
+                } else {
+                    console.log('❌ Face recognition or check-in failed:', result.message);
+                    showRecognitionResult(result.message || 'Không nhận diện được khuôn mặt', 'warning');
+                }
+            } catch (error) {
+                console.error('❌ Recognition API error:', error);
+                showRecognitionResult('Lỗi kết nối API', 'error');
+            }
+        }
+
+        // Show check-in result
+        function showCheckInResult(member, action, confidence, type) {
+            console.log('📋 Showing check-in result:', { member, action, confidence, type });
+
+            // Check if checkInResults element exists
+            if (!checkInResults) {
+                console.log('⚠️ checkInResults element not found, skipping display');
+                return;
+            }
+
+            const resultHtml = `
+                <div class="border-l-4 ${action === 'checkin' ? 'border-green-500 bg-green-50' : 'border-blue-500 bg-blue-50'} p-4 mb-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                ${action === 'checkin' ? '✅' : '🚪'}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium ${action === 'checkin' ? 'text-green-800' : 'text-blue-800'}">
+                                    ${member.fullName}
+                                </p>
+                                <p class="text-sm ${action === 'checkin' ? 'text-green-600' : 'text-blue-600'}">
+                                    ${action === 'checkin' ? 'Check-in thành công' : 'Check-out thành công'}
+                                    (${type === 'auto' ? 'Tự động' : type === 'walk-in' ? 'Khách vãng lai' : 'Thủ công'})
+                                </p>
+                                <p class="text-xs text-gray-500">
+                                    Độ tin cậy: ${Math.round(confidence)}% • ${new Date().toLocaleTimeString('vi-VN')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                // Add to results (prepend to show latest first)
+                if (checkInResults.querySelector('.text-center')) {
+                    checkInResults.innerHTML = resultHtml;
+                } else {
+                    checkInResults.insertAdjacentHTML('afterbegin', resultHtml);
+                }
+
+                // Keep only last 10 results
+                const results = checkInResults.querySelectorAll('.border-l-4');
+                if (results.length > 10) {
+                    results[results.length - 1].remove();
+                }
+
+                console.log('✅ Check-in result displayed successfully');
+            } catch (error) {
+                console.error('❌ Error displaying check-in result:', error);
+            }
+        }
+
+        // Show recognition result
+        function showRecognitionResult(message, type) {
+            const alertClass = type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
+                              type === 'warning' ? 'bg-yellow-50 border-yellow-200 text-yellow-800' :
+                              'bg-blue-50 border-blue-200 text-blue-800';
+
+            recognizeResultContent.innerHTML = `
+                <div class="border rounded-lg p-3 ${alertClass}">
+                    <p class="text-sm font-medium">${message}</p>
+                    <p class="text-xs mt-1">${new Date().toLocaleTimeString('vi-VN')}</p>
+                </div>
+            `;
+
+            recognizeResults.classList.remove('hidden');
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                recognizeResults.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Search members
+        async function searchMembers() {
+            const query = memberSearch.value.trim();
+
+            if (query.length < 2) {
+                memberSearchResults.classList.add('hidden');
+                manualCheckInBtn.disabled = true;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Reception/GetMembers`);
+                const allMembers = await response.json();
+
+                // Filter members by query
+                const members = allMembers.filter(member =>
+                    member.fullName.toLowerCase().includes(query.toLowerCase()) ||
+                    member.email.toLowerCase().includes(query.toLowerCase())
+                );
+
+                if (members.length > 0) {
+                    const resultsHtml = members.map(member => `
+                        <div class="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-200 last:border-b-0"
+                             onclick="selectMember(${member.id}, '${member.fullName}', '${member.email}')">
+                            <div class="font-medium text-gray-900">${member.fullName}</div>
+                            <div class="text-sm text-gray-600">${member.email}</div>
+                            <div class="text-xs text-gray-500">Gói: ${member.membershipType || 'Chưa có'}</div>
+                        </div>
+                    `).join('');
+
+                    memberSearchResults.innerHTML = `<div class="max-h-40 overflow-y-auto border border-gray-200 rounded-lg">${resultsHtml}</div>`;
+                    memberSearchResults.classList.remove('hidden');
+                } else {
+                    memberSearchResults.innerHTML = `
+                        <div class="p-3 text-center text-gray-500 border border-gray-200 rounded-lg">
+                            Không tìm thấy hội viên nào
+                        </div>
+                    `;
+                    memberSearchResults.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('❌ Search error:', error);
+            }
+        }
+
+        // Select member from search results
+        window.selectMember = function(memberId, fullName, email) {
+            memberSearch.value = `${fullName} (${email})`;
+            memberSearch.dataset.memberId = memberId;
+            memberSearchResults.classList.add('hidden');
+            manualCheckInBtn.disabled = false;
+        };
+
+        // Perform manual check-in
+        async function performManualCheckIn() {
+            const memberId = memberSearch.dataset.memberId;
+
+            if (!memberId) {
+                alert('Vui lòng chọn hội viên từ danh sách tìm kiếm');
+                return;
+            }
+
+            try {
+                manualCheckInBtn.disabled = true;
+                manualCheckInBtn.textContent = 'Đang xử lý...';
+
+                const response = await fetch('/Reception/ManualCheckIn', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        memberId: parseInt(memberId)
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showCheckInResult(result.member, result.action, 100, 'manual');
+
+                    // Reset form
+                    memberSearch.value = '';
+                    memberSearch.dataset.memberId = '';
+                    memberSearchResults.classList.add('hidden');
+
+                    loadStatistics(); // Refresh statistics
+                } else {
+                    alert(result.message || 'Lỗi check-in thủ công');
+                }
+            } catch (error) {
+                console.error('❌ Manual check-in error:', error);
+                alert('Lỗi kết nối. Vui lòng thử lại.');
+            } finally {
+                manualCheckInBtn.disabled = true;
+                manualCheckInBtn.textContent = '✋ Check-in Thủ Công';
+            }
+        }
+
+        // Register walk-in
+        async function registerWalkIn() {
+            console.log('🚀 registerWalkIn() called');
+
+            // Check if required elements exist
+            if (!guestName || !guestPhone || !walkInCheckInBtn) {
+                console.error('❌ Required elements not found:', {
+                    guestName: !!guestName,
+                    guestPhone: !!guestPhone,
+                    walkInCheckInBtn: !!walkInCheckInBtn
+                });
+                alert('Lỗi hệ thống: Không tìm thấy form elements');
+                return;
+            }
+
+            const name = guestName.value.trim();
+            const phone = guestPhone.value.trim();
+
+            console.log('📝 Form data:', { name, phone });
+
+            if (!name || !phone) {
+                alert('Vui lòng nhập đầy đủ thông tin khách vãng lai');
+                return;
+            }
+
+            try {
+                walkInCheckInBtn.disabled = true;
+                walkInCheckInBtn.textContent = 'Đang xử lý...';
+
+                console.log('🚀 Starting walk-in registration:', { name, phone });
+
+                const response = await fetch('/Reception/WalkInRegisterQuick', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        fullName: name,
+                        phoneNumber: phone
+                    })
+                });
+
+                console.log('📡 Response received:', response.status, response.ok);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const responseText = await response.text();
+                console.log('📄 Raw response:', responseText);
+
+                const result = JSON.parse(responseText);
+                console.log('📋 Parsed result:', result);
+
+                if (result.success) {
+                    console.log('✅ Registration successful:', result);
+
+                    // Safely show check-in result
+                    try {
+                        showCheckInResult({
+                            fullName: name,
+                            id: result.guest.id
+                        }, 'checkin', 100, 'walk-in');
+                    } catch (displayError) {
+                        console.warn('⚠️ Could not display check-in result:', displayError);
+                    }
+
+                    // Reset form
+                    guestName.value = '';
+                    guestPhone.value = '';
+
+                    // Safely refresh statistics
+                    try {
+                        loadStatistics();
+                    } catch (statsError) {
+                        console.warn('⚠️ Could not load statistics:', statsError);
+                    }
+
+                    alert(`Đăng ký thành công! Mã khách: ${result.guest.id} - ${result.guest.name}`);
+                } else {
+                    console.log('❌ Registration failed:', result);
+                    alert(result.message || 'Lỗi đăng ký khách vãng lai');
+                }
+            } catch (error) {
+                console.error('❌ Walk-in registration error:', error);
+                console.error('❌ Error details:', error.message, error.stack);
+                alert('Lỗi kết nối. Vui lòng thử lại.');
+            } finally {
+                walkInCheckInBtn.disabled = false;
+                walkInCheckInBtn.textContent = '🚶 Đăng Ký Khách Vãng Lai';
+            }
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/Reception/GetGymStats');
+                const stats = await response.json();
+
+                // Safely update elements if they exist
+                if (todayCount) todayCount.textContent = stats.todayCheckIns || 0;
+                if (currentCount) currentCount.textContent = stats.currentlyInGym || 0;
+                if (successRate) successRate.textContent = `${stats.recognitionSuccessRate || 0}%`;
+
+                updateLastUpdateTime();
+            } catch (error) {
+                console.error('❌ Statistics loading error:', error);
+            }
+        }
+
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            if (lastUpdate) {
+                lastUpdate.textContent = now.toLocaleTimeString('vi-VN', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        }
+
+        // Utility function: debounce
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Auto-refresh statistics every 30 seconds
+        setInterval(loadStatistics, 30000);
+
+        // Auto-update time every minute
+        setInterval(updateLastUpdateTime, 60000);
+    </script>
+}

@@ -1,0 +1,58 @@
+%% QUY TRÌNH HỆ THỐNG THÔNG BÁO
+%% Tối ưu cho Draw.io import
+
+flowchart TD
+    A[Tạo thông báo] --> B[Chọn đối tượng nhận]
+    B --> C[Soạn nội dung thông báo]
+    C --> D{Loại thông báo?}
+    
+    D -->|Email| E[Gửi qua SMTP Service]
+    D -->|SMS| F[Gửi qua SMS Gateway]
+    D -->|In-app| G[Lưu vào database]
+    D -->|Push| H[Gửi push notification]
+    
+    E --> I[Kiểm tra trạng thái gửi email]
+    F --> J[Kiểm tra trạng thái gửi SMS]
+    G --> K[Hiển thị trong ứng dụng]
+    H --> L[Kiểm tra delivery status]
+    
+    I --> M{Email gửi thành công?}
+    J --> N{SMS gửi thành công?}
+    L --> O{Push gửi thành công?}
+    
+    M -->|Không| P[Thêm vào retry queue]
+    M -->|Có| Q[Cập nhật trạng thái SENT]
+    
+    N -->|Không| R[Thêm vào retry queue]
+    N -->|Có| S[Cập nhật trạng thái SENT]
+    
+    O -->|Không| T[Thêm vào retry queue]
+    O -->|Có| U[Cập nhật trạng thái DELIVERED]
+    
+    P --> V[Retry sau 5 phút]
+    R --> V
+    T --> V
+    V --> W{Đã retry 3 lần?}
+    W -->|Có| X[Đánh dấu FAILED]
+    W -->|Không| Y[Thử gửi lại]
+    Y --> E
+    
+    Q --> Z[Ghi log thành công]
+    S --> Z
+    U --> Z
+    K --> Z
+    Z --> AA[Hoàn tất gửi thông báo]
+    X --> BB[Ghi log thất bại]
+
+    %% Styling
+    classDef startNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef successNode fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef errorNode fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef warningNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef decisionNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+
+    class A startNode
+    class AA successNode
+    class X,BB errorNode
+    class P,R,T,V warningNode
+    class D,M,N,O,W decisionNode

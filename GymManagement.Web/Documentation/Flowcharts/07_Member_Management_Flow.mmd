@@ -1,0 +1,46 @@
+%% QUY TRÌNH QUẢN LÝ THÀNH VIÊN
+%% Tối ưu cho Draw.io import
+
+flowchart TD
+    A[Admin truy cập quản lý thành viên] --> B{Hành động?}
+    B -->|Thêm mới| C[Form thông tin thành viên mới]
+    B -->|Chỉnh sửa| D[Form cập nhật thông tin]
+    B -->|Xem chi tiết| E[Hiển thị hồ sơ thành viên]
+    B -->|Vô hiệu hóa| F[Xác nhận vô hiệu hóa]
+    
+    C --> G[Validate thông tin]
+    D --> G
+    G --> H{Dữ liệu hợp lệ?}
+    H -->|Không| I[Hiển thị lỗi validation]
+    I --> C
+    H -->|Có| J{Email/Phone trùng?}
+    J -->|Có| K[Thông báo trùng lặp]
+    K --> C
+    J -->|Không| L[Lưu vào database]
+    L --> M[Gửi thông báo]
+    M --> N[Hoàn tất thao tác]
+    
+    E --> O[Hiển thị thông tin chi tiết]
+    O --> P[Hiển thị lịch sử gói tập]
+    P --> Q[Hiển thị lịch sử thanh toán]
+    Q --> R[Hiển thị thống kê tham gia]
+    
+    F --> S{Xác nhận vô hiệu hóa?}
+    S -->|Không| B
+    S -->|Có| T[Cập nhật trạng thái INACTIVE]
+    T --> U[Hủy các booking active]
+    U --> V[Gửi email thông báo]
+    V --> W[Hoàn tất vô hiệu hóa]
+
+    %% Styling
+    classDef startNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef successNode fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef errorNode fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    classDef warningNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef decisionNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+
+    class A startNode
+    class N,W successNode
+    class I,K errorNode
+    class F,S warningNode
+    class B,H,J,S decisionNode

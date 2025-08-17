@@ -1,0 +1,726 @@
+@model GymManagement.Web.Models.DTOs.DashboardAnalyticsDto
+
+@{
+    ViewData["Title"] = "Analytics Dashboard - Admin";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <style>
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+        .export-btn {
+            transition: all 0.2s ease;
+        }
+        .export-btn:hover {
+            transform: scale(1.05);
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+}
+
+<div class="min-h-screen bg-gray-50 p-6">
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">📊 Analytics Dashboard</h1>
+                <p class="text-gray-600">Phân tích chi tiết và báo cáo dữ liệu hệ thống</p>
+            </div>
+            <div class="mt-4 sm:mt-0 flex space-x-3">
+                <button onclick="refreshData()" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Làm mới
+                </button>
+                <div class="relative">
+                    <button onclick="toggleExportMenu()" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Xuất báo cáo
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <!-- Export Menu -->
+                    <div id="exportMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10">
+                        <div class="py-1">
+                            <button onclick="exportReport('revenue', 'pdf')" class="export-btn block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                📄 Báo cáo doanh thu (PDF)
+                            </button>
+                            <button onclick="exportReport('revenue', 'excel')" class="export-btn block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                📊 Báo cáo doanh thu (Excel)
+                            </button>
+                            <button onclick="exportReport('members', 'pdf')" class="export-btn block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                👥 Báo cáo thành viên (PDF)
+                            </button>
+                            <button onclick="exportReport('members', 'excel')" class="export-btn block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                👥 Báo cáo thành viên (Excel)
+                            </button>
+                            <div class="border-t border-gray-100"></div>
+                            <a href="@Url.Action("CustomReport", "Analytics")" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                ⚙️ Báo cáo tùy chỉnh
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Metrics Row -->
+    <div id="kpiMetrics" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- KPI cards will be loaded here -->
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="bg-white rounded-lg shadow p-6 mb-8">
+        <div class="flex flex-col sm:flex-row gap-4 items-center">
+            <div class="flex items-center space-x-4">
+                <label class="text-sm font-medium text-gray-700">Khoảng thời gian:</label>
+                <input type="date" id="startDate" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+                <span class="text-gray-500">đến</span>
+                <input type="date" id="endDate" class="border border-gray-300 rounded-md px-3 py-2 text-sm">
+            </div>
+            <button onclick="updateCharts()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                Cập nhật
+            </button>
+            <div class="flex space-x-2">
+                <button onclick="setDateRange(7)" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">7 ngày</button>
+                <button onclick="setDateRange(30)" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">30 ngày</button>
+                <button onclick="setDateRange(90)" class="px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">90 ngày</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Revenue Analytics -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">📈 Phân tích Doanh thu</h3>
+                <div class="flex space-x-2">
+                    <button onclick="changeGroupBy('day')" class="group-by-btn px-3 py-1 text-sm border rounded active">Ngày</button>
+                    <button onclick="changeGroupBy('month')" class="group-by-btn px-3 py-1 text-sm border rounded">Tháng</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Membership Analytics -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🎯 Phân tích Thành viên</h3>
+            <div class="chart-container">
+                <canvas id="membershipChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Attendance Analytics -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">✅ Phân tích Điểm danh</h3>
+            <div class="chart-container">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Class Popularity -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Top Lớp học phổ biến</h3>
+            <div class="chart-container">
+                <canvas id="classPopularityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Analytics Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Trainer Performance -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">👨‍🏫 Hiệu suất Huấn luyện viên</h3>
+            <div class="chart-container">
+                <canvas id="trainerPerformanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Package Performance -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">💳 Hiệu suất Gói tập</h3>
+            <div class="chart-container">
+                <canvas id="packagePerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forecast Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Revenue Forecast -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">🔮 Dự báo Doanh thu</h3>
+            <div class="chart-container">
+                <canvas id="revenueForecastChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Membership Growth Forecast -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Dự báo Tăng trưởng</h3>
+            <div class="chart-container">
+                <canvas id="membershipGrowthChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 flex items-center space-x-4">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span class="text-gray-700">Đang tải dữ liệu...</span>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+    <script>
+        // Global variables
+        let charts = {};
+        let currentGroupBy = 'day';
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDatePickers();
+            loadKpiMetrics();
+            loadAllCharts();
+        });
+
+        // Initialize date pickers with default values
+        function initializeDatePickers() {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+        }
+
+        // Load KPI Metrics
+        async function loadKpiMetrics() {
+            try {
+                const response = await fetch('@Url.Action("GetKpiMetrics")');
+                const metrics = await response.json();
+                
+                if (metrics.error) {
+                    showNotification('error', metrics.error);
+                    return;
+                }
+
+                renderKpiMetrics(metrics);
+            } catch (error) {
+                console.error('Error loading KPI metrics:', error);
+                showNotification('error', 'Có lỗi xảy ra khi tải KPI metrics.');
+            }
+        }
+
+        // Render KPI Metrics
+        function renderKpiMetrics(metrics) {
+            const container = document.getElementById('kpiMetrics');
+            container.innerHTML = '';
+
+            metrics.forEach(metric => {
+                const changeClass = metric.changeDirection === 'up' ? 'text-green-600' : 
+                                   metric.changeDirection === 'down' ? 'text-red-600' : 'text-gray-600';
+                
+                const changeIcon = metric.changeDirection === 'up' ? '↗️' : 
+                                  metric.changeDirection === 'down' ? '↘️' : '➡️';
+
+                const card = `
+                    <div class="metric-card bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-${metric.color || 'blue'}-100 text-${metric.color || 'blue'}-600">
+                                <span class="text-2xl">${getMetricIcon(metric.icon)}</span>
+                            </div>
+                            <div class="ml-4 flex-1">
+                                <p class="text-sm font-medium text-gray-600">${metric.displayName}</p>
+                                <p class="text-2xl font-bold text-gray-900">${formatMetricValue(metric.value, metric.format)}</p>
+                                ${metric.changePercent !== null ? `
+                                    <p class="text-sm ${changeClass} flex items-center">
+                                        ${changeIcon} ${Math.abs(metric.changePercent).toFixed(1)}%
+                                    </p>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        // Get metric icon
+        function getMetricIcon(iconName) {
+            const icons = {
+                'users': '👥',
+                'dollar-sign': '💰',
+                'check-circle': '✅',
+                'book': '📚',
+                'chart-bar': '📊'
+            };
+            return icons[iconName] || '📊';
+        }
+
+        // Format metric value
+        function formatMetricValue(value, format) {
+            switch (format) {
+                case 'currency':
+                    return new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND'
+                    }).format(value);
+                case 'percentage':
+                    return `${value.toFixed(1)}%`;
+                default:
+                    return new Intl.NumberFormat('vi-VN').format(value);
+            }
+        }
+
+        // Load all charts
+        async function loadAllCharts() {
+            showLoading(true);
+            
+            try {
+                await Promise.all([
+                    loadRevenueChart(),
+                    loadMembershipChart(),
+                    loadAttendanceChart(),
+                    loadClassPopularityChart(),
+                    loadTrainerPerformanceChart(),
+                    loadPackagePerformanceChart(),
+                    loadRevenueForecastChart(),
+                    loadMembershipGrowthChart()
+                ]);
+            } catch (error) {
+                console.error('Error loading charts:', error);
+                showNotification('error', 'Có lỗi xảy ra khi tải biểu đồ.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Load Revenue Chart
+        async function loadRevenueChart() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                const response = await fetch(`@Url.Action("GetRevenueAnalytics")?startDate=${startDate}&endDate=${endDate}&groupBy=${currentGroupBy}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderChart('revenueChart', data, 'line');
+            } catch (error) {
+                console.error('Error loading revenue chart:', error);
+            }
+        }
+
+        // Load Membership Chart
+        async function loadMembershipChart() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                const response = await fetch(`@Url.Action("GetMembershipAnalytics")?startDate=${startDate}&endDate=${endDate}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderChart('membershipChart', data, 'doughnut');
+            } catch (error) {
+                console.error('Error loading membership chart:', error);
+            }
+        }
+
+        // Load Attendance Chart
+        async function loadAttendanceChart() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                const response = await fetch(`@Url.Action("GetAttendanceAnalytics")?startDate=${startDate}&endDate=${endDate}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderChart('attendanceChart', data, 'bar');
+            } catch (error) {
+                console.error('Error loading attendance chart:', error);
+            }
+        }
+
+        // Load Class Popularity Chart
+        async function loadClassPopularityChart() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                const response = await fetch(`@Url.Action("GetClassPopularityAnalytics")?startDate=${startDate}&endDate=${endDate}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderChart('classPopularityChart', data, 'bar');
+            } catch (error) {
+                console.error('Error loading class popularity chart:', error);
+            }
+        }
+
+        // Load Trainer Performance Chart
+        async function loadTrainerPerformanceChart() {
+            try {
+                const response = await fetch('@Url.Action("GetTrainerPerformanceAnalytics")');
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderChart('trainerPerformanceChart', data, 'radar');
+            } catch (error) {
+                console.error('Error loading trainer performance chart:', error);
+            }
+        }
+
+        // Load Package Performance Chart
+        async function loadPackagePerformanceChart() {
+            try {
+                const response = await fetch('@Url.Action("GetPackagePerformanceAnalytics")');
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderChart('packagePerformanceChart', data, 'bubble');
+            } catch (error) {
+                console.error('Error loading package performance chart:', error);
+            }
+        }
+
+        // Load Revenue Forecast Chart
+        async function loadRevenueForecastChart() {
+            try {
+                const response = await fetch('@Url.Action("GetRevenueForecast")?forecastDays=30');
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderForecastChart('revenueForecastChart', data);
+            } catch (error) {
+                console.error('Error loading revenue forecast chart:', error);
+            }
+        }
+
+        // Load Membership Growth Chart
+        async function loadMembershipGrowthChart() {
+            try {
+                const response = await fetch('@Url.Action("GetMembershipGrowthForecast")?forecastDays=30');
+                const data = await response.json();
+                
+                if (data.error) {
+                    showNotification('error', data.error);
+                    return;
+                }
+
+                renderForecastChart('membershipGrowthChart', data);
+            } catch (error) {
+                console.error('Error loading membership growth chart:', error);
+            }
+        }
+
+        // Generic chart renderer
+        function renderChart(canvasId, data, defaultType) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Destroy existing chart if exists
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+
+            const chartType = data.chartType || defaultType;
+            
+            const config = {
+                type: chartType,
+                data: {
+                    labels: data.labels,
+                    datasets: data.series.map(series => ({
+                        label: series.name,
+                        data: series.data,
+                        backgroundColor: series.color + (chartType === 'line' ? '20' : ''),
+                        borderColor: series.color,
+                        borderWidth: 2,
+                        fill: series.fill || false,
+                        tension: 0.4
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: !!data.title,
+                            text: data.title
+                        },
+                        legend: {
+                            display: data.options?.showLegend !== false
+                        }
+                    },
+                    scales: chartType !== 'doughnut' && chartType !== 'pie' ? {
+                        x: {
+                            display: true,
+                            title: {
+                                display: !!data.options?.xAxisLabel,
+                                text: data.options?.xAxisLabel
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: !!data.options?.yAxisLabel,
+                                text: data.options?.yAxisLabel
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if (data.options?.currencyFormat === 'VND') {
+                                        return new Intl.NumberFormat('vi-VN', {
+                                            style: 'currency',
+                                            currency: 'VND'
+                                        }).format(value);
+                                    }
+                                    return value;
+                                }
+                            }
+                        }
+                    } : {}
+                }
+            };
+
+            charts[canvasId] = new Chart(ctx, config);
+        }
+
+        // Render forecast chart
+        function renderForecastChart(canvasId, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Destroy existing chart if exists
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+
+            const config = {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Dữ liệu thực tế',
+                            data: data.historical.map(point => ({
+                                x: point.date,
+                                y: point.value
+                            })),
+                            borderColor: '#3B82F6',
+                            backgroundColor: '#3B82F620',
+                            fill: false
+                        },
+                        {
+                            label: 'Dự báo',
+                            data: data.forecast.map(point => ({
+                                x: point.date,
+                                y: point.value
+                            })),
+                            borderColor: '#EF4444',
+                            backgroundColor: '#EF444420',
+                            borderDash: [5, 5],
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: data.metricName
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day'
+                            }
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+
+            charts[canvasId] = new Chart(ctx, config);
+        }
+
+        // Utility functions
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function showNotification(type, message) {
+            // Simple notification (you can enhance this)
+            const color = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 ${color} text-white px-6 py-3 rounded-md shadow-lg z-50`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        function setDateRange(days) {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - days);
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+        }
+
+        function updateCharts() {
+            loadAllCharts();
+        }
+
+        function refreshData() {
+            loadKpiMetrics();
+            loadAllCharts();
+        }
+
+        function changeGroupBy(groupBy) {
+            currentGroupBy = groupBy;
+            
+            // Update active button
+            document.querySelectorAll('.group-by-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-600', 'text-white');
+                btn.classList.add('border-gray-300', 'text-gray-700');
+            });
+            
+            event.target.classList.add('active', 'bg-blue-600', 'text-white');
+            event.target.classList.remove('border-gray-300', 'text-gray-700');
+            
+            loadRevenueChart();
+        }
+
+        function toggleExportMenu() {
+            const menu = document.getElementById('exportMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Close export menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('exportMenu');
+            const button = event.target.closest('[onclick="toggleExportMenu()"]');
+            
+            if (!button && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        async function exportReport(reportType, format) {
+            try {
+                showLoading(true);
+                
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                const response = await fetch('@Url.Action("ExportReport")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        reportType: reportType,
+                        format: format,
+                        parameters: {
+                            startDate: startDate,
+                            endDate: endDate
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${reportType}_${new Date().toISOString().split('T')[0]}.${format === 'pdf' ? 'pdf' : 'xlsx'}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    showNotification('success', 'Xuất báo cáo thành công!');
+                } else {
+                    const error = await response.json();
+                    showNotification('error', error.message || 'Có lỗi xảy ra khi xuất báo cáo.');
+                }
+            } catch (error) {
+                console.error('Error exporting report:', error);
+                showNotification('error', 'Có lỗi xảy ra khi xuất báo cáo.');
+            } finally {
+                showLoading(false);
+                document.getElementById('exportMenu').classList.add('hidden');
+            }
+        }
+    </script>
+} 

@@ -1,0 +1,28 @@
+%% QUY TRÌNH ĐẶT LỊCH LỚP HỌC
+%% Tối ưu cho Draw.io import
+
+flowchart TD
+    A[Xem lịch lớp học] --> B[Chọn lớp và thời gian]
+    B --> C{Gói tập còn hiệu lực?}
+    C -->|Không| D[Thông báo gia hạn]
+    C -->|Có| E{Đã đặt lịch này?}
+    E -->|Có| F[Thông báo đã đặt]
+    E -->|Không| G[🔒 BEGIN TRANSACTION]
+    G --> H{Lớp còn chỗ trống?}
+    H -->|Không| I[Thêm vào waitlist]
+    H -->|Có| J[Tạo booking]
+    J --> K[🔒 COMMIT TRANSACTION]
+    K --> L[Gửi xác nhận]
+    L --> M[Đặt lịch thành công]
+    I --> N[Thông báo khi có chỗ trống]
+
+    %% Styling
+    classDef startNode fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef successNode fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef warningNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef decisionNode fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+
+    class A startNode
+    class M successNode
+    class D,F,I,N warningNode
+    class C,E,H decisionNode

@@ -1,0 +1,265 @@
+@model GymManagement.Web.Data.Models.KhuyenMai
+@{
+    ViewData["Title"] = "Chỉnh sửa khuyến mãi";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center mb-4">
+            <a href="@Url.Action("Index")" class="text-gray-500 hover:text-gray-700 mr-4">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold text-gray-900">✏️ Chỉnh sửa khuyến mãi</h1>
+        </div>
+        <p class="text-gray-600">Cập nhật thông tin mã khuyến mãi: <strong>@Model.MaCode</strong></p>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-lg shadow-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900">Thông tin khuyến mãi</h3>
+        </div>
+        
+        <form asp-action="Edit" class="p-6">
+            <input asp-for="KhuyenMaiId" type="hidden" />
+            <input asp-for="NgayTao" type="hidden" />
+            
+            <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Mã khuyến mãi -->
+                <div class="md:col-span-2">
+                    <label asp-for="MaCode" class="block text-sm font-medium text-gray-700 mb-2">
+                        Mã khuyến mãi <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="MaCode" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Ví dụ: SUMMER2024, NEWMEMBER50"
+                           id="maCodeInput" />
+                    <span asp-validation-for="MaCode" class="text-red-500 text-sm"></span>
+                    <div id="codeValidationMessage" class="text-sm mt-1"></div>
+                </div>
+
+                <!-- Mô tả -->
+                <div class="md:col-span-2">
+                    <label asp-for="MoTa" class="block text-sm font-medium text-gray-700 mb-2">
+                        Mô tả khuyến mãi
+                    </label>
+                    <textarea asp-for="MoTa" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Mô tả chi tiết về chương trình khuyến mãi..."></textarea>
+                    <span asp-validation-for="MoTa" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Phần trăm giảm -->
+                <div>
+                    <label asp-for="PhanTramGiam" class="block text-sm font-medium text-gray-700 mb-2">
+                        Phần trăm giảm giá (%) <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input asp-for="PhanTramGiam" type="number" min="0" max="100" step="1"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="0" />
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">%</span>
+                        </div>
+                    </div>
+                    <span asp-validation-for="PhanTramGiam" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Trạng thái -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Trạng thái
+                    </label>
+                    <div class="flex items-center">
+                        <input asp-for="KichHoat" type="checkbox" 
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                        <label asp-for="KichHoat" class="ml-2 block text-sm text-gray-900">
+                            Kích hoạt
+                        </label>
+                    </div>
+                    <span asp-validation-for="KichHoat" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Ngày bắt đầu -->
+                <div>
+                    <label asp-for="NgayBatDau" class="block text-sm font-medium text-gray-700 mb-2">
+                        Ngày bắt đầu <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="NgayBatDau" type="date"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                    <span asp-validation-for="NgayBatDau" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Ngày kết thúc -->
+                <div>
+                    <label asp-for="NgayKetThuc" class="block text-sm font-medium text-gray-700 mb-2">
+                        Ngày kết thúc <span class="text-red-500">*</span>
+                    </label>
+                    <input asp-for="NgayKetThuc" type="date"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                    <span asp-validation-for="NgayKetThuc" class="text-red-500 text-sm"></span>
+                </div>
+            </div>
+
+            <!-- Current Status Info -->
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <h4 class="text-sm font-medium text-blue-800 mb-2">Thông tin hiện tại:</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-blue-600 font-medium">Ngày tạo:</span>
+                        <span class="text-blue-800">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div>
+                        <span class="text-blue-600 font-medium">Trạng thái:</span>
+                        @{
+                            var today = DateOnly.FromDateTime(DateTime.Today);
+                            var isActive = Model.KichHoat && Model.NgayBatDau <= today && Model.NgayKetThuc >= today;
+                            var isExpired = Model.NgayKetThuc < today;
+                            var isUpcoming = Model.NgayBatDau > today;
+                        }
+                        @if (isActive)
+                        {
+                            <span class="text-green-600 font-medium">Đang hoạt động</span>
+                        }
+                        else if (isExpired)
+                        {
+                            <span class="text-red-600 font-medium">Đã hết hạn</span>
+                        }
+                        else if (isUpcoming)
+                        {
+                            <span class="text-blue-600 font-medium">Sắp diễn ra</span>
+                        }
+                        else
+                        {
+                            <span class="text-gray-600 font-medium">Đã tắt</span>
+                        }
+                    </div>
+                    <div>
+                        <span class="text-blue-600 font-medium">Thời gian còn lại:</span>
+                        @if (Model.NgayKetThuc >= today)
+                        {
+                            var daysLeft = (Model.NgayKetThuc.ToDateTime(TimeOnly.MinValue) - DateTime.Today).Days;
+                            <span class="text-blue-800">@daysLeft ngày</span>
+                        }
+                        else
+                        {
+                            <span class="text-red-600">Đã hết hạn</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">Xem trước khuyến mãi:</h4>
+                <div class="bg-white border-2 border-dashed border-blue-300 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-lg font-bold text-blue-600" id="previewCode">@Model.MaCode</div>
+                            <div class="text-sm text-gray-600" id="previewDescription">@(Model.MoTa ?? "Không có mô tả")</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-green-600" id="previewDiscount">@(Model.PhanTramGiam ?? 0)%</div>
+                            <div class="text-xs text-gray-500">GIẢM GIÁ</div>
+                        </div>
+                    </div>
+                    <div class="mt-2 text-xs text-gray-500" id="previewPeriod">
+                        Có hiệu lực từ @Model.NgayBatDau.ToString("dd/MM/yyyy") đến @Model.NgayKetThuc.ToString("dd/MM/yyyy")
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+                <a href="@Url.Action("Index")" 
+                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Hủy
+                </a>
+                <a href="@Url.Action("Details", new { id = Model.KhuyenMaiId })" 
+                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Xem chi tiết
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Cập nhật
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Real-time preview update - FIXED
+            function updatePreview() {
+                // 🐛 FIX: Use correct selectors for ASP.NET Core generated IDs
+                const code = $('input[name="MaCode"]').val() || '@Model.MaCode';
+                const description = $('textarea[name="MoTa"]').val() || 'Không có mô tả';
+                const discount = $('input[name="PhanTramGiam"]').val() || '0';
+                const startDate = $('input[name="NgayBatDau"]').val();
+                const endDate = $('input[name="NgayKetThuc"]').val();
+
+                // 🐛 DEBUG: Log values for debugging
+                console.log('🐛 Edit Preview Update:', {
+                    code, description, discount, startDate, endDate
+                });
+
+                $('#previewCode').text(code);
+                $('#previewDescription').text(description);
+                $('#previewDiscount').text(discount + '%');
+
+                if (startDate && endDate) {
+                    const start = new Date(startDate).toLocaleDateString('vi-VN');
+                    const end = new Date(endDate).toLocaleDateString('vi-VN');
+                    $('#previewPeriod').text(`Có hiệu lực từ ${start} đến ${end}`);
+                } else {
+                    $('#previewPeriod').text('Vui lòng chọn ngày bắt đầu và kết thúc');
+                }
+            }
+
+            // Update preview on input change - use correct selectors
+            $('input[name="MaCode"], textarea[name="MoTa"], input[name="PhanTramGiam"], input[name="NgayBatDau"], input[name="NgayKetThuc"]').on('input change', updatePreview);
+
+            // Check code uniqueness (excluding current record) - FIXED
+            let codeCheckTimeout;
+            $('input[name="MaCode"]').on('input', function() {
+                const code = $(this).val();
+                const messageDiv = $('#codeValidationMessage');
+                const currentId = @Model.KhuyenMaiId;
+                
+                clearTimeout(codeCheckTimeout);
+                
+                if (code.length < 3) {
+                    messageDiv.html('<span class="text-gray-500">Mã khuyến mãi phải có ít nhất 3 ký tự</span>');
+                    return;
+                }
+
+                messageDiv.html('<span class="text-blue-500">Đang kiểm tra...</span>');
+
+                codeCheckTimeout = setTimeout(function() {
+                    $.post('@Url.Action("CheckCodeUnique")', { code: code, excludeId: currentId })
+                        .done(function(response) {
+                            if (response.isUnique) {
+                                messageDiv.html('<span class="text-green-600">✓ Mã khuyến mãi có thể sử dụng</span>');
+                            } else {
+                                messageDiv.html('<span class="text-red-600">✗ Mã khuyến mãi đã tồn tại</span>');
+                            }
+                        })
+                        .fail(function() {
+                            messageDiv.html('<span class="text-red-600">Lỗi khi kiểm tra mã</span>');
+                        });
+                }, 500);
+            });
+        });
+    </script>
+}

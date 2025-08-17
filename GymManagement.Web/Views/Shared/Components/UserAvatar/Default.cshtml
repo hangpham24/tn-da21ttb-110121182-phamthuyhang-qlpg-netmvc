@@ -1,0 +1,22 @@
+@model GymManagement.Web.ViewComponents.UserAvatarViewModel
+
+@if (!string.IsNullOrEmpty(Model.AnhDaiDien))
+{
+    <img src="@Model.AnhDaiDien" alt="@Model.HoTen" 
+         class="@Model.CssClass rounded-full object-cover" 
+         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+    <div class="@Model.CssClass bg-blue-600 rounded-full items-center justify-center text-white font-medium" style="display:none;">
+        @(Model.HoTen.Substring(0, 1).ToUpper())
+    </div>
+}
+else
+{
+    <div class="@Model.CssClass bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+        @(Model.HoTen.Substring(0, 1).ToUpper())
+    </div>
+}
+
+@if (Model.ShowName)
+{
+    <span class="ml-2">@Model.HoTen</span>
+}

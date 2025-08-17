@@ -1,0 +1,59 @@
+@{
+    ViewData["Title"] = "Test VNPay Signature";
+}
+
+<div class="container mt-4">
+    <h2>Test VNPay Signature</h2>
+    
+    <div class="card">
+        <div class="card-body">
+            <button id="testBtn" class="btn btn-primary">Test VNPay Signature</button>
+            <div id="result" class="mt-3"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('testBtn').addEventListener('click', async function() {
+    try {
+        const response = await fetch('/TestVNPay/TestSignature', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const result = await response.json();
+        
+        let html = '<h4>Test Result:</h4>';
+        if (result.success) {
+            html += `
+                <div class="alert alert-success">
+                    <p><strong>Success!</strong></p>
+                    <p><strong>TMN Code:</strong> ${result.tmnCode}</p>
+                    <p><strong>Hash Secret:</strong> ${result.hashSecret}</p>
+                    <p><strong>Payment URL:</strong></p>
+                    <textarea class="form-control" rows="3">${result.paymentUrl}</textarea>
+                    <br>
+                    <a href="${result.paymentUrl}" target="_blank" class="btn btn-info">Test Payment URL</a>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="alert alert-danger">
+                    <p><strong>Error:</strong> ${result.error}</p>
+                </div>
+            `;
+        }
+        
+        document.getElementById('result').innerHTML = html;
+        
+    } catch (error) {
+        document.getElementById('result').innerHTML = `
+            <div class="alert alert-danger">
+                <p><strong>Error:</strong> ${error.message}</p>
+            </div>
+        `;
+    }
+});
+</script>

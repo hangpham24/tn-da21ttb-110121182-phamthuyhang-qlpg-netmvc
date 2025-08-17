@@ -1,0 +1,143 @@
+@{
+    ViewData["Title"] = "Bảo mật";
+    Layout = User.IsInRole("Admin") ? "_Layout" :
+             User.IsInRole("HLV") ? "_TrainerLayout" : "_MemberLayout";
+}
+
+<div class="p-4">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Bảo mật tài khoản</h1>
+        <a href="@Url.Action("Index")" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center">
+            <i class="fas fa-arrow-left mr-2"></i> Quay lại
+        </a>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="space-y-6">
+        <!-- Password Security -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Bảo mật mật khẩu</h3>
+            </div>
+            <div class="p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-900">Mật khẩu</h4>
+                        <p class="text-sm text-gray-500">Thay đổi mật khẩu định kỳ để bảo vệ tài khoản</p>
+                    </div>
+                    <a href="@Url.Action("ChangePassword")" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                        Đổi mật khẩu
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Information -->
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Thông tin tài khoản</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-900">Thông tin cá nhân</h4>
+                            <p class="text-sm text-gray-500">Cập nhật thông tin cá nhân của bạn</p>
+                        </div>
+                        <a href="@Url.Action("Edit")" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm">
+                            Chỉnh sửa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Tips -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="px-6 py-4 border-b border-blue-200">
+                <h3 class="text-lg font-semibold text-blue-900">
+                    <i class="fas fa-shield-alt mr-2"></i>Mẹo bảo mật
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-key text-blue-600 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-blue-900">Mật khẩu mạnh</h4>
+                                <p class="text-sm text-blue-700">Sử dụng mật khẩu có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-clock text-blue-600 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-blue-900">Thay đổi định kỳ</h4>
+                                <p class="text-sm text-blue-700">Thay đổi mật khẩu ít nhất 3-6 tháng một lần để đảm bảo an toàn.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-user-secret text-blue-600 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-blue-900">Bảo mật thông tin</h4>
+                                <p class="text-sm text-blue-700">Không chia sẻ mật khẩu với người khác và luôn đăng xuất sau khi sử dụng.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-wifi text-blue-600 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-blue-900">Mạng an toàn</h4>
+                                <p class="text-sm text-blue-700">Tránh đăng nhập trên mạng WiFi công cộng không bảo mật.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-browser text-blue-600 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-blue-900">Trình duyệt cập nhật</h4>
+                                <p class="text-sm text-blue-700">Sử dụng trình duyệt được cập nhật và có tính năng bảo mật tốt.</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-exclamation-triangle text-blue-600 mt-1"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="text-sm font-medium text-blue-900">Phát hiện bất thường</h4>
+                                <p class="text-sm text-blue-700">Báo cáo ngay nếu phát hiện hoạt động bất thường trong tài khoản.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Support -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg">
+            <div class="p-6 text-center">
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Cần hỗ trợ?</h3>
+                <p class="text-sm text-gray-600 mb-4">Nếu bạn gặp vấn đề về bảo mật hoặc cần hỗ trợ, vui lòng liên hệ với chúng tôi.</p>
+                <a href="mailto:support@gym.com" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg text-sm">
+                    <i class="fas fa-envelope mr-2"></i>Liên hệ hỗ trợ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

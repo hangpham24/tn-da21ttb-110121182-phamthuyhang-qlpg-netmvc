@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - GymFitness </title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/GymManagement.Web.styles.css" asp-append-version="true" />
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Flowbite -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="bg-gray-50">
+    @{
+        // Helper function for active state checking
+        string GetActiveClass(string controller, string? action = null)
+        {
+            var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+            var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+
+            if (currentController == controller && (action == null || currentAction == action))
+            {
+                return "text-blue-600 bg-blue-50";
+            }
+            return "text-gray-700 hover:text-blue-600";
+        }
+    }
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <!-- Logo and Brand -->
+                <div class="flex items-center">
+                    <a asp-controller="Home" asp-action="Index" class="flex items-center">
+                        <span class="text-2xl">🏋️</span>
+                        <span class="ml-2 text-xl font-bold text-blue-600">GymFitness </span>
+                        <span class="ml-2 text-sm bg-blue-600 text-white px-2 py-1 rounded">HLV</span>
+                    </a>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="hidden lg:flex items-center space-x-4">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Trainer" asp-action="Dashboard"
+                           class="@GetActiveClass("Trainer", "Dashboard") px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            📊 Dashboard
+                        </a>
+                        <a asp-controller="Trainer" asp-action="MyClasses"
+                           class="@GetActiveClass("Trainer", "MyClasses") px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            🎓 Lớp học
+                        </a>
+                        <a asp-controller="Trainer" asp-action="Schedule"
+                           class="@GetActiveClass("Trainer", "Schedule") px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            📅 Lịch dạy
+                        </a>
+                        <a asp-controller="Trainer" asp-action="Students"
+                           class="@GetActiveClass("Trainer", "Students") px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            👥 Học viên
+                        </a>
+                        <a asp-controller="Trainer" asp-action="Attendance"
+                           class="@GetActiveClass("Trainer", "Attendance") px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            ✅ Điểm danh
+                        </a>
+                        <a asp-controller="Trainer" asp-action="Salary"
+                           class="@GetActiveClass("Trainer", "Salary") px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            💰 Lương
+                        </a>
+                        
+                        <!-- Reports Dropdown -->
+                        <div class="relative group">
+                            <button class="@GetActiveClass("Analytics") px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center" 
+                                    onmouseenter="showReportsDropdown()" onmouseleave="hideReportsDropdown()">
+                                📊 Báo cáo
+                                <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div id="reportsDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden"
+                                 onmouseenter="showReportsDropdown()" onmouseleave="hideReportsDropdown()">
+                                <a asp-controller="Analytics" asp-action="TrainerDashboard" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    📈 Analytics Dashboard
+                                </a>
+                                <a asp-controller="Analytics" asp-action="TrainerReports" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    📄 Xuất báo cáo
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-controller="Home" asp-action="Index"
+                           class="@GetActiveClass("Home") px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            🏠 Trang chủ
+                        </a>
+                    }
+                </div>
+
+                <!-- User Menu -->
+                <div class="flex items-center">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="relative">
+                            <button type="button" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    id="trainer-menu-button" onclick="toggleTrainerMenu()">
+                                <span class="sr-only">Open user menu</span>
+                                <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium">
+                                    @(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value?.Substring(0, 1).ToUpper())
+                                </div>
+                                <span class="ml-2 text-gray-700 font-medium">@User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value</span>
+                                <svg class="ml-1 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            
+                            <!-- Dropdown menu -->
+                            <div id="trainer-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                                <a asp-controller="Profile" asp-action="Index" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    👤 Hồ sơ cá nhân
+                                </a>
+                                <a asp-controller="Trainer" asp-action="MyClasses" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    🎓 Lớp của tôi
+                                </a>
+                                <a asp-controller="Trainer" asp-action="Salary" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    💰 Lương của tôi
+                                </a>
+                                <a asp-controller="Analytics" asp-action="TrainerReports" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    📄 Báo cáo phân tích
+                                </a>
+                                <div class="border-t border-gray-100"></div>
+                                <a asp-controller="Auth" asp-action="Logout" 
+                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    🚪 Đăng xuất
+                                </a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="space-x-4">
+                            <a asp-controller="Auth" asp-action="Login"
+                               class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                                Đăng nhập
+                            </a>
+                        </div>
+                    }
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="lg:hidden flex items-center">
+                    <button type="button" class="text-gray-700 hover:text-blue-600 focus:outline-none focus:text-blue-600 p-2"
+                            onclick="toggleTrainerMobileMenu()">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="trainer-mobile-menu" class="hidden lg:hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a asp-controller="Trainer" asp-action="Dashboard"
+                       class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                        📊 Dashboard
+                    </a>
+                    <a asp-controller="Trainer" asp-action="MyClasses"
+                       class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                        🎓 Lớp học
+                    </a>
+                    <a asp-controller="Trainer" asp-action="Schedule"
+                       class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                        📅 Lịch dạy
+                    </a>
+                    <a asp-controller="Trainer" asp-action="Students"
+                       class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                        👥 Học viên
+                    </a>
+                    <a asp-controller="Trainer" asp-action="Attendance"
+                       class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                        ✅ Điểm danh
+                    </a>
+                    <a asp-controller="Trainer" asp-action="Salary"
+                       class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                        💰 Lương
+                    </a>
+                    
+                    <!-- Analytics Section in Mobile -->
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                        <p class="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Báo cáo</p>
+                        <a asp-controller="Analytics" asp-action="TrainerDashboard"
+                           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                            📈 Analytics Dashboard
+                        </a>
+                        <a asp-controller="Analytics" asp-action="TrainerReports"
+                           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                            📄 Xuất báo cáo
+                        </a>
+                    </div>
+                    
+                    <!-- User Actions -->
+                    <div class="border-t border-gray-200 pt-2 mt-2">
+                        <a asp-controller="Profile" asp-action="Index"
+                           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                            👤 Hồ sơ cá nhân
+                        </a>
+                        <a asp-controller="Auth" asp-action="Logout"
+                           class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                            🚪 Đăng xuất
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <a asp-controller="Home" asp-action="Index"
+                       class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
+                        🏠 Trang chủ
+                    </a>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="min-h-screen">
+        <div class="max-w-7xl mx-auto">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-gray-500 text-sm">
+                © 2024 GymFitness  - Huấn luyện viên. Tất cả quyền được bảo lưu.
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+    
+    <script>
+        function toggleTrainerMenu() {
+            const menu = document.getElementById('trainer-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function toggleTrainerMobileMenu() {
+            const menu = document.getElementById('trainer-mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Reports dropdown functions
+        let reportsDropdownTimeout;
+        
+        function showReportsDropdown() {
+            clearTimeout(reportsDropdownTimeout);
+            const dropdown = document.getElementById('reportsDropdown');
+            if (dropdown) {
+                dropdown.classList.remove('hidden');
+            }
+        }
+        
+        function hideReportsDropdown() {
+            reportsDropdownTimeout = setTimeout(() => {
+                const dropdown = document.getElementById('reportsDropdown');
+                if (dropdown) {
+                    dropdown.classList.add('hidden');
+                }
+            }, 150); // Small delay to allow mouse to move to dropdown
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const userMenuButton = document.getElementById('trainer-menu-button');
+            const userMenu = document.getElementById('trainer-menu');
+            
+            if (userMenuButton && userMenu && !userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,117 @@
+@{
+    ViewData["Title"] = ViewBag.ErrorTitle ?? "Lỗi";
+    Layout = "_Layout";
+}
+
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="text-center">
+            <!-- Error Icon -->
+            <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-red-100 mb-6">
+                @if (ViewBag.StatusCode == 404)
+                {
+                    <svg class="h-12 w-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                }
+                else if (ViewBag.StatusCode == 403)
+                {
+                    <svg class="h-12 w-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                }
+                else
+                {
+                    <svg class="h-12 w-12 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                }
+            </div>
+
+            <!-- Error Code -->
+            <h1 class="text-6xl font-bold text-gray-900 mb-4">@ViewBag.StatusCode</h1>
+            
+            <!-- Error Title -->
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4">@ViewBag.ErrorTitle</h2>
+            
+            <!-- Error Message -->
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">@ViewBag.ErrorMessage</p>
+        </div>
+    </div>
+
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div class="space-y-4">
+                <!-- Suggestions -->
+                <div class="text-sm text-gray-600">
+                    <p class="font-medium mb-2">Bạn có thể thử:</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        @if (ViewBag.StatusCode == 404)
+                        {
+                            <li>Kiểm tra lại URL bạn đã nhập</li>
+                            <li>Quay về trang chủ và tìm kiếm lại</li>
+                            <li>Sử dụng menu điều hướng</li>
+                        }
+                        else if (ViewBag.StatusCode == 403)
+                        {
+                            <li>Đăng nhập với tài khoản có quyền phù hợp</li>
+                            <li>Liên hệ quản trị viên để được cấp quyền</li>
+                            <li>Quay về trang chủ</li>
+                        }
+                        else
+                        {
+                            <li>Tải lại trang sau vài giây</li>
+                            <li>Kiểm tra kết nối internet</li>
+                            <li>Liên hệ hỗ trợ kỹ thuật nếu vấn đề vẫn tiếp tục</li>
+                        }
+                    </ul>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button onclick="history.back()" 
+                            class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                        ← Quay lại
+                    </button>
+                    <a href="@Url.Action("Index", "Home")" 
+                       class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md text-center transition-colors">
+                        🏠 Trang chủ
+                    </a>
+                </div>
+
+                @if (ViewBag.StatusCode == 500)
+                {
+                    <div class="pt-4 border-t border-gray-200">
+                        <p class="text-xs text-gray-500 text-center">
+                            Nếu vấn đề vẫn tiếp tục, vui lòng liên hệ: 
+                            <a href="mailto:support@gym.com" class="text-blue-600 hover:text-blue-800">support@gym.com</a>
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-8">
+        <p class="text-sm text-gray-500">
+            © @DateTime.Now.Year GymFitness . Tất cả quyền được bảo lưu.
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto refresh for 500 errors after 30 seconds
+        @if (ViewBag.StatusCode == 500)
+        {
+            <text>
+            setTimeout(function() {
+                if (confirm('Tự động tải lại trang để thử khắc phục lỗi?')) {
+                    location.reload();
+                }
+            }, 30000);
+            </text>
+        }
+    </script>
+}

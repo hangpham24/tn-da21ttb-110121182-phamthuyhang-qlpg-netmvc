@@ -1,0 +1,426 @@
+@{
+    ViewData["Title"] = "Đăng ký khuôn mặt";
+    Layout = "_MemberLayout";
+}
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4 mb-4">
+            <a href="@Url.Action("Index")" class="text-gray-600 hover:text-gray-800">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">👁️ Đăng ký khuôn mặt</h1>
+        </div>
+        <p class="text-gray-600">Đăng ký khuôn mặt để sử dụng tính năng check-in tự động</p>
+    </div>
+
+    <!-- Registration Steps -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div id="step1" class="flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold mr-3">1</div>
+                <span class="font-medium">Chuẩn bị</span>
+            </div>
+            <div class="flex-1 h-1 bg-gray-200 mx-4">
+                <div id="progress1" class="h-1 bg-blue-600 transition-all duration-300" style="width: 100%"></div>
+            </div>
+            <div class="flex items-center">
+                <div id="step2" class="flex items-center justify-center w-8 h-8 bg-gray-300 text-gray-600 rounded-full font-bold mr-3">2</div>
+                <span class="font-medium text-gray-600">Chụp ảnh</span>
+            </div>
+            <div class="flex-1 h-1 bg-gray-200 mx-4">
+                <div id="progress2" class="h-1 bg-blue-600 transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div class="flex items-center">
+                <div id="step3" class="flex items-center justify-center w-8 h-8 bg-gray-300 text-gray-600 rounded-full font-bold mr-3">3</div>
+                <span class="font-medium text-gray-600">Hoàn thành</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Camera Section -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📷 Camera</h3>
+            
+            <!-- Camera Display -->
+            <div class="relative bg-gray-100 rounded-lg overflow-hidden mb-4" style="height: 400px;">
+                <video id="video" class="w-full h-full object-cover hidden" autoplay muted playsinline></video>
+                <canvas id="canvas" class="hidden"></canvas>
+                
+                <!-- Camera Placeholder -->
+                <div id="cameraPlaceholder" class="flex items-center justify-center h-full">
+                    <div class="text-center">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <p class="text-gray-500">Nhấn "Bật camera" để bắt đầu</p>
+                    </div>
+                </div>
+                
+                <!-- Face Detection Overlay -->
+                <div id="faceOverlay" class="absolute inset-0 pointer-events-none hidden">
+                    <div id="faceBox" class="absolute border-2 border-green-400 rounded-lg"></div>
+                </div>
+            </div>
+            
+            <!-- Camera Controls -->
+            <div class="space-y-3">
+                <button id="startCameraBtn" onclick="startCamera()" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-md font-medium transition-colors">
+                    📷 Bật camera
+                </button>
+                <button id="captureBtn" onclick="capturePhoto()" 
+                        class="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-md font-medium transition-colors hidden">
+                    📸 Chụp ảnh
+                </button>
+                <button id="retakeBtn" onclick="retakePhoto()" 
+                        class="w-full bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded-md font-medium transition-colors hidden">
+                    🔄 Chụp lại
+                </button>
+                <button id="registerBtn" onclick="registerFace()" 
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-md font-medium transition-colors hidden">
+                    ✅ Đăng ký khuôn mặt
+                </button>
+            </div>
+        </div>
+
+        <!-- Instructions & Status -->
+        <div class="space-y-6">
+            <!-- Instructions -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📋 Hướng dẫn</h3>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <div class="flex items-start">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</span>
+                        <p>Đảm bảo ánh sáng đủ và mặt bạn được chiếu sáng đều</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</span>
+                        <p>Nhìn thẳng vào camera, không đeo khẩu trang hoặc kính đen</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">3</span>
+                        <p>Giữ khoảng cách 50-80cm từ camera</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-bold mr-3 mt-0.5">4</span>
+                        <p>Đứng yên trong 2-3 giây khi chụp ảnh</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Display -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Trạng thái</h3>
+                <div id="statusDisplay" class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-sm font-medium text-gray-700">Camera</span>
+                        <span id="cameraStatus" class="text-sm text-gray-500">Chưa bật</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-sm font-medium text-gray-700">Phát hiện khuôn mặt</span>
+                        <span id="faceStatus" class="text-sm text-gray-500">Chờ camera</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="text-sm font-medium text-gray-700">Chất lượng ảnh</span>
+                        <span id="qualityStatus" class="text-sm text-gray-500">Chưa đánh giá</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                <div class="flex">
+                    <svg class="w-5 h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div>
+                        <h4 class="font-medium text-yellow-800">💡 Mẹo để có ảnh tốt nhất</h4>
+                        <ul class="text-sm text-yellow-700 mt-2 space-y-1">
+                            <li>• Chụp ở nơi có ánh sáng tự nhiên</li>
+                            <li>• Tránh ánh sáng chiếu từ phía sau</li>
+                            <li>• Không nghiêng đầu quá nhiều</li>
+                            <li>• Có thể đăng ký nhiều ảnh để tăng độ chính xác</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Face-API.js -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <script>
+        let video, canvas, stream;
+        let isModelLoaded = false;
+        let currentFaceDescriptor = null;
+        let detectionInterval = null;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            video = document.getElementById('video');
+            canvas = document.getElementById('canvas');
+            
+            // Load Face-API.js models
+            await loadModels();
+        });
+
+        async function loadModels() {
+            try {
+                updateStatus('cameraStatus', '🔄 Đang tải mô hình AI...', 'text-blue-600');
+                
+                await faceapi.nets.tinyFaceDetector.loadFromUri('/lib/face-api/models');
+                await faceapi.nets.faceRecognitionNet.loadFromUri('/lib/face-api/models');
+                
+                isModelLoaded = true;
+                updateStatus('cameraStatus', '✅ Sẵn sàng', 'text-green-600');
+                updateStatus('faceStatus', '📷 Bật camera để bắt đầu', 'text-gray-500');
+                
+            } catch (error) {
+                console.error('Error loading models:', error);
+                updateStatus('cameraStatus', '❌ Lỗi tải mô hình', 'text-red-600');
+            }
+        }
+
+        async function startCamera() {
+            try {
+                updateStatus('cameraStatus', '🔄 Đang bật camera...', 'text-blue-600');
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: 'user'
+                    }
+                });
+                
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+                document.getElementById('cameraPlaceholder').classList.add('hidden');
+                
+                // Update UI
+                document.getElementById('startCameraBtn').classList.add('hidden');
+                document.getElementById('captureBtn').classList.remove('hidden');
+                
+                // Update status
+                updateStatus('cameraStatus', '✅ Đang hoạt động', 'text-green-600');
+                updateStatus('faceStatus', '👁️ Đang tìm khuôn mặt...', 'text-blue-600');
+                
+                // Start face detection
+                startFaceDetection();
+                
+                // Update progress
+                updateStep(2);
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                updateStatus('cameraStatus', '❌ Không thể truy cập camera', 'text-red-600');
+                alert('Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.');
+            }
+        }
+
+        function startFaceDetection() {
+            detectionInterval = setInterval(async () => {
+                if (!isModelLoaded || !video.videoWidth) return;
+                
+                try {
+                    const detection = await faceapi
+                        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                        .withFaceDescriptor();
+                    
+                    if (detection) {
+                        updateStatus('faceStatus', '✅ Phát hiện khuôn mặt', 'text-green-600');
+                        
+                        // Show face box
+                        showFaceBox(detection.detection.box);
+                        
+                        // Evaluate quality
+                        const quality = evaluateFaceQuality(detection);
+                        updateStatus('qualityStatus', quality.message, quality.color);
+                        
+                        currentFaceDescriptor = detection.descriptor;
+                    } else {
+                        updateStatus('faceStatus', '👁️ Đang tìm khuôn mặt...', 'text-blue-600');
+                        hideFaceBox();
+                        updateStatus('qualityStatus', 'Chưa đánh giá', 'text-gray-500');
+                        currentFaceDescriptor = null;
+                    }
+                } catch (error) {
+                    console.error('Face detection error:', error);
+                }
+            }, 500);
+        }
+
+        function showFaceBox(box) {
+            const overlay = document.getElementById('faceOverlay');
+            const faceBox = document.getElementById('faceBox');
+            
+            overlay.classList.remove('hidden');
+            faceBox.style.left = `${box.x}px`;
+            faceBox.style.top = `${box.y}px`;
+            faceBox.style.width = `${box.width}px`;
+            faceBox.style.height = `${box.height}px`;
+        }
+
+        function hideFaceBox() {
+            document.getElementById('faceOverlay').classList.add('hidden');
+        }
+
+        function evaluateFaceQuality(detection) {
+            const box = detection.detection.box;
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+            
+            // Check face size (should be at least 20% of video width)
+            const faceSize = box.width / videoWidth;
+            if (faceSize < 0.15) {
+                return { message: '📏 Quá xa - di chuyển gần hơn', color: 'text-yellow-600' };
+            }
+            if (faceSize > 0.6) {
+                return { message: '📏 Quá gần - lùi ra một chút', color: 'text-yellow-600' };
+            }
+            
+            // Check face position (should be centered)
+            const faceCenterX = box.x + box.width / 2;
+            const faceCenterY = box.y + box.height / 2;
+            const videoCenterX = videoWidth / 2;
+            const videoCenterY = videoHeight / 2;
+            
+            const offsetX = Math.abs(faceCenterX - videoCenterX) / videoWidth;
+            const offsetY = Math.abs(faceCenterY - videoCenterY) / videoHeight;
+            
+            if (offsetX > 0.2 || offsetY > 0.2) {
+                return { message: '📍 Di chuyển vào giữa khung hình', color: 'text-yellow-600' };
+            }
+            
+            return { message: '✅ Chất lượng tốt', color: 'text-green-600' };
+        }
+
+        function capturePhoto() {
+            if (!currentFaceDescriptor) {
+                alert('Vui lòng đảm bảo khuôn mặt được phát hiện trước khi chụp.');
+                return;
+            }
+            
+            // Stop face detection
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+            
+            // Update UI
+            document.getElementById('captureBtn').classList.add('hidden');
+            document.getElementById('retakeBtn').classList.remove('hidden');
+            document.getElementById('registerBtn').classList.remove('hidden');
+            
+            // Update status
+            updateStatus('faceStatus', '📸 Đã chụp ảnh', 'text-green-600');
+            updateStatus('qualityStatus', '✅ Sẵn sàng đăng ký', 'text-green-600');
+            
+            // Update progress
+            updateStep(3);
+        }
+
+        function retakePhoto() {
+            // Reset UI
+            document.getElementById('captureBtn').classList.remove('hidden');
+            document.getElementById('retakeBtn').classList.add('hidden');
+            document.getElementById('registerBtn').classList.add('hidden');
+            
+            // Restart face detection
+            startFaceDetection();
+            
+            // Update progress
+            updateStep(2);
+        }
+
+        async function registerFace() {
+            if (!currentFaceDescriptor) {
+                alert('Không có dữ liệu khuôn mặt để đăng ký.');
+                return;
+            }
+            
+            const registerBtn = document.getElementById('registerBtn');
+            const originalText = registerBtn.textContent;
+            registerBtn.textContent = '🔄 Đang đăng ký...';
+            registerBtn.disabled = true;
+            
+            try {
+                const response = await fetch('@Url.Action("RegisterFace")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        descriptor: Array.from(currentFaceDescriptor)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('✅ ' + result.message);
+                    updateStatus('qualityStatus', '✅ Đăng ký thành công', 'text-green-600');
+                    
+                    // Redirect to face management
+                    setTimeout(() => {
+                        window.location.href = '@Url.Action("Index")';
+                    }, 2000);
+                } else {
+                    alert('❌ ' + result.message);
+                    updateStatus('qualityStatus', '❌ Đăng ký thất bại', 'text-red-600');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.');
+            } finally {
+                registerBtn.textContent = originalText;
+                registerBtn.disabled = false;
+            }
+        }
+
+        function updateStatus(elementId, message, colorClass) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `text-sm ${colorClass}`;
+        }
+
+        function updateStep(step) {
+            // Reset all steps
+            for (let i = 1; i <= 3; i++) {
+                const stepElement = document.getElementById(`step${i}`);
+                const progressElement = document.getElementById(`progress${i}`);
+                
+                if (i < step) {
+                    stepElement.className = 'flex items-center justify-center w-8 h-8 bg-green-600 text-white rounded-full font-bold mr-3';
+                    if (progressElement) progressElement.style.width = '100%';
+                } else if (i === step) {
+                    stepElement.className = 'flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full font-bold mr-3';
+                    if (progressElement) progressElement.style.width = '50%';
+                } else {
+                    stepElement.className = 'flex items-center justify-center w-8 h-8 bg-gray-300 text-gray-600 rounded-full font-bold mr-3';
+                    if (progressElement) progressElement.style.width = '0%';
+                }
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+            }
+        });
+    </script>
+}

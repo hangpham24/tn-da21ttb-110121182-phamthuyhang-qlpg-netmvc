@@ -1,0 +1,220 @@
+@model GymManagement.Web.Models.DTOs.CreateGoiTapDto
+
+@{
+    ViewData["Title"] = "Tạo gói tập mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-plus text-white"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Tạo gói tập mới</h1>
+                    <p class="text-gray-600 mt-1">Điền thông tin để tạo gói tập mới cho phòng gym</p>
+                </div>
+            </div>
+        </div>
+
+        <form asp-action="Create" method="post" class="space-y-8">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-red-600"></div>
+
+            <!-- Main Form Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-file-alt text-blue-600 mr-2"></i>
+                        Thông tin gói tập
+                    </h2>
+                    <p class="text-sm text-gray-600 mt-1">Vui lòng điền đầy đủ thông tin bên dưới để tạo gói tập mới</p>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- Tên gói tập -->
+                    <div>
+                        <label asp-for="TenGoi" class="block text-sm font-medium text-gray-700 mb-2">
+                            Tên gói tập <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input asp-for="TenGoi"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="Ví dụ: Gói tập Premium, Gói tập cơ bản..." />
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-info-circle text-gray-400"></i>
+                            </div>
+                        </div>
+                        <span asp-validation-for="TenGoi" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Row 1: Thời hạn và Số buổi -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Thời hạn -->
+                        <div>
+                            <label asp-for="ThoiHanThang" class="block text-sm font-medium text-gray-700 mb-2">
+                                Thời hạn (tháng) <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input asp-for="ThoiHanThang" type="number" min="1" max="60"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="Ví dụ: 3, 6, 12 tháng..." />
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-calendar text-gray-400"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Thời gian hiệu lực của gói tập</p>
+                            <span asp-validation-for="ThoiHanThang" class="text-red-500 text-sm"></span>
+                        </div>
+
+                        <!-- Số buổi tối đa -->
+                        <div>
+                            <label asp-for="SoBuoiToiDa" class="block text-sm font-medium text-gray-700 mb-2">
+                                Số buổi tối đa
+                                <span class="text-gray-500 text-xs">(Để trống nếu không giới hạn)</span>
+                            </label>
+                            <div class="relative">
+                                <input asp-for="SoBuoiToiDa" type="number" min="1"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                       placeholder="Để trống nếu không giới hạn" />
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-dumbbell text-gray-400"></i>
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">Để trống nếu không giới hạn số buổi</p>
+                            <span asp-validation-for="SoBuoiToiDa" class="text-red-500 text-sm"></span>
+                        </div>
+                    </div>
+
+                    <!-- Giá gói tập -->
+                    <div>
+                        <label asp-for="Gia" class="block text-sm font-medium text-gray-700 mb-2">
+                            Giá gói tập (VNĐ) <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input asp-for="Gia" type="number" min="0" step="1000"
+                                   class="w-full px-4 py-3 pr-16 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="Ví dụ: 500000, 1000000..." />
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                <span class="text-gray-500 text-sm mr-2">VNĐ</span>
+                                <i class="fas fa-money-bill text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Giá tiền cho toàn bộ gói tập</p>
+                        <span asp-validation-for="Gia" class="text-red-500 text-sm"></span>
+                    </div>
+
+                    <!-- Mô tả -->
+                    <div>
+                        <label asp-for="MoTa" class="block text-sm font-medium text-gray-700 mb-2">
+                            Mô tả gói tập
+                        </label>
+                        <div class="relative">
+                            <textarea asp-for="MoTa" rows="4" maxlength="500"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                                      placeholder="Nhập mô tả chi tiết về gói tập, các dịch vụ bao gồm, ưu đãi đặc biệt..."></textarea>
+                            <div class="absolute bottom-3 right-3 flex items-center space-x-2">
+                                <i class="fas fa-edit text-gray-400"></i>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Mô tả chi tiết giúp khách hàng hiểu rõ hơn về gói tập</p>
+                        <p class="text-xs text-gray-400 mt-1">Tối đa 500 ký tự</p>
+                        <span asp-validation-for="MoTa" class="text-red-500 text-sm"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h2 class="text-lg font-semibold text-gray-900 flex items-center">
+                        <i class="fas fa-eye text-green-600 mr-2"></i>
+                        Xem trước gói tập
+                    </h2>
+                    <p class="text-sm text-gray-600 mt-1">Gói tập sẽ hiển thị như thế này cho khách hàng</p>
+                </div>
+
+                <div class="p-6">
+                    <div class="max-w-sm mx-auto bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200">
+                        <div class="text-center">
+                            <h3 class="text-xl font-bold text-gray-900 mb-2" id="preview-name">Tên gói tập</h3>
+                            <div class="text-3xl font-bold text-blue-600 mb-1">
+                                <span id="preview-price">0</span>
+                                <span class="text-lg text-gray-600">VNĐ</span>
+                            </div>
+                            <div class="text-sm text-gray-600 mb-4">
+                                / <span id="preview-duration">0</span> tháng
+                            </div>
+                            <div class="bg-white rounded-lg p-3 mb-4">
+                                <div class="text-sm font-medium text-gray-700" id="preview-sessions">Không giới hạn buổi</div>
+                            </div>
+                            <div class="text-sm text-gray-600 text-left bg-white rounded-lg p-3">
+                                <div id="preview-description">Mô tả gói tập</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-end">
+                <a asp-action="Index" 
+                   class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Hủy bỏ
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>
+                    Tạo gói tập
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript for live preview -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.querySelector('input[name="TenGoi"]');
+    const priceInput = document.querySelector('input[name="Gia"]');
+    const durationInput = document.querySelector('input[name="ThoiHanThang"]');
+    const sessionsInput = document.querySelector('input[name="SoBuoiToiDa"]');
+    const descriptionInput = document.querySelector('textarea[name="MoTa"]');
+
+    const previewName = document.getElementById('preview-name');
+    const previewPrice = document.getElementById('preview-price');
+    const previewDuration = document.getElementById('preview-duration');
+    const previewSessions = document.getElementById('preview-sessions');
+    const previewDescription = document.getElementById('preview-description');
+
+    function updatePreview() {
+        previewName.textContent = nameInput.value || 'Tên gói tập';
+        previewPrice.textContent = priceInput.value ? parseInt(priceInput.value).toLocaleString('vi-VN') : '0';
+        previewDuration.textContent = durationInput.value || '0';
+
+        if (sessionsInput.value) {
+            previewSessions.textContent = sessionsInput.value + ' buổi';
+        } else {
+            previewSessions.textContent = 'Không giới hạn buổi';
+        }
+
+        previewDescription.textContent = descriptionInput.value || 'Mô tả gói tập';
+    }
+
+    // Initial update
+    updatePreview();
+
+    // Add event listeners
+    if (nameInput) nameInput.addEventListener('input', updatePreview);
+    if (priceInput) priceInput.addEventListener('input', updatePreview);
+    if (durationInput) durationInput.addEventListener('input', updatePreview);
+    if (sessionsInput) sessionsInput.addEventListener('input', updatePreview);
+    if (descriptionInput) descriptionInput.addEventListener('input', updatePreview);
+});
+</script>

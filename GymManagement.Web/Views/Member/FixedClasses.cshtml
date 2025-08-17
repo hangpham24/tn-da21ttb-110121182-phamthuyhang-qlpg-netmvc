@@ -1,0 +1,235 @@
+@model IEnumerable<GymManagement.Web.Data.Models.LopHoc>
+@{
+    ViewData["Title"] = "Lớp học cố định";
+    Layout = "_MemberLayout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">🎓 Lớp học cố định</h1>
+            <p class="text-gray-600">Tham gia các lớp học với lịch trình cố định từ đầu khóa</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="@Url.Action("MyRegistrations")" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                📋 Đăng ký của tôi
+            </a>
+        </div>
+    </div>
+
+    <!-- Info Banner -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h3 class="text-sm font-medium text-blue-800 mb-1">Lưu ý về lớp học cố định</h3>
+                <p class="text-sm text-blue-700">
+                    • Tất cả thành viên sẽ bắt đầu và kết thúc cùng lúc<br>
+                    • Chỉ có thể đăng ký trước ngày bắt đầu khóa học<br>
+                    • Lịch học cố định theo thời gian biểu đã định
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="mb-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <button onclick="filterClasses('all')" class="filter-tab active border-blue-500 text-blue-600 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    Tất cả
+                </button>
+                <button onclick="filterClasses('open')" class="filter-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    Đang mở đăng ký
+                </button>
+                <button onclick="filterClasses('starting-soon')" class="filter-tab border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm">
+                    Sắp bắt đầu
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Classes Grid -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach (var lopHoc in Model.Where(l => l.TrangThai == "OPEN" && l.IsFixedSchedule))
+            {
+                var currentRegistrations = ViewBag.CurrentRegistrations as Dictionary<int, int> ?? new Dictionary<int, int>();
+                var registeredCount = currentRegistrations.ContainsKey(lopHoc.LopHocId) ? currentRegistrations[lopHoc.LopHocId] : 0;
+                var availableSlots = lopHoc.SucChua - registeredCount;
+                
+                <div class="class-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200" 
+                     data-status="@(lopHoc.IsEnrollmentOpen ? "open" : "closed")"
+                     data-starting-soon="@(lopHoc.NgayBatDauKhoa.HasValue && lopHoc.NgayBatDauKhoa.Value <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)) ? "true" : "false")">
+                    
+                    <!-- Class Header -->
+                    <div class="p-6 pb-4">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-1">@lopHoc.TenLop</h3>
+                                @if (!string.IsNullOrEmpty(lopHoc.Hlv?.Ho) && !string.IsNullOrEmpty(lopHoc.Hlv?.Ten))
+                                {
+                                    <p class="text-sm text-gray-600">👨‍🏫 @lopHoc.Hlv.Ho @lopHoc.Hlv.Ten</p>
+                                }
+                            </div>
+                            <div class="flex-shrink-0">
+                                @if (lopHoc.IsEnrollmentOpen && availableSlots > 0)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Đang mở
+                                    </span>
+                                }
+                                else if (availableSlots <= 0)
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        Đã đầy
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        Đã đóng
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(lopHoc.MoTa))
+                        {
+                            <p class="text-sm text-gray-600 mb-4 line-clamp-2">@lopHoc.MoTa</p>
+                        }
+                    </div>
+
+                    <!-- Class Schedule Info -->
+                    <div class="px-6 pb-4">
+                        <div class="space-y-2 text-sm">
+                            <!-- Fixed Schedule Dates -->
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="font-medium">Khóa học:</span>
+                                <span class="ml-1">@lopHoc.NgayBatDauKhoa?.ToString("dd/MM/yyyy") - @lopHoc.NgayKetThucKhoa?.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            
+                            <!-- Time & Days -->
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="font-medium">Thời gian:</span>
+                                <span class="ml-1">@lopHoc.GioBatDau.ToString("HH:mm") - @lopHoc.GioKetThuc.ToString("HH:mm")</span>
+                            </div>
+                            
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="font-medium">Thứ:</span>
+                                <span class="ml-1">@lopHoc.ThuTrongTuan</span>
+                            </div>
+
+                            <!-- Capacity -->
+                            <div class="flex items-center text-gray-600">
+                                <svg class="w-4 h-4 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <span class="font-medium">Chỗ trống:</span>
+                                <span class="ml-1 @(availableSlots <= 3 ? "text-red-600 font-semibold" : "")">@availableSlots/@lopHoc.SucChua</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="px-6 pb-6">
+                        <div class="flex gap-2">
+                            <a href="@Url.Action("ClassDetails", new { id = lopHoc.LopHocId })"
+                               class="flex-1 text-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
+                                Chi tiết
+                            </a>
+                            
+                            @if (lopHoc.IsEnrollmentOpen && availableSlots > 0)
+                            {
+                                <form asp-controller="DangKy" asp-action="RegisterFixedClass" method="post" class="flex-1">
+                                    <input type="hidden" name="classId" value="@lopHoc.LopHocId" />
+                                    <button type="submit" 
+                                            class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium">
+                                        Đăng ký ngay
+                                    </button>
+                                </form>
+                            }
+                            else if (availableSlots <= 0)
+                            {
+                                <button disabled 
+                                        class="flex-1 px-4 py-2 bg-red-300 text-red-700 rounded-md cursor-not-allowed text-sm font-medium">
+                                    Đã đầy
+                                </button>
+                            }
+                            else
+                            {
+                                <button disabled 
+                                        class="flex-1 px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed text-sm font-medium">
+                                    Đã đóng
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="text-center py-12">
+            <div class="mx-auto h-24 w-24 text-gray-400 mb-4">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Chưa có lớp học cố định nào</h3>
+            <p class="text-gray-600">Hiện tại chưa có lớp học cố định nào được mở. Vui lòng quay lại sau.</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function filterClasses(status) {
+            const cards = document.querySelectorAll('.class-card');
+            const tabs = document.querySelectorAll('.filter-tab');
+            
+            // Update active tab
+            tabs.forEach(tab => {
+                tab.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            event.target.classList.add('active', 'border-blue-500', 'text-blue-600');
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            
+            // Filter cards
+            cards.forEach(card => {
+                let show = false;
+                
+                switch(status) {
+                    case 'all':
+                        show = true;
+                        break;
+                    case 'open':
+                        show = card.dataset.status === 'open';
+                        break;
+                    case 'starting-soon':
+                        show = card.dataset.startingSoon === 'true';
+                        break;
+                }
+                
+                card.style.display = show ? 'block' : 'none';
+            });
+        }
+    </script>
+}

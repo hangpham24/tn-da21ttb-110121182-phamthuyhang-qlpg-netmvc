@@ -1,0 +1,189 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Data Fix - Sửa Dữ Liệu";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <div class="d-lg-flex">
+                        <div>
+                            <h5 class="mb-0">🔧 Data Fix - Sửa Dữ Liệu Hệ Thống</h5>
+                            <p class="text-sm mb-0">
+                                Công cụ để sửa chữa và tạo dữ liệu thiếu trong hệ thống
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pb-0">
+                    
+                    <!-- Current Status -->
+                    <div class="row px-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-gradient-primary">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-white text-sm mb-0 text-capitalize font-weight-bold">Đăng Ký</p>
+                                                <h5 class="text-white font-weight-bolder mb-0">
+                                                    @Model.DangKy.Total tổng
+                                                </h5>
+                                                <p class="text-white text-sm mb-0">
+                                                    @Model.DangKy.WithFee có phí (@(((decimal)Model.DangKy.TotalFeeAmount).ToString("N0")) VND)
+                                                </p>
+                                                <p class="text-white text-sm mb-0">
+                                                    <strong>@Model.DangKy.WithoutPayment chưa có thanh toán</strong>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-white shadow text-center border-radius-md">
+                                                <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card bg-gradient-success">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-8">
+                                            <div class="numbers">
+                                                <p class="text-white text-sm mb-0 text-capitalize font-weight-bold">Thanh Toán</p>
+                                                <h5 class="text-white font-weight-bolder mb-0">
+                                                    @Model.ThanhToan.Total tổng
+                                                </h5>
+                                                <p class="text-white text-sm mb-0">
+                                                    @Model.ThanhToan.Success thành công (@(((decimal)Model.ThanhToan.SuccessAmount).ToString("N0")) VND)
+                                                </p>
+                                                <p class="text-white text-sm mb-0">
+                                                    Tổng: @(((decimal)Model.ThanhToan.TotalAmount).ToString("N0")) VND
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <div class="icon icon-shape bg-white shadow text-center border-radius-md">
+                                                <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="row px-4 mb-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>🛠️ Hành Động Sửa Chữa</h6>
+                                </div>
+                                <div class="card-body">
+                                    @if (Model.DangKy.WithoutPayment > 0)
+                                    {
+                                        <div class="alert alert-warning">
+                                            <strong>⚠️ Phát hiện vấn đề:</strong> 
+                                            Có @Model.DangKy.WithoutPayment đăng ký có phí nhưng chưa có bản ghi thanh toán.
+                                            Điều này khiến báo cáo doanh thu hiển thị không chính xác.
+                                        </div>
+                                        
+                                        <button id="createMissingPaymentsBtn" class="btn btn-primary">
+                                            💰 Tạo Bản Ghi Thanh Toán Thiếu
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-success">
+                                            <strong>✅ Dữ liệu ổn định:</strong> 
+                                            Tất cả đăng ký có phí đều đã có bản ghi thanh toán tương ứng.
+                                        </div>
+                                    }
+                                    
+                                    <button id="refreshStatusBtn" class="btn btn-secondary ms-2">
+                                        🔄 Làm Mới Trạng Thái
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Log Area -->
+                    <div class="row px-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>📋 Nhật Ký Hoạt Động</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="logArea" class="bg-dark text-white p-3 rounded" style="height: 200px; overflow-y: auto; font-family: monospace;">
+                                        <div class="text-success">🟢 Hệ thống sẵn sàng...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function addLog(message, type = 'info') {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            const colorClass = type === 'success' ? 'text-success' : 
+                              type === 'error' ? 'text-danger' : 
+                              type === 'warning' ? 'text-warning' : 'text-info';
+            
+            logArea.innerHTML += `<div class="${colorClass}">[${timestamp}] ${message}</div>`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        document.getElementById('createMissingPaymentsBtn')?.addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '⏳ Đang xử lý...';
+            
+            addLog('🔧 Bắt đầu tạo bản ghi thanh toán thiếu...', 'info');
+            
+            try {
+                const response = await fetch('/DataFix/CreateMissingPayments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog(result.message, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    addLog(result.message, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Lỗi kết nối: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '💰 Tạo Bản Ghi Thanh Toán Thiếu';
+            }
+        });
+
+        document.getElementById('refreshStatusBtn').addEventListener('click', function() {
+            addLog('🔄 Làm mới trang...', 'info');
+            location.reload();
+        });
+    </script>
+}

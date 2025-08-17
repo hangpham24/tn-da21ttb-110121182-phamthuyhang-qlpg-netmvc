@@ -1,0 +1,328 @@
+@{
+    ViewData["Title"] = "Đăng ký lớp học";
+    Layout = "_Layout";
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">🎓 Đăng ký lớp học</h1>
+            <p class="text-gray-600">Tham gia lớp học với huấn luyện viên chuyên nghiệp</p>
+        </div>
+        <a href="@Url.Action("Index")" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            ← Quay lại
+        </a>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <form asp-action="RegisterClass" method="post" data-loading="true">
+            <div asp-validation-summary="ModelOnly" class="text-red-600 mb-4"></div>
+
+            <!-- Class Selection -->
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Chọn lớp học</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="classGrid">
+                    @if (ViewBag.Classes != null)
+                    {
+                        @foreach (var classItem in ViewBag.Classes as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)
+                        {
+                            <div class="class-card border-2 border-gray-200 rounded-lg p-6 cursor-pointer hover:border-green-300 transition-colors" 
+                                 data-class-id="@classItem.Value" 
+                                 data-class-name="@classItem.Text">
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center">
+                                            <span class="text-2xl">🎓</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">@classItem.Text</h3>
+                                        <div class="space-y-2 text-sm text-gray-600 mb-4">
+                                            <div class="flex items-center">
+                                                <span class="w-4 h-4 mr-2">👨‍🏫</span>
+                                                <span>Huấn luyện viên chuyên nghiệp</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <span class="w-4 h-4 mr-2">⏰</span>
+                                                <span>Lịch học linh hoạt</span>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <span class="w-4 h-4 mr-2">👥</span>
+                                                <span>Lớp học nhỏ, chất lượng cao</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium transition-colors select-class-btn">
+                                            Chọn lớp này
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                
+                <!-- Hidden input for selected class -->
+                <input type="hidden" name="classId" id="selectedClassId" required>
+                <div id="classError" class="text-red-600 text-sm mt-2 hidden">Vui lòng chọn một lớp học.</div>
+            </div>
+
+            <!-- Date Selection -->
+            <div class="mb-8" id="dateSection" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Chọn thời gian học</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="startDate" class="block text-sm font-medium text-gray-700 mb-2">Ngày bắt đầu</label>
+                        <input type="date" name="startDate" id="startDate" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <div id="startDateError" class="text-red-600 text-sm mt-1 hidden">Vui lòng chọn ngày bắt đầu.</div>
+                    </div>
+                    <div>
+                        <label for="endDate" class="block text-sm font-medium text-gray-700 mb-2">Ngày kết thúc</label>
+                        <input type="date" name="endDate" id="endDate" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <div id="endDateError" class="text-red-600 text-sm mt-1 hidden">Vui lòng chọn ngày kết thúc.</div>
+                    </div>
+                </div>
+
+                <!-- Quick Duration Options -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Hoặc chọn thời gian nhanh:</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button type="button" class="quick-duration-btn border border-gray-300 rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors" data-weeks="4">
+                            1 tháng
+                        </button>
+                        <button type="button" class="quick-duration-btn border border-gray-300 rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors" data-weeks="8">
+                            2 tháng
+                        </button>
+                        <button type="button" class="quick-duration-btn border border-gray-300 rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors" data-weeks="12">
+                            3 tháng
+                        </button>
+                        <button type="button" class="quick-duration-btn border border-gray-300 rounded-md py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors" data-weeks="24">
+                            6 tháng
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Summary -->
+            <div class="mb-8" id="summarySection" style="display: none;">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">Tóm tắt đăng ký</h2>
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Lớp học đã chọn</label>
+                            <p class="text-lg font-semibold text-gray-900" id="summaryClass">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Thời gian học</label>
+                            <p class="text-lg font-semibold text-gray-900" id="summaryDuration">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
+                            <p class="text-gray-900" id="summaryStartDate">-</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ngày kết thúc</label>
+                            <p class="text-gray-900" id="summaryEndDate">-</p>
+                        </div>
+                    </div>
+
+                    <!-- Important Notes -->
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                        <h4 class="text-sm font-medium text-blue-900 mb-2">📝 Lưu ý quan trọng:</h4>
+                        <ul class="text-sm text-blue-800 space-y-1">
+                            <li>• Vui lòng đến sớm 10-15 phút trước giờ học</li>
+                            <li>• Mang theo đồ tập thể thao và khăn tắm</li>
+                            <li>• Thông báo với huấn luyện viên nếu có vấn đề sức khỏe</li>
+                            <li>• Có thể hủy hoặc đổi lịch trước 24 giờ</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4">
+                <a href="@Url.Action("Index")" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-md font-medium transition-colors">
+                    Hủy
+                </a>
+                <button type="submit" id="submitBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md font-medium transition-colors" disabled>
+                    ✅ Đăng ký lớp học
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedClass = null;
+
+        // Class selection
+        document.querySelectorAll('.class-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.class-card').forEach(c => {
+                    c.classList.remove('border-green-500', 'bg-green-50');
+                    c.classList.add('border-gray-200');
+                });
+
+                // Add selection to current card
+                this.classList.remove('border-gray-200');
+                this.classList.add('border-green-500', 'bg-green-50');
+
+                // Store selection
+                selectedClass = {
+                    id: this.dataset.classId,
+                    name: this.dataset.className
+                };
+
+                document.getElementById('selectedClassId').value = selectedClass.id;
+                document.getElementById('classError').classList.add('hidden');
+
+                // Show date section
+                document.getElementById('dateSection').style.display = 'block';
+                
+                // Set default dates
+                setDefaultDates();
+                updateSummary();
+            });
+        });
+
+        // Date change handlers
+        document.getElementById('startDate').addEventListener('change', function() {
+            validateDates();
+            updateSummary();
+            updateSubmitButton();
+        });
+
+        document.getElementById('endDate').addEventListener('change', function() {
+            validateDates();
+            updateSummary();
+            updateSubmitButton();
+        });
+
+        // Quick duration buttons
+        document.querySelectorAll('.quick-duration-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const weeks = parseInt(this.dataset.weeks);
+                const startDate = new Date();
+                const endDate = new Date(startDate.getTime() + (weeks * 7 * 24 * 60 * 60 * 1000));
+
+                document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+                document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+
+                validateDates();
+                updateSummary();
+                updateSubmitButton();
+
+                // Visual feedback
+                document.querySelectorAll('.quick-duration-btn').forEach(b => {
+                    b.classList.remove('bg-green-100', 'border-green-500', 'text-green-700');
+                    b.classList.add('border-gray-300', 'text-gray-700');
+                });
+                this.classList.remove('border-gray-300', 'text-gray-700');
+                this.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+            });
+        });
+
+        function setDefaultDates() {
+            const today = new Date();
+            const nextMonth = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
+
+            document.getElementById('startDate').value = today.toISOString().split('T')[0];
+            document.getElementById('endDate').value = nextMonth.toISOString().split('T')[0];
+        }
+
+        function validateDates() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            let hasError = false;
+
+            // Clear previous errors
+            document.getElementById('startDateError').classList.add('hidden');
+            document.getElementById('endDateError').classList.add('hidden');
+
+            // Validate start date
+            if (startDate < today) {
+                document.getElementById('startDateError').textContent = 'Ngày bắt đầu không thể là ngày trong quá khứ.';
+                document.getElementById('startDateError').classList.remove('hidden');
+                hasError = true;
+            }
+
+            // Validate end date
+            if (endDate <= startDate) {
+                document.getElementById('endDateError').textContent = 'Ngày kết thúc phải sau ngày bắt đầu.';
+                document.getElementById('endDateError').classList.remove('hidden');
+                hasError = true;
+            }
+
+            return !hasError;
+        }
+
+        function updateSummary() {
+            if (selectedClass) {
+                document.getElementById('summaryClass').textContent = selectedClass.name;
+            }
+
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffWeeks = Math.ceil(diffDays / 7);
+
+                document.getElementById('summaryDuration').textContent = `${diffWeeks} tuần (${diffDays} ngày)`;
+                document.getElementById('summaryStartDate').textContent = start.toLocaleDateString('vi-VN');
+                document.getElementById('summaryEndDate').textContent = end.toLocaleDateString('vi-VN');
+
+                // Show summary section
+                document.getElementById('summarySection').style.display = 'block';
+            }
+        }
+
+        function updateSubmitButton() {
+            const submitBtn = document.getElementById('submitBtn');
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const datesValid = validateDates();
+
+            if (selectedClass && startDate && endDate && datesValid) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            let hasError = false;
+
+            if (!selectedClass) {
+                document.getElementById('classError').classList.remove('hidden');
+                hasError = true;
+            }
+
+            if (!validateDates()) {
+                hasError = true;
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                showNotification('Vui lòng kiểm tra lại thông tin đăng ký.', 'error');
+            }
+        });
+
+        // Initialize
+        updateSubmitButton();
+    </script>
+}

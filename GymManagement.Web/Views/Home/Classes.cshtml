@@ -1,0 +1,336 @@
+@model IEnumerable<GymManagement.Web.Models.DTOs.LopHocDto>
+
+@{
+    ViewData["Title"] = "Lớp học công khai";
+    Layout = "_MemberLayout";
+}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-6 shadow-lg">
+                <span class="text-4xl">🎓</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+                Lớp Học Công Khai
+            </h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                Khám phá và tham gia các lớp học chuyên nghiệp để nâng cao kỹ năng tập luyện của bạn
+            </p>
+        </div>
+
+        <!-- Classes Grid -->
+        @if (Model != null && Model.Any())
+        {
+            <div id="classesGrid" class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
+                @foreach (var lopHoc in Model)
+                {
+                    var gradientClass = "";
+                    var levelClass = "";
+                    var levelText = "";
+                    var iconEmoji = "";
+
+                    // Determine level and styling based on MucDo
+                    if (lopHoc.MucDo == "NANG_CAO")
+                    {
+                        gradientClass = "from-red-500 to-pink-600";
+                        levelClass = "bg-red-100 text-red-800 border-red-200";
+                        levelText = "NÂNG CAO";
+                        iconEmoji = "🔥";
+                    }
+                    else if (lopHoc.MucDo == "TRUNG_CAP")
+                    {
+                        gradientClass = "from-yellow-500 to-orange-600";
+                        levelClass = "bg-yellow-100 text-yellow-800 border-yellow-200";
+                        levelText = "TRUNG CẤP";
+                        iconEmoji = "⚡";
+                    }
+                    else
+                    {
+                        gradientClass = "from-green-500 to-emerald-600";
+                        levelClass = "bg-green-100 text-green-800 border-green-200";
+                        levelText = "CƠ BẢN";
+                        iconEmoji = "🌱";
+                    }
+
+                    var registeredCount = lopHoc.RegisteredCount;
+                    var availableSlots = lopHoc.SucChuaToiDa - registeredCount;
+                    var fillRate = lopHoc.SucChuaToiDa > 0 ? (double)registeredCount / lopHoc.SucChuaToiDa * 100 : 0;
+                    var statusText = lopHoc.TrangThai == "ACTIVE" ? (availableSlots > 0 ? "Còn chỗ" : "Đã đầy") : lopHoc.TrangThai;
+
+                    <div class="class-card bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden border border-gray-100 flex flex-col h-full"
+                         role="article"
+                         aria-labelledby="class-title-@lopHoc.LopHocId"
+                         aria-describedby="class-desc-@lopHoc.LopHocId"
+                         data-class-id="@lopHoc.LopHocId">
+
+                        <!-- Header with gradient -->
+                        <div class="bg-gradient-to-r @gradientClass p-6 text-white relative overflow-hidden">
+                            <div class="relative z-10">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center text-2xl">
+                                            @iconEmoji
+                                        </div>
+                                        <div>
+                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium @levelClass border">
+                                                @levelText
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-sm opacity-90">@(lopHoc.ThoiLuongPhut ?? 60) phút</div>
+                                    </div>
+                                </div>
+                                
+                                <h3 id="class-title-@lopHoc.LopHocId" class="text-xl font-bold mb-2">@lopHoc.TenLop</h3>
+                                <p class="text-sm opacity-90" aria-label="Huấn luyện viên">Huấn luyện viên: @lopHoc.TrainerName</p>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="p-6 flex-1 flex flex-col">
+                            <!-- Description -->
+                            @if (!string.IsNullOrEmpty(lopHoc.MoTa))
+                            {
+                                <p id="class-desc-@lopHoc.LopHocId" class="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">@lopHoc.MoTa</p>
+                            }
+
+                            <!-- Stats -->
+                            <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+                                <div class="bg-gray-50 rounded-xl p-2 sm:p-3 text-center">
+                                    <div class="text-base sm:text-lg font-bold text-gray-900 registered-count">@registeredCount/@lopHoc.SucChuaToiDa</div>
+                                    <div class="text-xs text-gray-600">Đã đăng ký</div>
+                                </div>
+                                <div class="bg-gray-50 rounded-xl p-2 sm:p-3 text-center">
+                                    <div class="text-base sm:text-lg font-bold text-gray-900 available-slots">@availableSlots</div>
+                                    <div class="text-xs text-gray-600">Còn lại</div>
+                                </div>
+                            </div>
+
+                            <!-- Progress Bar -->
+                            <div class="mb-4">
+                                <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                    <span>Tỷ lệ lấp đầy</span>
+                                    <span>@fillRate.ToString("F1")%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2"
+                                     role="progressbar"
+                                     aria-valuenow="@fillRate.ToString("F0")"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"
+                                     aria-label="Tỷ lệ lấp đầy lớp học">
+                                    <div class="bg-gradient-to-r @gradientClass h-2 rounded-full transition-all duration-300 progress-bar"
+                                         style="width: @fillRate.ToString("F1")%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Status Badge -->
+                            <div class="mb-4">
+                                @if (availableSlots > 0)
+                                {
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                                        ✅ @statusText
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+                                        ❌ @statusText
+                                    </span>
+                                }
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="mt-auto pt-4 border-t border-gray-100">
+                                <div class="space-y-3">
+                                    <!-- View Details Button -->
+                                    <a href="@Url.Action("Details", "LopHoc", new { id = lopHoc.LopHocId })"
+                                       class="block w-full text-center bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-xl transition-all duration-300 border-2 border-gray-200 hover:border-gray-300 group">
+                                        <span class="flex items-center justify-center">
+                                            <svg class="w-4 h-4 mr-2 group-hover:scale-110 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            Xem Chi Tiết
+                                        </span>
+                                    </a>
+
+                                    <!-- Register Button -->
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        @if (availableSlots > 0)
+                                        {
+                                            <button onclick="registerClass(@lopHoc.LopHocId, '@lopHoc.TenLop')" 
+                                                    class="w-full bg-gradient-to-r @gradientClass hover:shadow-xl text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden">
+                                                <span class="relative flex items-center justify-center">
+                                                    <svg class="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                                    </svg>
+                                                    <span class="font-bold">Đăng Ký Ngay</span>
+                                                </span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button disabled 
+                                                    class="w-full bg-gray-400 text-white font-semibold py-3 px-6 rounded-xl cursor-not-allowed">
+                                                <span class="flex items-center justify-center">
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                    </svg>
+                                                    Đã Hết Chỗ
+                                                </span>
+                                            </button>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("Login", "Auth")" 
+                                           class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300">
+                                            <span class="flex items-center justify-center">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                                                </svg>
+                                                Đăng nhập để đăng ký
+                                            </span>
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="bg-white rounded-2xl shadow-lg p-12 text-center border border-gray-100">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span class="text-4xl">🎓</span>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 mb-4">Chưa có lớp học nào</h3>
+                <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                    Hiện tại chưa có lớp học nào đang mở. Vui lòng quay lại sau hoặc liên hệ với chúng tôi để biết thêm thông tin.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="@Url.Action("Index", "Home")" 
+                       class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors font-medium">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Quay về trang chủ
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Class registration function
+        function registerClass(classId, className) {
+            if (!confirm(`Bạn có chắc chắn muốn đăng ký lớp học "${className}"? Bạn sẽ được chuyển đến trang thanh toán.`)) {
+                return;
+            }
+
+            // Show loading state
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="flex items-center justify-center"><svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Đang xử lý thanh toán...</span>';
+            button.disabled = true;
+
+            // Create payment for class registration
+            const formData = new FormData();
+            formData.append('lopHocId', classId);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]')?.value);
+
+            fetch('@Url.Action("CreateFixedClassPayment", "ThanhToan")', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Call VNPay Area to create payment URL
+                    fetch('/VNPayAPI/Home/CreatePayment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            thanhToanId: data.thanhToanId,
+                            returnUrl: data.returnUrl
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(vnpayData => {
+                        if (vnpayData.success) {
+                            // Show QR Payment Modal instead of direct redirect
+                            showQRPaymentModal({
+                                paymentUrl: vnpayData.paymentUrl,
+                                qrCodeData: vnpayData.qrCodeData,
+                                qrImageUrl: vnpayData.qrImageUrl,
+                                orderId: vnpayData.orderId,
+                                amount: vnpayData.amount,
+                                bankInfo: vnpayData.bankInfo
+                            });
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        } else {
+                            alert('Lỗi VNPay: ' + vnpayData.message);
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('VNPay Error:', error);
+                        alert('Có lỗi xảy ra khi tạo thanh toán VNPay');
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    });
+                } else {
+                    alert('Lỗi: ' + data.message);
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi xử lý thanh toán');
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        // Notification function
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+}
+
+@* Include QR Payment Modal *@
+@await Html.PartialAsync("_QRPaymentModal")

@@ -1,0 +1,710 @@
+@model GymManagement.Web.Models.DTOs.CustomReportDto
+
+@{
+    ViewData["Title"] = "Custom Report Builder - Admin";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <style>
+        .field-item {
+            transition: all 0.2s ease;
+            cursor: move;
+        }
+        .field-item:hover {
+            background-color: #f3f4f6;
+        }
+        .drop-zone {
+            min-height: 100px;
+            border: 2px dashed #d1d5db;
+            transition: all 0.2s ease;
+        }
+        .drop-zone.drag-over {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .filter-row {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .preview-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+}
+
+<div class="min-h-screen bg-gray-50 p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">⚙️ Custom Report Builder</h1>
+                <p class="text-gray-600">Tạo báo cáo tùy chỉnh với trình xây dựng trực quan</p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="saveAsTemplate()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    💾 Lưu template
+                </button>
+                <button onclick="executeReport()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    🔍 Xem trước
+                </button>
+                <button onclick="exportReport()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                    📊 Xuất báo cáo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Configuration Panel -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Basic Info -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4">📝 Thông tin cơ bản</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tên báo cáo</label>
+                        <input type="text" id="reportName" class="w-full border border-gray-300 rounded-md px-3 py-2" 
+                               placeholder="Nhập tên báo cáo...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
+                        <textarea id="reportDescription" class="w-full border border-gray-300 rounded-md px-3 py-2" 
+                                  rows="3" placeholder="Mô tả báo cáo..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Loại báo cáo</label>
+                        <select id="reportType" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="table">📋 Bảng dữ liệu</option>
+                            <option value="chart">📊 Biểu đồ</option>
+                            <option value="mixed">🔀 Kết hợp</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Available Fields -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4">📦 Trường dữ liệu</h3>
+                <div class="space-y-2" id="availableFields">
+                    <!-- Revenue Fields -->
+                    <div class="field-group">
+                        <h4 class="font-medium text-gray-800 mb-2">💰 Doanh thu</h4>
+                        <div class="pl-4 space-y-1">
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="revenue.date" data-type="datetime">
+                                📅 Ngày thanh toán
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="revenue.amount" data-type="decimal">
+                                💵 Số tiền
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="revenue.method" data-type="string">
+                                💳 Phương thức
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Member Fields -->
+                    <div class="field-group">
+                        <h4 class="font-medium text-gray-800 mb-2">👥 Thành viên</h4>
+                        <div class="pl-4 space-y-1">
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="member.name" data-type="string">
+                                👤 Tên thành viên
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="member.email" data-type="string">
+                                📧 Email
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="member.joinDate" data-type="date">
+                                📅 Ngày tham gia
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="member.status" data-type="string">
+                                🔘 Trạng thái
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Class Fields -->
+                    <div class="field-group">
+                        <h4 class="font-medium text-gray-800 mb-2">🎓 Lớp học</h4>
+                        <div class="pl-4 space-y-1">
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="class.name" data-type="string">
+                                📚 Tên lớp học
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="class.trainer" data-type="string">
+                                👨‍🏫 Huấn luyện viên
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="class.capacity" data-type="number">
+                                👥 Sức chứa
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Fields -->
+                    <div class="field-group">
+                        <h4 class="font-medium text-gray-800 mb-2">✅ Điểm danh</h4>
+                        <div class="pl-4 space-y-1">
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="attendance.date" data-type="datetime">
+                                📅 Ngày điểm danh
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="attendance.member" data-type="string">
+                                👤 Thành viên
+                            </div>
+                            <div class="field-item p-2 rounded cursor-pointer hover:bg-gray-100" 
+                                 draggable="true" data-field="attendance.status" data-type="string">
+                                🔘 Trạng thái
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Builder -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Selected Fields -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold mb-4">📋 Trường đã chọn</h3>
+                <div class="drop-zone p-4 rounded-lg" id="selectedFields">
+                    <p class="text-gray-500 text-center">Kéo thả các trường dữ liệu vào đây</p>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">🔍 Bộ lọc</h3>
+                    <button onclick="addFilter()" class="px-3 py-1 bg-blue-600 text-white rounded text-sm">
+                        ➕ Thêm bộ lọc
+                    </button>
+                </div>
+                <div id="filtersContainer">
+                    <p class="text-gray-500 text-center py-4">Chưa có bộ lọc nào</p>
+                </div>
+            </div>
+
+            <!-- Chart Configuration -->
+            <div class="bg-white rounded-lg shadow p-6" id="chartConfig" style="display: none;">
+                <h3 class="text-lg font-semibold mb-4">📊 Cấu hình biểu đồ</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Loại biểu đồ</label>
+                        <select id="chartType" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="line">📈 Đường</option>
+                            <option value="bar">📊 Cột</option>
+                            <option value="pie">🥧 Tròn</option>
+                            <option value="doughnut">🍩 Donut</option>
+                            <option value="area">📈 Vùng</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trục X</label>
+                        <select id="xAxisField" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="">Chọn trường...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Trục Y</label>
+                        <select id="yAxisField" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="">Chọn trường...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nhóm theo</label>
+                        <select id="groupByField" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="">Không nhóm</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">👁️ Xem trước</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="refreshPreview()" class="px-3 py-1 border border-gray-300 rounded text-sm">
+                            🔄 Làm mới
+                        </button>
+                    </div>
+                </div>
+                <div id="previewContainer" class="preview-container">
+                    <p class="text-gray-500 text-center py-8">Chọn trường và nhấn "Xem trước" để hiển thị dữ liệu</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Save Template Modal -->
+<div id="saveTemplateModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold mb-4">💾 Lưu Template</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Tên template</label>
+                <input type="text" id="templateName" class="w-full border border-gray-300 rounded-md px-3 py-2">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả template</label>
+                <textarea id="templateDescription" class="w-full border border-gray-300 rounded-md px-3 py-2" rows="3"></textarea>
+            </div>
+            <div class="flex items-center">
+                <input type="checkbox" id="isPublic" class="mr-2">
+                <label for="isPublic" class="text-sm text-gray-700">Công khai template</label>
+            </div>
+        </div>
+        <div class="flex justify-end space-x-3 mt-6">
+            <button onclick="closeSaveTemplateModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700">
+                Hủy
+            </button>
+            <button onclick="saveTemplate()" class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                Lưu
+            </button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let selectedFields = [];
+        let filters = [];
+        let reportConfig = {};
+
+        // Initialize drag and drop
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDragAndDrop();
+            setupEventListeners();
+        });
+
+        function initializeDragAndDrop() {
+            // Make field items draggable
+            document.querySelectorAll('.field-item').forEach(item => {
+                item.addEventListener('dragstart', handleDragStart);
+            });
+
+            // Setup drop zone
+            const dropZone = document.getElementById('selectedFields');
+            dropZone.addEventListener('dragover', handleDragOver);
+            dropZone.addEventListener('drop', handleDrop);
+            dropZone.addEventListener('dragenter', handleDragEnter);
+            dropZone.addEventListener('dragleave', handleDragLeave);
+        }
+
+        function setupEventListeners() {
+            document.getElementById('reportType').addEventListener('change', handleReportTypeChange);
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                field: e.target.dataset.field,
+                type: e.target.dataset.type,
+                label: e.target.textContent.trim()
+            }));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            const fieldData = JSON.parse(e.dataTransfer.getData('text/plain'));
+            addSelectedField(fieldData);
+        }
+
+        function addSelectedField(fieldData) {
+            // Check if field already selected
+            if (selectedFields.find(f => f.field === fieldData.field)) {
+                showNotification('warning', 'Trường này đã được chọn');
+                return;
+            }
+
+            selectedFields.push(fieldData);
+            renderSelectedFields();
+            updateChartFieldOptions();
+        }
+
+        function removeSelectedField(field) {
+            selectedFields = selectedFields.filter(f => f.field !== field);
+            renderSelectedFields();
+            updateChartFieldOptions();
+        }
+
+        function renderSelectedFields() {
+            const container = document.getElementById('selectedFields');
+            
+            if (selectedFields.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center">Kéo thả các trường dữ liệu vào đây</p>';
+                return;
+            }
+
+            container.innerHTML = selectedFields.map(field => `
+                <div class="inline-flex items-center bg-blue-100 text-blue-800 rounded-full px-3 py-1 text-sm mr-2 mb-2">
+                    <span>${field.label}</span>
+                    <button onclick="removeSelectedField('${field.field}')" class="ml-2 text-blue-600 hover:text-blue-800">
+                        ✕
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateChartFieldOptions() {
+            const xAxisSelect = document.getElementById('xAxisField');
+            const yAxisSelect = document.getElementById('yAxisField');
+            const groupBySelect = document.getElementById('groupByField');
+
+            // Clear options
+            [xAxisSelect, yAxisSelect, groupBySelect].forEach(select => {
+                select.innerHTML = '<option value="">Chọn trường...</option>';
+            });
+
+            // Add field options
+            selectedFields.forEach(field => {
+                const option = `<option value="${field.field}">${field.label}</option>`;
+                xAxisSelect.innerHTML += option;
+                yAxisSelect.innerHTML += option;
+                groupBySelect.innerHTML += option;
+            });
+        }
+
+        function handleReportTypeChange(e) {
+            const chartConfig = document.getElementById('chartConfig');
+            const reportType = e.target.value;
+            
+            if (reportType === 'chart' || reportType === 'mixed') {
+                chartConfig.style.display = 'block';
+            } else {
+                chartConfig.style.display = 'none';
+            }
+        }
+
+        function addFilter() {
+            const filterId = 'filter_' + Date.now();
+            const filterHtml = `
+                <div class="filter-row" id="${filterId}">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Trường</label>
+                            <select class="filter-field w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                                <option value="">Chọn trường...</option>
+                                ${selectedFields.map(f => `<option value="${f.field}">${f.label}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Điều kiện</label>
+                            <select class="filter-operator w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                                <option value="eq">Bằng</option>
+                                <option value="ne">Khác</option>
+                                <option value="gt">Lớn hơn</option>
+                                <option value="lt">Nhỏ hơn</option>
+                                <option value="gte">Lớn hơn hoặc bằng</option>
+                                <option value="lte">Nhỏ hơn hoặc bằng</option>
+                                <option value="contains">Chứa</option>
+                                <option value="in">Trong danh sách</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Giá trị</label>
+                            <input type="text" class="filter-value w-full border border-gray-300 rounded-md px-3 py-2 text-sm" 
+                                   placeholder="Nhập giá trị...">
+                        </div>
+                        <div class="flex items-end">
+                            <button onclick="removeFilter('${filterId}')" 
+                                    class="px-3 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700">
+                                🗑️ Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const container = document.getElementById('filtersContainer');
+            if (container.children.length === 1 && container.children[0].textContent.includes('Chưa có bộ lọc')) {
+                container.innerHTML = '';
+            }
+            container.insertAdjacentHTML('beforeend', filterHtml);
+        }
+
+        function removeFilter(filterId) {
+            document.getElementById(filterId).remove();
+            
+            const container = document.getElementById('filtersContainer');
+            if (container.children.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">Chưa có bộ lọc nào</p>';
+            }
+        }
+
+        async function executeReport() {
+            const config = buildReportConfig();
+            
+            if (!validateReportConfig(config)) {
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const response = await fetch('@Url.Action("ExecuteCustomReport")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(config)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderPreview(result.data);
+                    showNotification('success', 'Báo cáo đã được tạo thành công!');
+                } else {
+                    showNotification('error', result.message || 'Có lỗi xảy ra khi tạo báo cáo');
+                }
+            } catch (error) {
+                console.error('Error executing report:', error);
+                showNotification('error', 'Có lỗi xảy ra khi thực thi báo cáo');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function buildReportConfig() {
+            const reportType = document.getElementById('reportType').value;
+            const reportName = document.getElementById('reportName').value;
+            const reportDescription = document.getElementById('reportDescription').value;
+
+            const config = {
+                reportName: reportName || 'Báo cáo tùy chỉnh',
+                description: reportDescription,
+                reportType: reportType,
+                selectedFields: selectedFields.map(f => f.field),
+                filters: [],
+                sorting: [],
+                chartType: document.getElementById('chartType').value,
+                xAxisField: document.getElementById('xAxisField').value,
+                yAxisField: document.getElementById('yAxisField').value,
+                groupBy: document.getElementById('groupByField').value
+            };
+
+            // Collect filters
+            document.querySelectorAll('.filter-row').forEach(row => {
+                const field = row.querySelector('.filter-field').value;
+                const operator = row.querySelector('.filter-operator').value;
+                const value = row.querySelector('.filter-value').value;
+
+                if (field && operator && value) {
+                    config.filters.push({
+                        field: field,
+                        operator: operator,
+                        value: value,
+                        logicalOperator: 'AND'
+                    });
+                }
+            });
+
+            return config;
+        }
+
+        function validateReportConfig(config) {
+            if (selectedFields.length === 0) {
+                showNotification('warning', 'Vui lòng chọn ít nhất một trường dữ liệu');
+                return false;
+            }
+
+            if (!config.reportName.trim()) {
+                showNotification('warning', 'Vui lòng nhập tên báo cáo');
+                return false;
+            }
+
+            if ((config.reportType === 'chart' || config.reportType === 'mixed') && 
+                (!config.xAxisField || !config.yAxisField)) {
+                showNotification('warning', 'Vui lòng chọn trục X và Y cho biểu đồ');
+                return false;
+            }
+
+            return true;
+        }
+
+        function renderPreview(data) {
+            const container = document.getElementById('previewContainer');
+            
+            if (!data || !data.data || data.data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Không có dữ liệu để hiển thị</p>';
+                return;
+            }
+
+            // Render table
+            const headers = Object.keys(data.data[0]);
+            let tableHtml = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                ${headers.map(header => `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">${header}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${data.data.slice(0, 10).map(row => `
+                                <tr>
+                                    ${headers.map(header => `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${row[header] || ''}</td>`).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            if (data.data.length > 10) {
+                tableHtml += `<p class="text-sm text-gray-500 mt-4 text-center">Hiển thị 10/${data.data.length} bản ghi. Xuất báo cáo để xem đầy đủ.</p>`;
+            }
+
+            container.innerHTML = tableHtml;
+        }
+
+        function saveAsTemplate() {
+            document.getElementById('saveTemplateModal').classList.remove('hidden');
+        }
+
+        function closeSaveTemplateModal() {
+            document.getElementById('saveTemplateModal').classList.add('hidden');
+        }
+
+        async function saveTemplate() {
+            const templateName = document.getElementById('templateName').value;
+            const templateDescription = document.getElementById('templateDescription').value;
+            const isPublic = document.getElementById('isPublic').checked;
+
+            if (!templateName.trim()) {
+                showNotification('warning', 'Vui lòng nhập tên template');
+                return;
+            }
+
+            const template = {
+                templateName: templateName,
+                description: templateDescription,
+                isPublic: isPublic,
+                reportConfig: buildReportConfig()
+            };
+
+            try {
+                const response = await fetch('@Url.Action("SaveReportTemplate")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(template)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('success', 'Template đã được lưu thành công!');
+                    closeSaveTemplateModal();
+                } else {
+                    showNotification('error', result.message || 'Có lỗi xảy ra khi lưu template');
+                }
+            } catch (error) {
+                console.error('Error saving template:', error);
+                showNotification('error', 'Có lỗi xảy ra khi lưu template');
+            }
+        }
+
+        async function exportReport() {
+            const config = buildReportConfig();
+            
+            if (!validateReportConfig(config)) {
+                return;
+            }
+
+            try {
+                showLoading(true);
+                
+                const response = await fetch('@Url.Action("ExportReport")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify({
+                        customReport: config,
+                        format: 'pdf'
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${config.reportName}_${new Date().toISOString().split('T')[0]}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                    showNotification('success', 'Xuất báo cáo thành công!');
+                } else {
+                    const error = await response.json();
+                    showNotification('error', error.message || 'Có lỗi xảy ra khi xuất báo cáo');
+                }
+            } catch (error) {
+                console.error('Error exporting report:', error);
+                showNotification('error', 'Có lỗi xảy ra khi xuất báo cáo');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function refreshPreview() {
+            executeReport();
+        }
+
+        // Utility functions
+        function showLoading(show) {
+            // Implement loading indicator
+            console.log('Loading:', show);
+        }
+
+        function showNotification(type, message) {
+            const color = type === 'error' ? 'bg-red-500' : 
+                         type === 'warning' ? 'bg-yellow-500' : 'bg-green-500';
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 ${color} text-white px-6 py-3 rounded-md shadow-lg z-50`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+    </script>
+} 

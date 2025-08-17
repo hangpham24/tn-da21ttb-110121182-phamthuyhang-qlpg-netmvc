@@ -1,0 +1,331 @@
+@model IEnumerable<GymManagement.Web.Data.Models.BangLuong>
+@{
+    ViewData["Title"] = "Lương - Huấn luyện viên";
+    Layout = "_TrainerLayout";
+    var currentSalary = ViewBag.CurrentSalary as GymManagement.Web.Data.Models.BangLuong;
+    var totalPaidSalary = ViewBag.TotalPaidSalary as decimal?;
+    var pendingSalary = ViewBag.PendingSalary as decimal?;
+}
+
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">💰 Thông tin lương</h1>
+        <p class="text-gray-600">Xem lương và hoa hồng của bạn</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Current Month Salary -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Lương tháng này</p>
+                    <p class="text-2xl font-bold text-gray-900">
+                        @if (currentSalary != null)
+                        {
+                            @currentSalary.TongThanhToan.ToString("N0") <span class="text-sm">VNĐ</span>
+                        }
+                        else
+                        {
+                            <span class="text-gray-400">Chưa có</span>
+                        }
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        @if (currentSalary?.NgayThanhToan != null)
+                        {
+                            <span class="text-green-600">✅ Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <span class="text-orange-600">⏳ Chờ thanh toán</span>
+                        }
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Paid -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Tổng đã nhận</p>
+                    <p class="text-2xl font-bold text-gray-900">@((totalPaidSalary ?? 0).ToString("N0")) <span class="text-sm">VNĐ</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Salary -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Chờ thanh toán</p>
+                    <p class="text-2xl font-bold text-gray-900">@((pendingSalary ?? 0).ToString("N0")) <span class="text-sm">VNĐ</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Month Details -->
+    @if (currentSalary != null)
+    {
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Chi tiết lương tháng @DateTime.Now.ToString("MM/yyyy")</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-gray-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Lương cơ bản</p>
+                    <p class="text-xl font-bold text-gray-900">@currentSalary.LuongCoBan.ToString("N0") VNĐ</p>
+                </div>
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Hoa hồng</p>
+                    <p class="text-xl font-bold text-blue-600">@currentSalary.TienHoaHong.ToString("N0") VNĐ</p>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Tổng cộng</p>
+                    <p class="text-xl font-bold text-green-600">@currentSalary.TongThanhToan.ToString("N0") VNĐ</p>
+                </div>
+                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <p class="text-sm text-gray-600">Trạng thái</p>
+                    <p class="text-lg font-bold @(currentSalary.NgayThanhToan != null ? "text-green-600" : "text-orange-600")">
+                        @(currentSalary.NgayThanhToan != null ? "Đã thanh toán" : "Chờ thanh toán")
+                    </p>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(currentSalary.GhiChu))
+            {
+                <div class="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400">
+                    <p class="text-sm text-yellow-800"><strong>Ghi chú:</strong> @currentSalary.GhiChu</p>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Salary History -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">📋 Lịch sử lương</h3>
+        </div>
+        
+        @if (Model != null && Model.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tháng</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lương cơ bản</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hoa hồng</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng cộng</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày thanh toán</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @foreach (var salary in Model)
+                        {
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    @salary.Thang
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @salary.LuongCoBan.ToString("N0") VNĐ
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">
+                                    @salary.TienHoaHong.ToString("N0") VNĐ
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
+                                    @salary.TongThanhToan.ToString("N0") VNĐ
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    @if (salary.NgayThanhToan.HasValue)
+                                    {
+                                        @salary.NgayThanhToan.Value.ToString("dd/MM/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-gray-400">Chưa thanh toán</span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if (salary.NgayThanhToan.HasValue)
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Đã thanh toán
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Chờ thanh toán
+                                        </span>
+                                    }
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    <button onclick="viewSalaryDetails('@salary.Thang')" 
+                                            class="text-purple-600 hover:text-purple-900 mr-3">
+                                        Chi tiết
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="p-12 text-center">
+                <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Chưa có lịch sử lương</h3>
+                <p class="text-gray-600">Bạn chưa có bản ghi lương nào.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Salary Details Modal -->
+<div id="salaryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Chi tiết lương</h3>
+                    <button onclick="closeSalaryModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div id="salaryDetails">
+                    <!-- Salary details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function viewSalaryDetails(month) {
+            // Show loading
+            document.getElementById('salaryDetails').innerHTML = '<div class="text-center py-4">Đang tải chi tiết lương...</div>';
+            document.getElementById('salaryModal').classList.remove('hidden');
+            
+            // Load salary details
+            fetch(`@Url.Action("GetSalaryDetails", "Trainer")?month=${month}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displaySalaryDetails(data.data);
+                    } else {
+                        document.getElementById('salaryDetails').innerHTML = `
+                            <div class="text-center py-4 text-red-600">
+                                <p>Có lỗi xảy ra: ${data.message}</p>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading salary details:', error);
+                    document.getElementById('salaryDetails').innerHTML = `
+                        <div class="text-center py-4 text-red-600">
+                            <p>Có lỗi xảy ra khi tải chi tiết lương.</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function displaySalaryDetails(salary) {
+            const detailsHtml = `
+                <div class="space-y-6">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-3">Thông tin cơ bản</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <p class="text-gray-600">Tháng:</p>
+                                <p class="font-medium">${salary.month}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Trạng thái:</p>
+                                <p class="font-medium ${salary.isPaid ? 'text-green-600' : 'text-orange-600'}">
+                                    ${salary.isPaid ? 'Đã thanh toán' : 'Chờ thanh toán'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-900 mb-3">Chi tiết lương</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Lương cơ bản:</span>
+                                <span class="font-medium">${formatCurrency(salary.baseSalary)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Hoa hồng:</span>
+                                <span class="font-medium text-blue-600">${formatCurrency(salary.commission)}</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="flex justify-between font-bold">
+                                <span>Tổng cộng:</span>
+                                <span class="text-green-600">${formatCurrency(salary.total)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${salary.paymentDate ? `
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 mb-2">Thông tin thanh toán</h4>
+                            <p class="text-sm text-gray-600">Ngày thanh toán: <span class="font-medium">${salary.paymentDate}</span></p>
+                        </div>
+                    ` : ''}
+                    
+                    ${salary.note ? `
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-gray-900 mb-2">Ghi chú</h4>
+                            <p class="text-sm text-gray-700">${salary.note}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            document.getElementById('salaryDetails').innerHTML = detailsHtml;
+        }
+
+        function closeSalaryModal() {
+            document.getElementById('salaryModal').classList.add('hidden');
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(amount);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('salaryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSalaryModal();
+            }
+        });
+    </script>
+}
