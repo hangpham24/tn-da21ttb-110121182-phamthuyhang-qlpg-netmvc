@@ -61,6 +61,47 @@ namespace GymManagement.Web.Controllers
             }
         }
 
+        // Debug method để test schedule generation
+        [HttpGet]
+        public async Task<IActionResult> DebugSchedule()
+        {
+            try
+            {
+                var user = await GetCurrentUserAsync();
+                if (user?.NguoiDungId == null)
+                {
+                    return Json(new { Error = "No user found" });
+                }
+
+                var trainerId = user.NguoiDungId.Value;
+                var myClasses = await _lopHocService.GetClassesByTrainerAsync(trainerId);
+
+                var start = DateTime.Today;
+                var end = DateTime.Today.AddDays(7);
+
+                var debugInfo = new
+                {
+                    TrainerId = trainerId,
+                    ClassCount = myClasses.Count(),
+                    Classes = myClasses.Select(c => new {
+                        Id = c.LopHocId,
+                        Name = c.TenLop,
+                        ThuTrongTuan = c.ThuTrongTuan,
+                        GioBatDau = c.GioBatDau.ToString("HH:mm"),
+                        GioKetThuc = c.GioKetThuc.ToString("HH:mm"),
+                        GeneratedSchedules = GenerateDynamicSchedule(c, start, end).Count
+                    }),
+                    DateRange = new { Start = start, End = end }
+                };
+
+                return Json(debugInfo);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { Error = ex.Message });
+            }
+        }
+
         // Debug method để kiểm tra dữ liệu database
         [HttpGet]
         public async Task<IActionResult> DebugData()
@@ -69,27 +110,30 @@ namespace GymManagement.Web.Controllers
             {
                 var allTrainers = await _nguoiDungService.GetAllAsync();
                 var trainers = allTrainers.Where(u => u.LoaiNguoiDung == "HLV" || u.LoaiNguoiDung == "TRAINER");
-                
+
                 var allClasses = await _lopHocService.GetAllAsync();
-                
+
                 var debugInfo = new
                 {
                     TotalUsers = allTrainers.Count(),
-                    Trainers = trainers.Select(t => new { 
-                        Id = t.NguoiDungId, 
-                        Name = $"{t.Ho} {t.Ten}", 
+                    Trainers = trainers.Select(t => new {
+                        Id = t.NguoiDungId,
+                        Name = $"{t.Ho} {t.Ten}",
                         Type = t.LoaiNguoiDung,
                         Status = t.TrangThai
                     }),
                     TotalClasses = allClasses.Count(),
-                    Classes = allClasses.Select(c => new { 
-                        Id = c.LopHocId, 
-                        Name = c.TenLop, 
-                        HlvId = c.HlvId, 
-                        Status = c.TrangThai 
+                    Classes = allClasses.Select(c => new {
+                        Id = c.LopHocId,
+                        Name = c.TenLop,
+                        HlvId = c.HlvId,
+                        Status = c.TrangThai,
+                        ThuTrongTuan = c.ThuTrongTuan, // Thêm để debug
+                        GioBatDau = c.GioBatDau.ToString("HH:mm"),
+                        GioKetThuc = c.GioKetThuc.ToString("HH:mm")
                     })
                 };
-                
+
                 return Json(debugInfo);
             }
             catch (Exception ex)
@@ -284,6 +328,12 @@ namespace GymManagement.Web.Controllers
                 }
 
                 var myClasses = await _lopHocService.GetClassesByTrainerAsync(trainerId);
+                LogUserAction("GetScheduleEvents_ClassesLoaded", new {
+                    TrainerId = trainerId,
+                    ClassCount = myClasses.Count(),
+                    ClassIds = myClasses.Select(c => c.LopHocId).ToArray(),
+                    ClassNames = myClasses.Select(c => c.TenLop).ToArray()
+                });
 
                 // Filter by classId if provided and validate ownership
                 if (classId.HasValue)
@@ -871,13 +921,16 @@ namespace GymManagement.Web.Controllers
             // Generate events for date range
             for (var date = start.Date; date <= end.Date; date = date.AddDays(1))
             {
-                var dayName = GetVietnameseDayName(date.DayOfWeek);
-                
-                if (daysOfWeek.Contains(dayName))
+                var dayOfWeek = date.DayOfWeek;
+                var vietnameseDayName = GetVietnameseDayName(dayOfWeek);
+                var englishDayName = GetEnglishDayOfWeek(dayOfWeek);
+
+                // Kiểm tra cả tiếng Việt và tiếng Anh
+                if (daysOfWeek.Contains(vietnameseDayName) || daysOfWeek.Contains(englishDayName))
                 {
                     var eventStart = date.Add(lopHoc.GioBatDau.ToTimeSpan());
                     var eventEnd = date.Add(lopHoc.GioKetThuc.ToTimeSpan());
-                    
+
                     events.Add(new
                     {
                         id = $"generated_{lopHoc.LopHocId}_{date:yyyyMMdd}",
@@ -997,22 +1050,49 @@ namespace GymManagement.Web.Controllers
             var thuTrongTuan = lopHoc.ThuTrongTuan.Split(',').Select(t => t.Trim()).ToList();
             var currentDate = start;
 
+            LogUserAction("GenerateDynamicSchedule_Start", new {
+                ClassId = lopHoc.LopHocId,
+                ClassName = lopHoc.TenLop,
+                ThuTrongTuan = lopHoc.ThuTrongTuan,
+                ParsedDays = thuTrongTuan,
+                StartDate = start,
+                EndDate = end
+            });
+
             while (currentDate <= end)
             {
-                var dayOfWeek = GetVietnameseDayOfWeek(currentDate.DayOfWeek);
-                if (thuTrongTuan.Contains(dayOfWeek))
+                var dayOfWeek = currentDate.DayOfWeek;
+                var vietnameseDayName = GetVietnameseDayOfWeek(dayOfWeek);
+                var englishDayName = GetEnglishDayOfWeek(dayOfWeek);
+
+                // Kiểm tra cả tiếng Việt và tiếng Anh
+                if (thuTrongTuan.Contains(vietnameseDayName) || thuTrongTuan.Contains(englishDayName))
                 {
+                    LogUserAction("GenerateDynamicSchedule_MatchFound", new {
+                        Date = currentDate.ToString("yyyy-MM-dd"),
+                        DayOfWeek = dayOfWeek.ToString(),
+                        VietnameseName = vietnameseDayName,
+                        EnglishName = englishDayName,
+                        ThuTrongTuan = thuTrongTuan
+                    });
+
                     schedules.Add(new {
                         LopHocId = lopHoc.LopHocId, // Use actual LopHocId
                         Ngay = DateOnly.FromDateTime(currentDate),
                         GioBatDau = lopHoc.GioBatDau,
                         GioKetThuc = lopHoc.GioKetThuc,
                         TrangThai = "SCHEDULED",
+                        SoLuongDaDat = 0, // Add missing property
                         LopHoc = lopHoc
                     });
                 }
                 currentDate = currentDate.AddDays(1);
             }
+
+            LogUserAction("GenerateDynamicSchedule_End", new {
+                ClassId = lopHoc.LopHocId,
+                ScheduleCount = schedules.Count
+            });
 
             return schedules;
         }
@@ -1028,6 +1108,21 @@ namespace GymManagement.Web.Controllers
                 DayOfWeek.Friday => "Thứ 6",
                 DayOfWeek.Saturday => "Thứ 7",
                 DayOfWeek.Sunday => "Chủ nhật",
+                _ => ""
+            };
+        }
+
+        private string GetEnglishDayOfWeek(DayOfWeek dayOfWeek)
+        {
+            return dayOfWeek switch
+            {
+                DayOfWeek.Monday => "Monday",
+                DayOfWeek.Tuesday => "Tuesday",
+                DayOfWeek.Wednesday => "Wednesday",
+                DayOfWeek.Thursday => "Thursday",
+                DayOfWeek.Friday => "Friday",
+                DayOfWeek.Saturday => "Saturday",
+                DayOfWeek.Sunday => "Sunday",
                 _ => ""
             };
         }

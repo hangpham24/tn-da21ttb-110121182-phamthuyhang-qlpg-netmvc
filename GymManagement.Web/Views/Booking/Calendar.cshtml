@@ -967,12 +967,12 @@
                     </div>
                     <div class="flex gap-2 pt-4 border-t">
                         ${event.extendedProps.type === 'booking' ? `
-                            <button onclick="editBooking(${event.id})" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
+                            @* <button onclick="editBooking(${event.id})" class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700">
                                 Chỉnh sửa
                             </button>
                             <button onclick="cancelBooking(${event.id})" class="flex-1 bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700">
                                 Hủy bỏ
-                            </button>
+                            </button> *@
                         ` : `
                             ${event.extendedProps.isFull ? `
                                 <button disabled class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-md text-sm cursor-not-allowed">

@@ -67,16 +67,16 @@
                            class="@GetActiveClass("Trainer", "Students") px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             👥 Học viên
                         </a>
-                        <a asp-controller="Trainer" asp-action="Attendance"
+                        @* <a asp-controller="Trainer" asp-action="Attendance"
                            class="@GetActiveClass("Trainer", "Attendance") px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             ✅ Điểm danh
-                        </a>
+                        </a> *@
                         <a asp-controller="Trainer" asp-action="Salary"
                            class="@GetActiveClass("Trainer", "Salary") px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             💰 Lương
                         </a>
                         
-                        <!-- Reports Dropdown -->
+                        @* <!-- Reports Dropdown -->
                         <div class="relative group">
                             <button class="@GetActiveClass("Analytics") px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center" 
                                     onmouseenter="showReportsDropdown()" onmouseleave="hideReportsDropdown()">
@@ -96,7 +96,7 @@
                                     📄 Xuất báo cáo
                                 </a>
                             </div>
-                        </div>
+                        </div> *@
                     }
                     else
                     {
@@ -130,7 +130,7 @@
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     👤 Hồ sơ cá nhân
                                 </a>
-                                <a asp-controller="Trainer" asp-action="MyClasses" 
+                                @* <a asp-controller="Trainer" asp-action="MyClasses" 
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     🎓 Lớp của tôi
                                 </a>
@@ -141,7 +141,7 @@
                                 <a asp-controller="Analytics" asp-action="TrainerReports" 
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     📄 Báo cáo phân tích
-                                </a>
+                                </a> *@
                                 <div class="border-t border-gray-100"></div>
                                 <a asp-controller="Auth" asp-action="Logout" 
                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
@@ -194,10 +194,10 @@
                        class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
                         👥 Học viên
                     </a>
-                    <a asp-controller="Trainer" asp-action="Attendance"
+                    @* <a asp-controller="Trainer" asp-action="Attendance"
                        class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
                         ✅ Điểm danh
-                    </a>
+                    </a> *@
                     <a asp-controller="Trainer" asp-action="Salary"
                        class="block px-3 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-md text-base font-medium">
                         💰 Lương

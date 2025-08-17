@@ -2,7 +2,18 @@
 
 @{
     ViewData["Title"] = "Hồ sơ cá nhân";
-    Layout = "_MemberLayout";
+    if(User.IsInRole("Admin"))
+    {
+        Layout = "_Layout";
+    }
+    else if (User.IsInRole("Trainer"))
+    {
+        Layout = "_TrainerLayout";
+    }
+    else
+    {
+        Layout = "_MemberLayout";
+    }
 }
 
 <style>
@@ -89,7 +100,7 @@
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">@Model.HoTen</h1>
                     <p class="text-gray-600">@Model.Email</p>
-                    <p class="text-sm text-gray-500">Thành viên từ @Model.NgayTao.ToString("MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))</p>
+                    <p class="text-sm text-gray-500">Tham gia từ @Model.NgayTao.ToString("MMMM yyyy", new System.Globalization.CultureInfo("vi-VN"))</p>
                 </div>
             </div>
         </div>
@@ -102,10 +113,14 @@
                             class="tab-button border-b-2 border-blue-500 text-blue-600 py-4 px-1 text-sm font-medium">
                         👤 Thông tin cá nhân
                     </button>
-                    <button type="button" onclick="switchTab('stats')" id="tab-stats" 
-                            class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
-                        📊 Thống kê tập luyện
-                    </button>
+                    @if (!User.IsInRole("Trainer"))
+                    {
+                        <button type="button" onclick="switchTab('stats')" id="tab-stats" 
+                                            class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
+                            📊 Thống kê tập luyện
+                        </button>
+                    }
+                    
                     @* <button type="button" onclick="switchTab('trainers')" id="tab-trainers" 
                             class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 text-sm font-medium">
                         🏃 Huấn luyện viên của tôi
@@ -160,13 +175,13 @@
                                 <a asp-action="ChangePassword" class="block w-full bg-yellow-600 hover:bg-yellow-700 text-white text-center py-3 px-4 rounded-lg font-medium transition duration-200">
                                     🔒 Đổi mật khẩu
                                 </a>
-                                <a asp-action="Security" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-3 px-4 rounded-lg font-medium transition duration-200">
+                                @* <a asp-action="Security" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-3 px-4 rounded-lg font-medium transition duration-200">
                                     🛡️ Bảo mật tài khoản
-                                </a>
+                                </a> *@
                             </div>
                         </div>
 
-                        <!-- Quick Stats Card -->
+                        @* <!-- Quick Stats Card -->
                         <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-lg">
                             <h4 class="text-lg font-semibold text-gray-900 mb-4">Tóm tắt hoạt động</h4>
                             <div class="grid grid-cols-2 gap-4 text-center">
@@ -179,7 +194,7 @@
                                     <div class="text-sm text-gray-600">Lần/tuần</div>
                                 </div>
                             </div>
-                        </div>
+                        </div> *@
                     </div>
                 </div>
             </div>

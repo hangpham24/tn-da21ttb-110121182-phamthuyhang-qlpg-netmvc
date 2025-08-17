@@ -50,11 +50,11 @@
                     <select id="classFilter" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[150px]">
                         @if (myClasses != null)
                         {
+                            <option value="">🔄 Tất cả lớp</option>
                             @foreach (var lopHoc in myClasses)
                             {
                                 <option value="@lopHoc.LopHocId">@lopHoc.TenLop</option>
                             }
-                            <option value="">🔄 Tất cả lớp</option>
                         }
                         else
                         {
@@ -70,7 +70,7 @@
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div id="calendar"></div>
     </div>
-
+@* 
     <!-- Legend -->
     <div class="bg-white rounded-lg shadow-md p-6 mt-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Chú thích</h3>
@@ -101,7 +101,7 @@
                 <p>Đang tải lịch dạy hôm nay...</p>
             </div>
         </div>
-    </div>
+    </div> *@
 </div>
 
 <!-- Event Details Modal -->
@@ -239,7 +239,12 @@
                 })
                 .then(data => {
                     console.log('Schedule events received:', data);
-                    successCallback(data);
+                    if (data.success && data.data) {
+                        successCallback(data.data);
+                    } else {
+                        console.error('API returned error:', data.message || 'Unknown error');
+                        failureCallback(new Error(data.message || 'Failed to load schedule events'));
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading schedule events:', error);
@@ -322,9 +327,18 @@
             
             fetch(`${url}?${params}`)
                 .then(response => response.json())
-                .then(events => {
-                    console.log('Today events received:', events);
-                    displayTodaySchedule(events);
+                .then(data => {
+                    console.log('Today events received:', data);
+                    if (data.success && data.data) {
+                        displayTodaySchedule(data.data);
+                    } else {
+                        console.error('API returned error:', data.message || 'Unknown error');
+                        document.getElementById('todaySchedule').innerHTML = `
+                            <div class="text-center py-4 text-red-500">
+                                <p>${data.message || 'Lỗi khi tải lịch hôm nay'}</p>
+                            </div>
+                        `;
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading today schedule:', error);
