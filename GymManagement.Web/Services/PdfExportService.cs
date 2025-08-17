@@ -210,7 +210,7 @@ namespace GymManagement.Web.Services
             {
                 table.AddCell(new PdfPCell(new Phrase($"{salary.Hlv?.Ho} {salary.Hlv?.Ten}", FontFactory.GetFont(FontFactory.HELVETICA, 9))) { Padding = 5 });
                 table.AddCell(new PdfPCell(new Phrase($"{salary.LuongCoBan:N0}", FontFactory.GetFont(FontFactory.HELVETICA, 9))) { Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
-                table.AddCell(new PdfPCell(new Phrase($"{salary.TienHoaHong:N0}", FontFactory.GetFont(FontFactory.HELVETICA, 9))) { Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
+                // Commission column removed
                 table.AddCell(new PdfPCell(new Phrase($"{salary.TongThanhToan:N0}", FontFactory.GetFont(FontFactory.HELVETICA, 9))) { Padding = 5, HorizontalAlignment = Element.ALIGN_RIGHT });
                 
                 var status = salary.NgayThanhToan.HasValue ? "Đã TT" : "Chưa TT";

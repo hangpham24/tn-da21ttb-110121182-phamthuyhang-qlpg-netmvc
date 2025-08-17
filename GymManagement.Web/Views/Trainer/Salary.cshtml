@@ -11,7 +11,7 @@
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">💰 Thông tin lương</h1>
-        <p class="text-gray-600">Xem lương và hoa hồng của bạn</p>
+        <p class="text-gray-600">Xem thông tin lương cơ bản của bạn</p>
     </div>
 
     <!-- Summary Cards -->
@@ -91,10 +91,7 @@
                     <p class="text-sm text-gray-600">Lương cơ bản</p>
                     <p class="text-xl font-bold text-gray-900">@currentSalary.LuongCoBan.ToString("N0") VNĐ</p>
                 </div>
-                <div class="text-center p-4 bg-blue-50 rounded-lg">
-                    <p class="text-sm text-gray-600">Hoa hồng</p>
-                    <p class="text-xl font-bold text-blue-600">@currentSalary.TienHoaHong.ToString("N0") VNĐ</p>
-                </div>
+                <!-- Commission section removed -->
                 <div class="text-center p-4 bg-green-50 rounded-lg">
                     <p class="text-sm text-gray-600">Tổng cộng</p>
                     <p class="text-xl font-bold text-green-600">@currentSalary.TongThanhToan.ToString("N0") VNĐ</p>
@@ -129,7 +126,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tháng</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lương cơ bản</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hoa hồng</th>
+                            @* <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hoa hồng</th> *@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng cộng</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày thanh toán</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
@@ -146,9 +143,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     @salary.LuongCoBan.ToString("N0") VNĐ
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">
-                                    @salary.TienHoaHong.ToString("N0") VNĐ
-                                </td>
+                                <!-- Commission column removed -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
                                     @salary.TongThanhToan.ToString("N0") VNĐ
                                 </td>
@@ -279,10 +274,7 @@
                                 <span class="text-gray-600">Lương cơ bản:</span>
                                 <span class="font-medium">${formatCurrency(salary.baseSalary)}</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Hoa hồng:</span>
-                                <span class="font-medium text-blue-600">${formatCurrency(salary.commission)}</span>
-                            </div>
+                            <!-- Commission row removed -->
                             <hr class="my-2">
                             <div class="flex justify-between font-bold">
                                 <span>Tổng cộng:</span>

@@ -9,12 +9,15 @@
     <div class="flex justify-between items-center mb-8">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 mb-2">💰 Quản lý bảng lương</h1>
-            <p class="text-gray-600">Quản lý lương và hoa hồng cho huấn luyện viên</p>
+            <p class="text-gray-600">Quản lý lương cơ bản cho huấn luyện viên</p>
         </div>
         <div class="flex gap-3">
             <button onclick="showGenerateSalaryModal()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                 ⚡ Tạo lương tháng
             </button>
+            @* <button onclick="payAllUnpaid()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                💰 Thanh toán tất cả
+            </button> *@
             <a href="@Url.Action("UnpaidSalaries")" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                 ⏳ Chưa thanh toán
             </a>
@@ -137,7 +140,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Huấn luyện viên</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tháng</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lương cơ bản</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hoa hồng</th>
+                            <!-- Commission header removed -->
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng thanh toán</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
@@ -190,10 +193,7 @@
                                     <div class="text-sm font-medium text-gray-900">@bangLuong.LuongCoBan.ToString("N0") VNĐ</div>
                                 </td>
 
-                                <!-- Commission -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-green-600">@bangLuong.TienHoaHong.ToString("N0") VNĐ</div>
-                                </td>
+                                <!-- Commission column removed -->
 
                                 <!-- Total Payment -->
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -543,6 +543,95 @@
                 } catch (error) {
                     console.error('Error deleting salary:', error);
                     alert('Có lỗi xảy ra khi xóa bảng lương.');
+                }
+            }
+        }
+
+        async function payAllUnpaid() {
+            // Find all unpaid salary rows and extract their IDs
+            const unpaidSalaryIds = [];
+            const salaryRows = document.querySelectorAll('.salary-row');
+
+            salaryRows.forEach(row => {
+                const statusElement = row.querySelector('span');
+                if (statusElement && statusElement.textContent.includes('Chưa thanh toán')) {
+                    // Find the pay button in this row to get the salary ID
+                    const payButton = row.querySelector('button[onclick*="markAsPaid"]');
+                    if (payButton) {
+                        const onclickValue = payButton.getAttribute('onclick');
+                        const match = onclickValue.match(/markAsPaid\((\d+)\)/);
+                        if (match) {
+                            unpaidSalaryIds.push(parseInt(match[1]));
+                        }
+                    }
+                }
+            });
+
+            if (unpaidSalaryIds.length === 0) {
+                alert('Không có bảng lương nào chưa thanh toán.');
+                return;
+            }
+
+            if (confirm(`Xác nhận thanh toán tất cả ${unpaidSalaryIds.length} bảng lương chưa thanh toán?`)) {
+                try {
+                    // Show loading overlay
+                    document.getElementById('loadingOverlay').classList.remove('hidden');
+
+                    let successCount = 0;
+                    let errorCount = 0;
+                    const errors = [];
+
+                    // Process each salary payment one by one
+                    for (let i = 0; i < unpaidSalaryIds.length; i++) {
+                        const salaryId = unpaidSalaryIds[i];
+
+                        try {
+                            const response = await fetch(`@Url.Action("PaySalary")`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded',
+                                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                                },
+                                body: `salaryId=${salaryId}`
+                            });
+
+                            const result = await response.json();
+
+                            if (result.success) {
+                                successCount++;
+                            } else {
+                                errorCount++;
+                                errors.push(`Lương ID ${salaryId}: ${result.message}`);
+                            }
+                        } catch (error) {
+                            errorCount++;
+                            errors.push(`Lương ID ${salaryId}: Lỗi kết nối`);
+                            console.error(`Error paying salary ${salaryId}:`, error);
+                        }
+                    }
+
+                    // Hide loading overlay
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+
+                    // Show results
+                    let message = `Hoàn thành thanh toán hàng loạt!\n`;
+                    message += `✅ Thành công: ${successCount} bảng lương\n`;
+                    if (errorCount > 0) {
+                        message += `❌ Lỗi: ${errorCount} bảng lương\n\n`;
+                        message += `Chi tiết lỗi:\n${errors.join('\n')}`;
+                    }
+
+                    alert(message);
+
+                    // Reload page to refresh the data
+                    location.reload();
+
+                } catch (error) {
+                    // Hide loading overlay on error
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+
+                    console.error('Error in batch payment:', error);
+                    alert('Có lỗi xảy ra khi thanh toán hàng loạt.');
                 }
             }
         }

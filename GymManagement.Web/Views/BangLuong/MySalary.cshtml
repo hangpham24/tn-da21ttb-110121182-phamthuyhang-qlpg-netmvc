@@ -8,7 +8,7 @@
     <!-- Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-white mb-2">💰 Lương của tôi</h1>
-        <p class="text-purple-200">Xem thông tin lương và hoa hồng của bạn</p>
+        <p class="text-purple-200">Xem thông tin lương cơ bản của bạn</p>
     </div>
 
     <!-- Current Month Summary -->
@@ -35,10 +35,7 @@
                 <div class="space-y-2">
                     <div class="text-2xl font-bold text-blue-600">@currentSalary.TongThanhToan.ToString("N0") VNĐ</div>
                     <div class="text-sm text-gray-600">
-                        Lương CB: @currentSalary.LuongCoBan.ToString("N0") VNĐ
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        Hoa hồng: @currentSalary.TienHoaHong.ToString("N0") VNĐ
+                        Lương cơ bản: @currentSalary.LuongCoBan.ToString("N0") VNĐ
                     </div>
                     <div class="mt-3">
                         @if (currentSalary.NgayThanhToan.HasValue)
@@ -131,7 +128,6 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tháng</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lương cơ bản</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hoa hồng</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng thanh toán</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
@@ -156,17 +152,6 @@
                                 <!-- Base Salary -->
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">@bangLuong.LuongCoBan.ToString("N0") VNĐ</div>
-                                </td>
-
-                                <!-- Commission -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-green-600">@bangLuong.TienHoaHong.ToString("N0") VNĐ</div>
-                                    @if (bangLuong.TienHoaHong > 0)
-                                    {
-                                        <div class="text-xs text-gray-500">
-                                            @((bangLuong.TienHoaHong / bangLuong.TongThanhToan * 100).ToString("F1"))% tổng lương
-                                        </div>
-                                    }
                                 </td>
 
                                 <!-- Total Payment -->
@@ -305,7 +290,7 @@
                 .Select(s => new {
                     Month = s.Thang,
                     BaseSalary = s.LuongCoBan,
-                    Commission = s.TienHoaHong,
+                    Commission = 0, // Commission removed
                     Total = s.TongThanhToan
                 }) ?? Enumerable.Empty<object>()).ToArray()));
             
@@ -325,8 +310,7 @@
                             tension: 0.1
                         },
                         {
-                            label: 'Hoa hồng',
-                            data: salaryData.map(d => d.Commission),
+                            // Commission chart removed
                             borderColor: 'rgb(34, 197, 94)',
                             backgroundColor: 'rgba(34, 197, 94, 0.1)',
                             tension: 0.1

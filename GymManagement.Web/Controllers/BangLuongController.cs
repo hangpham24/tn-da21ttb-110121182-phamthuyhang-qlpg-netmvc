@@ -288,25 +288,9 @@ namespace GymManagement.Web.Controllers
             }
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CalculateCommission(int trainerId, string month)
-        {
-            try
-            {
-                var commission = await _bangLuongService.CalculateCommissionAsync(trainerId, month);
-                return Json(new { 
-                    success = true, 
-                    commission = commission,
-                    formattedCommission = commission.ToString("N0") + " VNĐ"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while calculating commission");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi tính hoa hồng." });
-            }
-        }
+
+
+        // Removed CalculateCommission method - no longer needed
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
@@ -359,10 +343,10 @@ namespace GymManagement.Web.Controllers
                 
                 if (format.ToLower() == "csv")
                 {
-                    var csv = "Huấn luyện viên,Tháng,Lương cơ bản,Hoa hồng,Tổng thanh toán,Ngày thanh toán\n";
+                    var csv = "Huấn luyện viên,Tháng,Lương cơ bản,Tổng thanh toán,Ngày thanh toán\n";
                     foreach (var salary in salaries)
                     {
-                        csv += $"{salary.Hlv?.Ho} {salary.Hlv?.Ten},{salary.Thang},{salary.LuongCoBan},{salary.TienHoaHong},{salary.TongThanhToan},{salary.NgayThanhToan?.ToString("dd/MM/yyyy") ?? "Chưa thanh toán"}\n";
+                        csv += $"{salary.Hlv?.Ho} {salary.Hlv?.Ten},{salary.Thang},{salary.LuongCoBan},{salary.TongThanhToan},{salary.NgayThanhToan?.ToString("dd/MM/yyyy") ?? "Chưa thanh toán"}\n";
                     }
 
                     var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
@@ -389,7 +373,7 @@ namespace GymManagement.Web.Controllers
                 return Json(salaries.Select(s => new {
                     month = s.Thang,
                     baseSalary = s.LuongCoBan,
-                    commission = s.TienHoaHong,
+                    commission = 0, // Commission removed
                     total = s.TongThanhToan,
                     paymentDate = s.NgayThanhToan?.ToString("dd/MM/yyyy"),
                     isPaid = s.NgayThanhToan != null
@@ -556,68 +540,9 @@ namespace GymManagement.Web.Controllers
 
         #region Enhanced Reporting Endpoints
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetDetailedCommissionBreakdown(int trainerId, string month)
-        {
-            try
-            {
-                var breakdown = await _bangLuongService.CalculateDetailedCommissionAsync(trainerId, month);
-                return Json(new
-                {
-                    success = true,
-                    data = new
-                    {
-                        packageCommission = breakdown.PackageCommission,
-                        classCommission = breakdown.ClassCommission,
-                        personalCommission = breakdown.PersonalCommission,
-                        performanceBonus = breakdown.PerformanceBonus,
-                        attendanceBonus = breakdown.AttendanceBonus,
-                        totalCommission = breakdown.TotalCommission,
-                        studentCount = breakdown.StudentCount,
-                        classesTaught = breakdown.ClassesTaught,
-                        personalSessions = breakdown.PersonalSessions,
-                        attendanceRate = breakdown.AttendanceRate
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting detailed commission breakdown");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi tính hoa hồng chi tiết." });
-            }
-        }
+        // GetDetailedCommissionBreakdown method removed
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetSalaryComparison(int trainerId, string month1, string month2)
-        {
-            try
-            {
-                var breakdown1 = await _bangLuongService.CalculateDetailedCommissionAsync(trainerId, month1);
-                var breakdown2 = await _bangLuongService.CalculateDetailedCommissionAsync(trainerId, month2);
-
-                var comparison = new
-                {
-                    month1 = new { month = month1, data = breakdown1 },
-                    month2 = new { month = month2, data = breakdown2 },
-                    changes = new
-                    {
-                        totalCommissionChange = breakdown2.TotalCommission - breakdown1.TotalCommission,
-                        studentCountChange = breakdown2.StudentCount - breakdown1.StudentCount,
-                        classesTaughtChange = breakdown2.ClassesTaught - breakdown1.ClassesTaught,
-                        attendanceRateChange = breakdown2.AttendanceRate - breakdown1.AttendanceRate
-                    }
-                };
-
-                return Json(new { success = true, data = comparison });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting salary comparison");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi so sánh lương." });
-            }
-        }
+        // GetSalaryComparison method removed - commission functionality no longer available
 
         #endregion
     }

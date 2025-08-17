@@ -321,7 +321,7 @@ namespace GymManagement.Web.Services
                 .Where(s => s.Hlv != null)
                 .ToDictionary(
                     s => $"{s.Hlv!.Ho} {s.Hlv.Ten}",
-                    s => s.TienHoaHong
+                    s => 0m // Commission removed
                 );
         }
 

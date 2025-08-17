@@ -21,7 +21,7 @@ namespace GymManagement.Web.Services
         private readonly IEmailService _emailService;
         private readonly IMemoryCache _cache;
         private readonly IAuditLogService _auditLog;
-        private readonly CommissionConfiguration _commissionConfig;
+        // Commission configuration removed
         private readonly ILogger<BangLuongService> _logger;
 
         // Concurrency control for salary generation
@@ -35,7 +35,7 @@ namespace GymManagement.Web.Services
             IEmailService emailService,
             IMemoryCache cache,
             IAuditLogService auditLog,
-            IOptions<CommissionConfiguration> commissionConfig,
+            // Commission configuration parameter removed
             ILogger<BangLuongService> logger)
         {
             _unitOfWork = unitOfWork;
@@ -45,7 +45,7 @@ namespace GymManagement.Web.Services
             _emailService = emailService;
             _cache = cache;
             _auditLog = auditLog;
-            _commissionConfig = commissionConfig.Value;
+            // Commission configuration assignment removed
             _logger = logger;
         }
 
@@ -183,22 +183,17 @@ namespace GymManagement.Web.Services
                         decimal baseSalary = await GetBaseSalaryForTrainer(trainer.NguoiDungId);
                         _logger.LogInformation("Base salary for trainer {TrainerId}: {BaseSalary}", trainer.NguoiDungId, baseSalary);
 
-                        // Calculate simplified commission breakdown
-                        var commissionBreakdown = await CalculateSimplifiedCommissionAsync(trainer.NguoiDungId, thang);
-                        _logger.LogInformation("Commission for trainer {TrainerId}: {Commission}", trainer.NguoiDungId, commissionBreakdown.TotalCommission);
-
-                        // Create salary record - simplified
+                        // Create salary record - simplified (no commission)
                         var bangLuong = new BangLuong
                         {
                             HlvId = trainer.NguoiDungId,
                             Thang = thang,
                             LuongCoBan = baseSalary,
-                            TienHoaHong = commissionBreakdown.TotalCommission,
                             NgayTao = DateTime.Now
                         };
 
                         salariesToCreate.Add(bangLuong);
-                        notificationsToSend.Add((trainer, bangLuong, commissionBreakdown));
+                        notificationsToSend.Add((trainer, bangLuong, null)); // No commission breakdown
                         successCount++;
                         _logger.LogInformation("Successfully prepared salary for trainer {TrainerId}", trainer.NguoiDungId);
                     }
@@ -383,17 +378,7 @@ namespace GymManagement.Web.Services
             var tierBonus = CalculateTierBasedCommission(totalRevenue);
             breakdown.PerformanceBonus += tierBonus;
 
-            // 4. Apply commission cap
-            var totalCommission = breakdown.TotalCommission;
-            if (totalCommission > _commissionConfig.MaxCommissionPerMonth)
-            {
-                var reductionFactor = _commissionConfig.MaxCommissionPerMonth / totalCommission;
-                breakdown.PackageCommission *= reductionFactor;
-                breakdown.ClassCommission *= reductionFactor;
-                breakdown.PersonalCommission *= reductionFactor;
-                breakdown.PerformanceBonus *= reductionFactor;
-                breakdown.AttendanceBonus *= reductionFactor;
-            }
+            // Commission cap logic removed - commission functionality disabled
 
             // 5. Populate metrics
             await PopulateBasicMetricsAsync(breakdown, hlvId, monthStart, monthEnd);
@@ -443,7 +428,7 @@ namespace GymManagement.Web.Services
                                    classReg.TrangThai == "ACTIVE"))
                 .SumAsync(d => d.GoiTap!.Gia);
 
-            return directPackageRevenue * _commissionConfig.PackageCommissionRate;
+            return 0; // Package commission disabled
         }
 
         private async Task<decimal> CalculateClassCommissionAsync(int hlvId, DateTime monthStart, DateTime monthEnd)
@@ -458,7 +443,7 @@ namespace GymManagement.Web.Services
                 .Where(d => d.TrangThai == "ACTIVE") // Only active registrations
                 .SumAsync(d => d.LopHoc!.GiaTuyChinh ?? 0);
 
-            return classRevenue * _commissionConfig.ClassCommissionRate;
+            return 0; // Class commission disabled
         }
 
         private async Task<decimal> CalculatePersonalTrainingCommissionAsync(int hlvId, DateTime monthStart, DateTime monthEnd)
@@ -492,7 +477,7 @@ namespace GymManagement.Web.Services
                 .SumAsync(b => b.LopHoc!.GiaTuyChinh ?? 0);
 
             var totalPersonalRevenue = personalClassRevenue + personalBookingRevenue;
-            return totalPersonalRevenue * _commissionConfig.PersonalTrainingRate;
+            return 0; // Personal training commission disabled
         }
 
         private async Task<decimal> CalculatePerformanceBonusAsync(int hlvId, DateTime monthStart, DateTime monthEnd)
@@ -503,16 +488,7 @@ namespace GymManagement.Web.Services
                 .Where(d => d.ThanhToans.Any(t => t.TrangThai == "SUCCESS"))
                 .CountAsync();
 
-            if (studentCount >= _commissionConfig.MinStudentCountForBonus)
-            {
-                var totalRevenue = await _unitOfWork.Context.DangKys
-                    .Where(d => d.NgayTao >= monthStart && d.NgayTao <= monthEnd)
-                    .Where(d => d.LopHocId.HasValue && d.LopHoc != null && d.LopHoc.HlvId == hlvId)
-                    .Where(d => d.ThanhToans.Any(t => t.TrangThai == "SUCCESS"))
-                    .SumAsync(d => (d.GoiTap != null ? d.GoiTap.Gia : 0) + (d.LopHoc!.GiaTuyChinh ?? 0));
-
-                return totalRevenue * _commissionConfig.PerformanceBonusRate;
-            }
+            // Performance bonus disabled
 
             return 0;
         }
@@ -528,11 +504,7 @@ namespace GymManagement.Web.Services
                 return 0;
             }
 
-            if (amount > _commissionConfig.MaxCommissionPerMonth)
-            {
-                _logger.LogWarning($"Commission amount {amount} exceeds maximum {_commissionConfig.MaxCommissionPerMonth} for {commissionType}. Capping to maximum.");
-                return _commissionConfig.MaxCommissionPerMonth;
-            }
+            // Commission cap validation disabled
 
             return Math.Round(amount, 2); // Round to 2 decimal places for currency
         }
@@ -578,38 +550,14 @@ namespace GymManagement.Web.Services
 
             var attendanceRate = (decimal)attendedSessions / totalSessions;
 
-            if (attendanceRate >= _commissionConfig.MinAttendanceRateForBonus)
-            {
-                var totalRevenue = await _unitOfWork.Context.DangKys
-                    .Where(d => d.NgayTao >= monthStart && d.NgayTao <= monthEnd)
-                    .Where(d => d.LopHocId.HasValue && d.LopHoc != null && d.LopHoc.HlvId == hlvId)
-                    .Where(d => d.ThanhToans.Any(t => t.TrangThai == "SUCCESS"))
-                    .SumAsync(d => (d.GoiTap != null ? d.GoiTap.Gia : 0) + (d.LopHoc!.GiaTuyChinh ?? 0));
-
-                return totalRevenue * _commissionConfig.AttendanceBonusRate;
-            }
+            // Attendance bonus disabled
 
             return 0;
         }
 
         private decimal CalculateTierBasedCommission(decimal totalRevenue)
         {
-            decimal tierBonus = 0;
-            decimal processedRevenue = 0;
-
-            foreach (var tier in _commissionConfig.CommissionTiers.OrderBy(t => t.MinRevenue))
-            {
-                if (totalRevenue <= processedRevenue) break;
-
-                var tierRevenue = Math.Min(totalRevenue - processedRevenue, tier.MaxRevenue - tier.MinRevenue);
-                if (tierRevenue > 0)
-                {
-                    tierBonus += tierRevenue * (tier.Rate - _commissionConfig.PackageCommissionRate); // Additional bonus over base rate
-                    processedRevenue += tierRevenue;
-                }
-            }
-
-            return tierBonus;
+            return 0; // Tier-based commission disabled
         }
 
         // Simplified performance bonus
@@ -695,10 +643,7 @@ namespace GymManagement.Web.Services
                                     <td style='padding: 8px 0;'><strong>Lương cơ bản:</strong></td>
                                     <td style='text-align: right; padding: 8px 0;'>{bangLuong.LuongCoBan:N0} VNĐ</td>
                                 </tr>
-                                <tr style='border-bottom: 1px solid #e5e7eb;'>
-                                    <td style='padding: 8px 0;'><strong>Hoa hồng:</strong></td>
-                                    <td style='text-align: right; padding: 8px 0;'>{bangLuong.TienHoaHong:N0} VNĐ</td>
-                                </tr>
+                                <!-- Commission row removed -->
                                 <tr style='border-top: 2px solid #2563eb;'>
                                     <td style='padding: 12px 0;'><strong>Tổng cộng:</strong></td>
                                     <td style='text-align: right; padding: 12px 0; font-size: 1.2em; font-weight: bold; color: #2563eb;'>{bangLuong.TongThanhToan:N0} VNĐ</td>
@@ -785,7 +730,6 @@ namespace GymManagement.Web.Services
                                 <div style='background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;'>
                                     <ul style='list-style: none; padding: 0; margin: 0;'>
                                         <li style='padding: 5px 0;'>💰 Lương cơ bản: <strong>{bangLuong.LuongCoBan:N0} VNĐ</strong></li>
-                                        <li style='padding: 5px 0;'>🎯 Hoa hồng: <strong>{bangLuong.TienHoaHong:N0} VNĐ</strong></li>
                                         <li style='padding: 10px 0; border-top: 2px solid #10b981; margin-top: 10px;'>
                                             💎 <strong>Tổng cộng: {bangLuong.TongThanhToan:N0} VNĐ</strong>
                                         </li>
@@ -823,16 +767,17 @@ namespace GymManagement.Web.Services
             return true;
         }
 
+
+
+        // Commission calculation methods removed - no longer needed
         public async Task<decimal> CalculateCommissionAsync(int hlvId, string thang)
         {
-            var result = await CalculateSimplifiedCommissionAsync(hlvId, thang);
-            return result.TotalCommission;
+            return 0; // Commission functionality removed
         }
 
         public async Task<CommissionBreakdown> CalculateDetailedCommissionAsync(int hlvId, string thang)
         {
-            // For backward compatibility, use simplified version
-            return await CalculateSimplifiedCommissionAsync(hlvId, thang);
+            return new CommissionBreakdown(); // Commission functionality removed
         }
 
         public async Task<decimal> GetTotalSalaryExpenseAsync(string thang)

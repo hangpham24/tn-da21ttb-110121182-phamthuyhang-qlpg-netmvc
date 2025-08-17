@@ -26,14 +26,9 @@ namespace GymManagement.Web.Data.Models
         [Display(Name = "Lương cơ bản")]
         public decimal LuongCoBan { get; set; }
         
-        [Column(TypeName = "decimal(12,2)")]
-        [Range(0, 50000000, ErrorMessage = "Tiền hoa hồng phải từ 0 đến 50,000,000 VNĐ")]
-        [Display(Name = "Tiền hoa hồng")]
-        public decimal TienHoaHong { get; set; } = 0; // Total commission
-
         [NotMapped]
         [Display(Name = "Tổng thanh toán")]
-        public decimal TongThanhToan => LuongCoBan + TienHoaHong;
+        public decimal TongThanhToan => LuongCoBan; // Simplified: only base salary
 
         [Display(Name = "Ngày thanh toán")]
         public DateOnly? NgayThanhToan { get; set; }

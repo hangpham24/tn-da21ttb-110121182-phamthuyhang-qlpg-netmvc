@@ -132,14 +132,11 @@
         let currentClassFilter = '';
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Set default class filter FIRST (before calendar init)
+            // Set default class filter to "Tất cả" (empty value)
             const classSelect = document.getElementById('classFilter');
-            const firstClassOption = classSelect.querySelector('option[value]:not([value=""])');
-            if (firstClassOption) {
-                classSelect.value = firstClassOption.value;
-                currentClassFilter = firstClassOption.value;
-                console.log('Default class filter set to:', currentClassFilter);
-            }
+            classSelect.value = ''; // Set to "Tất cả lớp"
+            currentClassFilter = '';
+            console.log('Default class filter set to: Tất cả lớp');
             
             // Initialize calendar AFTER filter is set
             initializeCalendar();

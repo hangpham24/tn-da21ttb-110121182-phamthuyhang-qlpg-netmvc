@@ -668,8 +668,7 @@ namespace GymManagement.Web.Controllers
                     return Json(new { success = false, message = "Không tìm thấy thông tin lương cho tháng này." });
                 }
 
-                // Tính hoa hồng chi tiết
-                var commission = await _bangLuongService.CalculateCommissionAsync(trainerId, month);
+                // Commission calculation removed
 
                 var result = new
                 {
@@ -678,8 +677,7 @@ namespace GymManagement.Web.Controllers
                     {
                         month = salary.Thang,
                         baseSalary = salary.LuongCoBan,
-                        commission = salary.TienHoaHong,
-                        calculatedCommission = commission,
+                        commission = 0, // Commission removed
                         total = salary.TongThanhToan,
                         paymentDate = salary.NgayThanhToan?.ToString("dd/MM/yyyy"),
                         isPaid = salary.NgayThanhToan != null,

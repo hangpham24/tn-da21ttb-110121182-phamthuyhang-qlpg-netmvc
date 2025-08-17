@@ -198,7 +198,7 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@salary.LuongCoBan.ToString("N0") VNĐ</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@salary.TienHoaHong.ToString("N0") VNĐ</td>
+                                <!-- Commission column removed -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">@salary.TongThanhToan.ToString("N0") VNĐ</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if (salary.NgayThanhToan.HasValue)
@@ -216,10 +216,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex gap-2">
-                                        <button onclick="viewCommissionBreakdown(@salary.HlvId, '@currentMonth')" 
-                                                class="text-blue-600 hover:text-blue-900 text-sm">
-                                            Chi tiết
-                                        </button>
+                                        <!-- Commission breakdown button removed -->
                                         @if (!salary.NgayThanhToan.HasValue)
                                         {
                                             <button onclick="markAsPaid(@salary.BangLuongId)" 
@@ -248,26 +245,7 @@
     }
 </div>
 
-<!-- Commission Breakdown Modal -->
-<div id="commissionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">Chi tiết hoa hồng</h3>
-                    <button onclick="closeCommissionModal()" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-                <div id="commissionContent">
-                    <!-- Commission breakdown will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Commission modal removed -->
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -351,54 +329,7 @@
             });
         }
 
-        async function viewCommissionBreakdown(trainerId, month) {
-            try {
-                document.getElementById('commissionContent').innerHTML = '<div class="text-center py-4">Đang tải...</div>';
-                document.getElementById('commissionModal').classList.remove('hidden');
-                
-                const response = await fetch(`/BangLuong/GetCommissionBreakdown?trainerId=${trainerId}&month=${month}`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    const data = result.data;
-                    document.getElementById('commissionContent').innerHTML = `
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-blue-50 p-4 rounded-lg">
-                                    <h4 class="font-semibold text-blue-900">Hoa hồng gói tập</h4>
-                                    <p class="text-2xl font-bold text-blue-600">${data.PackageCommission.toLocaleString('vi-VN')} VNĐ</p>
-                                </div>
-                                <div class="bg-green-50 p-4 rounded-lg">
-                                    <h4 class="font-semibold text-green-900">Thưởng hiệu suất</h4>
-                                    <p class="text-2xl font-bold text-green-600">${data.PerformanceBonus.toLocaleString('vi-VN')} VNĐ</p>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <h4 class="font-semibold text-gray-900 mb-2">Thống kê hiệu suất</h4>
-                                <div class="grid grid-cols-2 gap-4 text-sm">
-                                    <div>Số học viên: <span class="font-bold">${data.StudentCount}</span></div>
-                                    <div>Số buổi dạy: <span class="font-bold">${data.ClassesTaught}</span></div>
-                                </div>
-                            </div>
-                            <div class="border-t border-gray-200 pt-4">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-lg font-semibold">Tổng hoa hồng:</span>
-                                    <span class="text-2xl font-bold text-purple-600">${data.TotalCommission.toLocaleString('vi-VN')} VNĐ</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    document.getElementById('commissionContent').innerHTML = '<div class="text-center py-4 text-red-600">Có lỗi xảy ra khi tải dữ liệu</div>';
-                }
-            } catch (error) {
-                document.getElementById('commissionContent').innerHTML = '<div class="text-center py-4 text-red-600">Có lỗi xảy ra khi tải dữ liệu</div>';
-            }
-        }
-
-        function closeCommissionModal() {
-            document.getElementById('commissionModal').classList.add('hidden');
-        }
+        // Commission breakdown functions removed
 
         async function markAsPaid(salaryId) {
             if (confirm('Xác nhận đã thanh toán lương này?')) {
@@ -429,9 +360,6 @@
             window.open(`/BangLuong/ExportMonthlyReportPdf?month=${month}`, '_blank');
         }
 
-        // Close modal when clicking outside
-        document.getElementById('commissionModal').addEventListener('click', function(e) {
-            if (e.target === this) closeCommissionModal();
-        });
+        // Commission modal event listeners removed
     </script>
 }

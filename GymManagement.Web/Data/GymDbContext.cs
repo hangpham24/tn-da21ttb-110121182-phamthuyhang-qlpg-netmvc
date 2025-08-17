@@ -322,8 +322,8 @@ namespace GymManagement.Web.Data
                 entity.Property(e => e.BangLuongId).ValueGeneratedOnAdd();
                 entity.Property(e => e.Thang).HasMaxLength(7).IsRequired();
                 entity.Property(e => e.LuongCoBan).HasColumnType("decimal(12,2)").IsRequired();
-                entity.Property(e => e.TienHoaHong).HasColumnType("decimal(12,2)").HasDefaultValue(0);
-                
+                // Removed TienHoaHong configuration
+
                 entity.HasOne(d => d.Hlv)
                     .WithMany(p => p.BangLuongs)
                     .HasForeignKey(d => d.HlvId);

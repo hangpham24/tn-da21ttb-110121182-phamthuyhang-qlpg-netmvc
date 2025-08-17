@@ -167,9 +167,7 @@ builder.Services.AddHostedService<ExpiryNotificationBackgroundService>();
 // Add Memory Cache
 builder.Services.AddMemoryCache();
 
-// Configure Commission Settings
-builder.Services.Configure<CommissionConfiguration>(
-    builder.Configuration.GetSection("CommissionSettings"));
+// Commission configuration removed
 
 // Add Session Support
 builder.Services.AddSession(options =>

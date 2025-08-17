@@ -17,6 +17,7 @@ namespace GymManagement.Web.Services
         Task<bool> GenerateMonthlySalariesAsync(string thang);
         Task<bool> PaySalaryAsync(int bangLuongId);
         Task<bool> PayAllSalariesForMonthAsync(string thang);
+
         Task<decimal> CalculateCommissionAsync(int hlvId, string thang);
         Task<CommissionBreakdown> CalculateDetailedCommissionAsync(int hlvId, string thang);
         Task<decimal> GetTotalSalaryExpenseAsync(string thang);

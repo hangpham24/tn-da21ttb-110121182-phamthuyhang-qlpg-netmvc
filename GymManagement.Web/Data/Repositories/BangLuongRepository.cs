@@ -9,6 +9,17 @@ namespace GymManagement.Web.Data.Repositories
         {
         }
 
+        // Override GetAllAsync to include Hlv relationship
+        public override async Task<IEnumerable<BangLuong>> GetAllAsync()
+        {
+            return await _context.BangLuongs
+                .Include(b => b.Hlv)
+                .OrderByDescending(b => b.Thang)
+                .ThenBy(b => b.Hlv.Ho)
+                .ThenBy(b => b.Hlv.Ten)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<BangLuong>> GetByHlvIdAsync(int hlvId)
         {
             return await _context.BangLuongs
@@ -64,10 +75,8 @@ namespace GymManagement.Web.Data.Repositories
 
         public async Task<decimal> GetTotalCommissionByMonthAsync(string thang)
         {
-            // ✅ FIX: Tính cả hoa hồng chưa thanh toán để có Net Profit chính xác
-            return await _context.BangLuongs
-                .Where(b => b.Thang == thang)
-                .SumAsync(b => b.TienHoaHong);
+            // Commission removed - return 0
+            return 0;
         }
 
         // ✅ NEW: Methods để tính riêng lương đã thanh toán (nếu cần)
@@ -80,9 +89,8 @@ namespace GymManagement.Web.Data.Repositories
 
         public async Task<decimal> GetPaidCommissionByMonthAsync(string thang)
         {
-            return await _context.BangLuongs
-                .Where(b => b.Thang == thang && b.NgayThanhToan != null)
-                .SumAsync(b => b.TienHoaHong);
+            // Commission removed - return 0
+            return 0;
         }
 
         public async Task<IEnumerable<BangLuong>> GetSalariesByDateRangeAsync(DateTime startDate, DateTime endDate)
