@@ -12,7 +12,10 @@ namespace GymManagement.Web.Services
         private readonly IDangKyRepository _dangKyRepository;
         private readonly IDiemDanhRepository _diemDanhRepository;
         private readonly IBangLuongRepository _bangLuongRepository;
+        private readonly INguoiDungRepository _nguoiDungRepository;
+        private readonly ILopHocRepository _lopHocRepository;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<BaoCaoService> _logger;
 
         public BaoCaoService(
             IUnitOfWork unitOfWork,
@@ -20,14 +23,20 @@ namespace GymManagement.Web.Services
             IDangKyRepository dangKyRepository,
             IDiemDanhRepository diemDanhRepository,
             IBangLuongRepository bangLuongRepository,
-            IMemoryCache cache)
+            INguoiDungRepository nguoiDungRepository,
+            ILopHocRepository lopHocRepository,
+            IMemoryCache cache,
+            ILogger<BaoCaoService> logger)
         {
             _unitOfWork = unitOfWork;
             _thanhToanRepository = thanhToanRepository;
             _dangKyRepository = dangKyRepository;
             _diemDanhRepository = diemDanhRepository;
             _bangLuongRepository = bangLuongRepository;
+            _nguoiDungRepository = nguoiDungRepository;
+            _lopHocRepository = lopHocRepository;
             _cache = cache;
+            _logger = logger;
         }
 
         public async Task<decimal> GetDailyRevenueAsync(DateTime date)
@@ -404,6 +413,8 @@ namespace GymManagement.Web.Services
                 TodayRevenue = await GetDailyRevenueAsync(today),
                 ThisMonthRevenue = await GetMonthlyRevenueAsync(today.Year, today.Month),
                 LastMonthRevenue = await GetMonthlyRevenueAsync(lastMonth.Year, lastMonth.Month),
+                TotalTrainers = await GetRealTrainersCountAsync(),
+                TotalClasses = await GetRealClassesCountAsync(),
                 NewMembersThisMonth = await GetNewMembersCountAsync(thisMonth, today),
                 PopularPackages = await GetMembersByPackageAsync(),
                 AttendanceTrend = await GetAttendanceTrendAsync(today.AddDays(-7), today),
@@ -416,15 +427,37 @@ namespace GymManagement.Web.Services
 
         public async Task<object> GetRealtimeStatsAsync()
         {
-            var today = DateTime.Today;
-
-            return new
+            try
             {
-                CurrentAttendance = await GetDailyAttendanceAsync(today),
-                TodayRevenue = await GetDailyRevenueAsync(today),
-                ActiveMembers = await GetTotalActiveMembersAsync(),
-                LastUpdated = DateTime.Now
-            };
+                // Lấy dữ liệu thật từ database
+                var totalMembers = await GetTotalMembersCountAsync();
+                var totalTrainers = await GetTotalTrainersCountAsync();
+                var totalClasses = await GetTotalClassesCountAsync();
+                var totalPackages = await GetTotalPackagesCountAsync();
+
+                _logger.LogInformation($"Dashboard stats - Members: {totalMembers}, Trainers: {totalTrainers}, Classes: {totalClasses}, Packages: {totalPackages}");
+
+                return new
+                {
+                    TotalMembers = totalMembers,
+                    TotalTrainers = totalTrainers,
+                    TotalClasses = totalClasses,
+                    TotalPackages = totalPackages,
+                    LastUpdated = DateTime.Now
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting realtime stats");
+                return new
+                {
+                    TotalMembers = 0,
+                    TotalTrainers = 0,
+                    TotalClasses = 0,
+                    TotalPackages = 0,
+                    LastUpdated = DateTime.Now
+                };
+            }
         }
 
         // Debug methods
@@ -491,5 +524,181 @@ namespace GymManagement.Web.Services
 
             return successfulPayments.Sum(p => p.SoTien);
         }
+
+        // Real data methods for dashboard stats
+        public async Task<int> GetRealActiveMembersCountAsync()
+        {
+            try
+            {
+                // Đếm số thành viên có đăng ký còn hiệu lực
+                var activeRegistrations = await _dangKyRepository.GetActiveRegistrationsAsync();
+                var uniqueMembers = activeRegistrations.Select(d => d.NguoiDungId).Distinct().Count();
+
+                _logger.LogInformation($"Active members count: {uniqueMembers}");
+                return uniqueMembers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting active members count");
+                return 0;
+            }
+        }
+
+        public async Task<int> GetRealTrainersCountAsync()
+        {
+            try
+            {
+                // Đếm số HLV đang hoạt động
+                var trainers = await _nguoiDungRepository.GetByLoaiNguoiDungAsync("HLV");
+                var activeTrainers = trainers.Count(t => t.TrangThai == "ACTIVE");
+
+                _logger.LogInformation($"Active trainers count: {activeTrainers}");
+                return activeTrainers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting trainers count");
+                return 0;
+            }
+        }
+
+        public async Task<int> GetRealClassesCountAsync()
+        {
+            try
+            {
+                // Đếm tổng số lớp học
+                var classes = await _lopHocRepository.GetAllAsync();
+                var totalClasses = classes.Count();
+
+                _logger.LogInformation($"Total classes count: {totalClasses}");
+                return totalClasses;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting classes count");
+                return 0;
+            }
+        }
+
+        public async Task<int> GetSimpleAttendanceCountAsync(DateTime date)
+        {
+            try
+            {
+                var attendances = await _diemDanhRepository.GetAllAsync();
+                return attendances.Count(a => a.ThoiGian.Date == date.Date);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting attendance count for {Date}", date);
+                return 0;
+            }
+        }
+
+        public async Task<decimal> GetSimpleRevenueAsync(DateTime date)
+        {
+            try
+            {
+                var payments = await _thanhToanRepository.GetAllAsync();
+                return payments
+                    .Where(p => p.NgayThanhToan.Date == date.Date && p.TrangThai == "SUCCESS")
+                    .Sum(p => p.SoTien);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting revenue for {Date}", date);
+                return 0;
+            }
+        }
+
+        public async Task<decimal> GetSimpleMonthlyRevenueAsync(int year, int month)
+        {
+            try
+            {
+                var startDate = new DateTime(year, month, 1);
+                var endDate = startDate.AddMonths(1).AddDays(-1);
+
+                var payments = await _thanhToanRepository.GetAllAsync();
+                return payments
+                    .Where(p => p.NgayThanhToan.Date >= startDate && p.NgayThanhToan.Date <= endDate && p.TrangThai == "SUCCESS")
+                    .Sum(p => p.SoTien);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting monthly revenue for {Year}-{Month}", year, month);
+                return 0;
+            }
+        }
+
+        // Methods to get total counts for Dashboard
+        private async Task<int> GetTotalMembersCountAsync()
+        {
+            try
+            {
+                // Đếm tổng số thành viên (không phân biệt trạng thái)
+                var allUsers = await _nguoiDungRepository.GetAllAsync();
+                var count = allUsers.Count(n => n.LoaiNguoiDung == "THANHVIEN");
+
+                _logger.LogInformation($"Total members count: {count}");
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting total members");
+                return 0;
+            }
+        }
+
+        private async Task<int> GetTotalTrainersCountAsync()
+        {
+            try
+            {
+                var allUsers = await _nguoiDungRepository.GetAllAsync();
+                var count = allUsers.Count(n => n.LoaiNguoiDung == "HLV");
+
+                _logger.LogInformation($"Total trainers count: {count}");
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting trainers");
+                return 0;
+            }
+        }
+
+        private async Task<int> GetTotalClassesCountAsync()
+        {
+            try
+            {
+                var allClasses = await _lopHocRepository.GetAllAsync();
+                var count = allClasses.Count();
+
+                _logger.LogInformation($"Total classes count: {count}");
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting classes");
+                return 0;
+            }
+        }
+
+        private async Task<int> GetTotalPackagesCountAsync()
+        {
+            try
+            {
+                // Sử dụng UnitOfWork để truy cập GoiTaps
+                var allPackages = await _unitOfWork.GoiTaps.GetAllAsync();
+                var count = allPackages.Count();
+
+                _logger.LogInformation($"Total packages count: {count}");
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error counting packages");
+                return 0;
+            }
+        }
+
     }
 }

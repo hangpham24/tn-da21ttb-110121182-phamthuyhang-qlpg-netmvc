@@ -161,6 +161,120 @@ public class HomeController : BaseController
         }
     }
 
+    // Public Dashboard for testing (không cần authentication)
+    [AllowAnonymous]
+    public async Task<IActionResult> PublicDashboard()
+    {
+        try
+        {
+            var dashboardData = await _baoCaoService.GetDashboardDataAsync();
+            return View("Dashboard", dashboardData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading public dashboard");
+            return View("Dashboard", new { });
+        }
+    }
+
+    // API endpoint để lấy dữ liệu realtime cho dashboard (PUBLIC - không cần auth)
+    [AllowAnonymous]
+    public async Task<IActionResult> GetRealtimeStats()
+    {
+        try
+        {
+            var stats = await _baoCaoService.GetRealtimeStatsAsync();
+            _logger.LogInformation("✅ GetRealtimeStats API called successfully");
+            return Json(stats);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error getting realtime stats");
+            return Json(new { error = "Có lỗi xảy ra khi tải dữ liệu thống kê." });
+        }
+    }
+
+    // [Authorize(Roles = "Admin")] // Tạm thời bỏ để test
+    public async Task<IActionResult> GetChartData()
+    {
+        try
+        {
+            // Tạo dữ liệu mẫu cho biểu đồ 7 ngày gần đây
+            var last7Days = new List<string>();
+            var revenueData = new List<decimal>();
+            var attendanceData = new List<int>();
+
+            for (int i = 6; i >= 0; i--)
+            {
+                var date = DateTime.Today.AddDays(-i);
+                last7Days.Add(date.ToString("dd/MM"));
+
+                // Lấy dữ liệu thật từ database (có thể implement sau)
+                revenueData.Add(0); // Tạm thời để 0
+                attendanceData.Add(0); // Tạm thời để 0
+            }
+
+            return Json(new
+            {
+                labels = last7Days,
+                revenueData = revenueData,
+                attendanceData = attendanceData
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting chart data");
+            return Json(new { error = "Unable to load chart data" });
+        }
+    }
+
+    // Test endpoint để debug
+    public IActionResult TestApi()
+    {
+        return Json(new { message = "API hoạt động!", timestamp = DateTime.Now });
+    }
+
+    // Test endpoint cho Dashboard stats (không yêu cầu auth)
+    public async Task<IActionResult> TestDashboardStats()
+    {
+        try
+        {
+            var stats = await _baoCaoService.GetRealtimeStatsAsync();
+            return Json(new {
+                success = true,
+                data = stats,
+                user = User?.Identity?.Name ?? "Anonymous",
+                isAuthenticated = User?.Identity?.IsAuthenticated ?? false,
+                roles = User?.Claims?.Where(c => c.Type == "role")?.Select(c => c.Value)?.ToArray() ?? new string[0]
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in TestDashboardStats");
+            return Json(new {
+                success = false,
+                error = ex.Message,
+                user = User?.Identity?.Name ?? "Anonymous",
+                isAuthenticated = User?.Identity?.IsAuthenticated ?? false
+            });
+        }
+    }
+
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetDashboardChartData()
+    {
+        try
+        {
+            var dashboardData = await _baoCaoService.GetDashboardDataAsync();
+            return Json(dashboardData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while getting dashboard chart data");
+            return Json(new { error = "Có lỗi xảy ra khi tải dữ liệu biểu đồ." });
+        }
+    }
+
     public IActionResult About()
     {
         return View();
@@ -252,22 +366,6 @@ public class HomeController : BaseController
         }
 
         return View();
-    }
-
-    [HttpGet]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> GetRealtimeStats()
-    {
-        try
-        {
-            var stats = await _baoCaoService.GetRealtimeStatsAsync();
-            return Json(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error occurred while getting realtime stats");
-            return Json(new { });
-        }
     }
 
     [HttpGet]

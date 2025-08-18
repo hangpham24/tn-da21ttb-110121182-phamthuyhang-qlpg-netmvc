@@ -65,7 +65,7 @@ namespace GymManagement.Web.Controllers
                     new SelectListItem { Text = "Tất cả trạng thái", Value = "" },
                     new SelectListItem { Text = "📝 Nháp", Value = "DRAFT" },
                     new SelectListItem { Text = "✅ Đã xuất bản", Value = "PUBLISHED" },
-                    new SelectListItem { Text = "📁 Lưu trữ", Value = "ARCHIVED" }
+                    // new SelectListItem { Text = "📁 Lưu trữ", Value = "ARCHIVED" }
                 };
 
                 return View(tinTucs);
@@ -275,7 +275,7 @@ namespace GymManagement.Web.Controllers
             {
                 new SelectListItem { Text = "📝 Nháp", Value = "DRAFT" },
                 new SelectListItem { Text = "✅ Xuất bản", Value = "PUBLISHED" },
-                new SelectListItem { Text = "📁 Lưu trữ", Value = "ARCHIVED" }
+                // new SelectListItem { Text = "📁 Lưu trữ", Value = "ARCHIVED" }
             };
         }
     }

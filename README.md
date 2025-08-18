@@ -40,8 +40,7 @@ Hệ thống quản lý phòng gym hiện đại và chuyên nghiệp được x
 - Phân tích hiệu suất
 
 ### 💰 Quản lý lương
-- Tính lương tự động cho HLV
-- Hệ thống hoa hồng
+- Tính lương cơ bản tự động cho HLV
 - Báo cáo chi phí nhân sự
 
 ## 🛠️ Công nghệ sử dụng
