@@ -148,23 +148,39 @@ namespace GymManagement.Web.Controllers
                     var user = await GetCurrentUserAsync();
                     _logger.LogInformation("🔍 Current User: {UserId}, Role: {Role}", user?.NguoiDungId, User.IsInRole("Admin") ? "Admin" : "Member");
 
-                    // If no member is selected, use current user (only for non-admin)
-                    if (booking.ThanhVienId == null && !User.IsInRole("Admin"))
+                    // Handle ThanhVienId assignment based on role
+                    if (User.IsInRole("Admin"))
                     {
-                        if (user?.NguoiDungId != null)
+                        // Admin must select a member - ThanhVienId is required
+                        if (booking.ThanhVienId == null)
                         {
-                            booking.ThanhVienId = user.NguoiDungId.Value;
-                            _logger.LogInformation("🔍 Auto-assigned ThanhVienId: {ThanhVienId}", booking.ThanhVienId);
+                            _logger.LogWarning("❌ Admin {UserId} tried to book without selecting a member", user?.NguoiDungId);
+                            ModelState.AddModelError("ThanhVienId", "Vui lòng chọn thành viên để đặt lịch.");
+                            await LoadSelectLists();
+                            return View(booking);
                         }
+                        _logger.LogInformation("🔍 Admin {AdminId} booking for member {ThanhVienId}", user?.NguoiDungId, booking.ThanhVienId);
                     }
-
-                    // 🔒 IMPROVED: Authorization check - Members can only create bookings for themselves
-                    if (User.IsInRole("Member") && user?.NguoiDungId != booking.ThanhVienId)
+                    else
                     {
-                        _logger.LogWarning("❌ Member {UserId} tried to book for {ThanhVienId}", user?.NguoiDungId, booking.ThanhVienId);
-                        ModelState.AddModelError("", "Bạn chỉ có thể đặt lịch cho chính mình.");
-                        await LoadSelectLists();
-                        return View(booking);
+                        // Member: auto-assign to current user if not set
+                        if (booking.ThanhVienId == null)
+                        {
+                            if (user?.NguoiDungId != null)
+                            {
+                                booking.ThanhVienId = user.NguoiDungId.Value;
+                                _logger.LogInformation("🔍 Auto-assigned ThanhVienId: {ThanhVienId}", booking.ThanhVienId);
+                            }
+                        }
+
+                        // Member can only book for themselves
+                        if (user?.NguoiDungId != booking.ThanhVienId)
+                        {
+                            _logger.LogWarning("❌ Member {UserId} tried to book for {ThanhVienId}", user?.NguoiDungId, booking.ThanhVienId);
+                            ModelState.AddModelError("", "Bạn chỉ có thể đặt lịch cho chính mình.");
+                            await LoadSelectLists();
+                            return View(booking);
+                        }
                     }
 
                     // Validate required fields
@@ -193,7 +209,16 @@ namespace GymManagement.Web.Controllers
                             bookingDate);
 
                         TempData["SuccessMessage"] = "Đặt lịch thành công!";
-                        return RedirectToAction(nameof(MyBookings));
+
+                        // Redirect based on user role
+                        if (User.IsInRole("Admin"))
+                        {
+                            return RedirectToAction(nameof(Index)); // Admin goes to booking management
+                        }
+                        else
+                        {
+                            return RedirectToAction(nameof(MyBookings)); // Member goes to their bookings
+                        }
                     }
                     else
                     {

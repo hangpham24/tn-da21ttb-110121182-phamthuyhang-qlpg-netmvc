@@ -150,12 +150,27 @@ namespace GymManagement.Web.Services
                 var lopHoc = await _unitOfWork.Context.LopHocs.FindAsync(lopHocId.Value);
                 if (lopHoc == null || lopHoc.TrangThai != "OPEN")
                     return false;
+
+                // ✅ VALIDATION: Check if member has active registration for this specific class
+                // Only allow check-in if member is registered for this class
+                var hasActiveRegistration = await _unitOfWork.Context.DangKys
+                    .AnyAsync(d => d.NguoiDungId == thanhVienId &&
+                                  d.LopHocId == lopHocId.Value &&
+                                  d.TrangThai == "ACTIVE" &&
+                                  d.NgayKetThuc >= DateOnly.FromDateTime(DateTime.Today));
+
+                if (!hasActiveRegistration)
+                {
+                    // Member is not registered for this class
+                    return false;
+                }
             }
 
             // Create attendance record
             var diemDanh = new DiemDanh
             {
                 ThanhVienId = thanhVienId,
+                LopHocId = lopHocId, // ✅ Lưu LopHocId vào database
                 ThoiGian = DateTime.Now,
                 KetQuaNhanDang = true,
                 AnhMinhChung = anhMinhChung,
@@ -342,6 +357,18 @@ namespace GymManagement.Web.Services
                     Message = $"Lỗi khi nhận diện khuôn mặt: {ex.Message}"
                 };
             }
+        }
+
+        /// <summary>
+        /// Kiểm tra xem thành viên có đăng ký lớp học cụ thể hay không
+        /// </summary>
+        public async Task<bool> HasActiveClassRegistrationAsync(int thanhVienId, int lopHocId)
+        {
+            return await _unitOfWork.Context.DangKys
+                .AnyAsync(d => d.NguoiDungId == thanhVienId &&
+                              d.LopHocId == lopHocId &&
+                              d.TrangThai == "ACTIVE" &&
+                              d.NgayKetThuc >= DateOnly.FromDateTime(DateTime.Today));
         }
 
         // Face Recognition specific methods

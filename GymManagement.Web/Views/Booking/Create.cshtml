@@ -479,12 +479,22 @@
 
         function updateSubmitButton() {
             const submitBtn = document.getElementById('submitBtn');
-            const classId = document.getElementById('LopHocId').value;
-            const date = document.getElementById('Ngay').value;
+            const classIdField = document.getElementById('LopHocId');
+            const dateField = document.getElementById('Ngay');
+            const classSearchField = document.getElementById('classSearch');
 
-            console.log('🔍 UpdateSubmitButton - ClassId:', classId, 'Date:', date);
+            const classId = classIdField ? classIdField.value : '';
+            const date = dateField ? dateField.value : '';
+            const classSearchValue = classSearchField ? classSearchField.value : '';
 
-            if (classId && date) {
+            console.log('🔍 UpdateSubmitButton - ClassId:', classId, 'Date:', date, 'ClassSearch:', classSearchValue);
+            console.log('🔍 Fields exist - ClassIdField:', !!classIdField, 'DateField:', !!dateField);
+
+            // Check if both class and date are selected
+            const hasClass = classId && classId !== '';
+            const hasDate = date && date !== '';
+
+            if (hasClass && hasDate) {
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
                 submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
@@ -493,8 +503,35 @@
                 submitBtn.disabled = true;
                 submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
                 submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-                console.log('❌ Submit button DISABLED - Missing:', !classId ? 'ClassId' : '', !date ? 'Date' : '');
+                console.log('❌ Submit button DISABLED - Missing:', !hasClass ? 'ClassId' : '', !hasDate ? 'Date' : '');
             }
+        }
+
+        // Debug function to check form state
+        function debugSubmitButton() {
+            const classId = document.getElementById('LopHocId').value;
+            const date = document.getElementById('Ngay').value;
+            const classSearch = document.getElementById('classSearch').value;
+            const thanhVienId = document.getElementById('ThanhVienId').value;
+            const selectedMemberId = document.getElementById('selectedMemberId').value;
+            const memberSearch = document.getElementById('memberSearch').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            alert(`Debug Info:
+ThanhVienId: "${thanhVienId}"
+SelectedMemberId: "${selectedMemberId}"
+MemberSearch: "${memberSearch}"
+ClassId: "${classId}"
+Date: "${date}"
+ClassSearch: "${classSearch}"
+Button Disabled: ${submitBtn.disabled}
+Selected Class: ${selectedClass}
+Selected Date: ${selectedDate}`);
+
+            // Force enable for testing
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+            submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
         }
 
         // Searchable dropdown functionality
@@ -527,7 +564,15 @@
                         console.log('Member clicked:', option.dataset.text, option.dataset.value);
                         memberSearch.value = option.dataset.text;
                         selectedMemberId.value = option.dataset.value;
+
+                        // Also set the main ThanhVienId field for form submission
+                        const thanhVienIdField = document.getElementById('ThanhVienId');
+                        if (thanhVienIdField) {
+                            thanhVienIdField.value = option.dataset.value;
+                        }
+
                         memberDropdown.classList.add('hidden');
+                        console.log('✅ Member selected - ID:', option.dataset.value, 'Name:', option.dataset.text);
                     });
                 });
             }
@@ -606,7 +651,15 @@
                             console.log('Fallback member click:', this.dataset.text);
                             document.getElementById('memberSearch').value = this.dataset.text || this.textContent.trim();
                             document.getElementById('selectedMemberId').value = this.dataset.value;
+
+                            // Also set the main ThanhVienId field
+                            const thanhVienIdField = document.getElementById('ThanhVienId');
+                            if (thanhVienIdField) {
+                                thanhVienIdField.value = this.dataset.value;
+                            }
+
                             document.getElementById('memberDropdown').classList.add('hidden');
+                            console.log('✅ Fallback member selected - ID:', this.dataset.value);
                         };
                     }
                 });
@@ -632,9 +685,22 @@
             }, 100);
         });
 
-        document.getElementById('Ngay').addEventListener('change', function() {
-            checkAvailability();
-            updateSubmitButton();
-        });
+        // Add event listener for date field
+        const dateField = document.getElementById('Ngay');
+        if (dateField) {
+            dateField.addEventListener('change', function() {
+                console.log('📅 Date changed:', this.value);
+                selectedDate = this.value;
+                checkAvailability();
+                updateSubmitButton();
+            });
+
+            // Also listen for input event for real-time updates
+            dateField.addEventListener('input', function() {
+                console.log('📅 Date input:', this.value);
+                selectedDate = this.value;
+                updateSubmitButton();
+            });
+        }
     </script>
 }

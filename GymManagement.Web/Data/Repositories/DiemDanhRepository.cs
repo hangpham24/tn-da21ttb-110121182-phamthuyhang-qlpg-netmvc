@@ -14,6 +14,7 @@ namespace GymManagement.Web.Data.Repositories
         {
             return await _context.DiemDanhs
                 .Include(d => d.ThanhVien)
+                .Include(d => d.LopHoc) // ✅ Include LopHoc để hiển thị tên lớp học
                 .OrderByDescending(d => d.ThoiGian)
                 .ToListAsync();
         }
@@ -22,6 +23,7 @@ namespace GymManagement.Web.Data.Repositories
         {
             return await _context.DiemDanhs
                 .Include(d => d.ThanhVien)
+                .Include(d => d.LopHoc) // ✅ Include LopHoc
                 .Where(d => d.ThanhVienId == thanhVienId)
                 .OrderByDescending(d => d.ThoiGian)
                 .ToListAsync();
@@ -31,6 +33,7 @@ namespace GymManagement.Web.Data.Repositories
         {
             return await _context.DiemDanhs
                 .Include(d => d.ThanhVien)
+                .Include(d => d.LopHoc) // ✅ Include LopHoc
                 .Where(d => d.ThoiGian >= startDate && d.ThoiGian <= endDate)
                 .OrderByDescending(d => d.ThoiGian)
                 .ToListAsync();
@@ -40,9 +43,10 @@ namespace GymManagement.Web.Data.Repositories
         {
             var today = DateTime.Today;
             var tomorrow = today.AddDays(1);
-            
+
             return await _context.DiemDanhs
                 .Include(d => d.ThanhVien)
+                .Include(d => d.LopHoc) // ✅ Include LopHoc
                 .Where(d => d.ThoiGian >= today && d.ThoiGian < tomorrow)
                 .OrderByDescending(d => d.ThoiGian)
                 .ToListAsync();

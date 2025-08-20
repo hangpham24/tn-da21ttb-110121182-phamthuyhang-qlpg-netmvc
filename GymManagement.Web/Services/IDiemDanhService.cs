@@ -30,6 +30,7 @@ namespace GymManagement.Web.Services
         Task<IEnumerable<object>> GetAvailableClassesAsync();
         Task<string?> GetClassNameAsync(int classId);
         Task<FaceRecognitionResult> RecognizeFaceAsync(float[] faceDescriptor);
+        Task<bool> HasActiveClassRegistrationAsync(int thanhVienId, int lopHocId);
     }
 
     // DTO for class attendance

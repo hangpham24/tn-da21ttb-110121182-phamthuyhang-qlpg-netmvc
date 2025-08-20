@@ -452,14 +452,32 @@ public class HomeController : BaseController
             // 6. Payment Statistics
             var memberPayments = await _thanhToanService.GetByMemberIdAsync(memberId);
             dashboardModel.PaymentStats.ThisMonthSpent = memberPayments
-                .Where(p => p.NgayThanhToan.Month == currentMonth && 
+                .Where(p => p.NgayThanhToan.Month == currentMonth &&
                            p.NgayThanhToan.Year == currentYear &&
                            p.TrangThai == "SUCCESS")
                 .Sum(p => p.SoTien);
-            
+
+            // ✅ FIX: Calculate TotalSpent from successful payments in ThanhToan table
             dashboardModel.PaymentStats.TotalSpent = memberPayments
                 .Where(p => p.TrangThai == "SUCCESS")
                 .Sum(p => p.SoTien);
+
+            // ✅ FIX: Calculate actual total spent from registrations (more accurate)
+            // Include all registrations that member has actually used/paid for
+            var actualTotalSpent = allRegistrations
+                .Where(r => r.TrangThai == "ACTIVE" || r.TrangThai == "COMPLETED" || r.TrangThai == "EXPIRED")
+                .Sum(r => r.PhiDangKy ?? 0);
+
+            // 🔍 DEBUG: Log calculation details
+            _logger.LogInformation("MemberDashboard TotalSpent Calculation for Member {MemberId}:", memberId);
+            _logger.LogInformation("- Payment table total (SUCCESS): {PaymentTotal:N0} VNĐ", dashboardModel.PaymentStats.TotalSpent);
+            _logger.LogInformation("- Registration table total (ACTIVE/COMPLETED/EXPIRED): {RegistrationTotal:N0} VNĐ", actualTotalSpent);
+
+            foreach (var reg in allRegistrations.Where(r => r.TrangThai == "ACTIVE" || r.TrangThai == "COMPLETED" || r.TrangThai == "EXPIRED"))
+            {
+                var itemName = reg.GoiTap?.TenGoi ?? reg.LopHoc?.TenLop ?? "Unknown";
+                _logger.LogInformation("  - {ItemName}: {Fee:N0} VNĐ (Status: {Status})", itemName, reg.PhiDangKy ?? 0, reg.TrangThai);
+            }
 
             dashboardModel.PaymentStats.PendingPayments = allRegistrations
                 .Count(r => r.TrangThai == "PENDING_PAYMENT");
@@ -473,7 +491,8 @@ public class HomeController : BaseController
             dashboardModel.MemberName = User.Identity?.Name ?? "";
             dashboardModel.LastLoginTime = DateTime.Now; // Could be tracked in database
             dashboardModel.TotalWorkoutDays = 0; // Remove attendance dependency
-            dashboardModel.TotalSpent = dashboardModel.PaymentStats.TotalSpent;
+            // ✅ FIX: Use actual total spent from registrations instead of payment table
+            dashboardModel.TotalSpent = actualTotalSpent;
             dashboardModel.CurrentMembershipStatus = dashboardModel.ActiveRegistrations.Any() ? "ACTIVE" : "INACTIVE";
 
             // 8. Recommended classes (based on member's interests or popular classes)

@@ -176,7 +176,37 @@ namespace GymManagement.Web.Controllers
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Không thể check-in. Thành viên có thể đã check-in hôm nay rồi hoặc lớp học không hợp lệ." });
+                    // More specific error message
+                    string errorMessage = "Không thể check-in. ";
+
+                    // Check if already checked in today
+                    var hasCheckedInToday = await _diemDanhService.HasCheckedInTodayAsync(memberId);
+                    if (hasCheckedInToday)
+                    {
+                        errorMessage += "Thành viên đã check-in hôm nay rồi.";
+                    }
+                    else if (classId.HasValue)
+                    {
+                        // Check if member is registered for this class
+                        var hasRegistration = await _diemDanhService.HasActiveClassRegistrationAsync(memberId, classId.Value);
+                        var member = await _nguoiDungService.GetByIdAsync(memberId);
+                        var className = await _diemDanhService.GetClassNameAsync(classId.Value);
+
+                        if (!hasRegistration && member != null)
+                        {
+                            errorMessage += $"Thành viên {member.Ho} {member.Ten} chưa đăng ký lớp học \"{className}\".";
+                        }
+                        else
+                        {
+                            errorMessage += "Lớp học không hợp lệ hoặc thành viên chưa đăng ký.";
+                        }
+                    }
+                    else
+                    {
+                        errorMessage += "Vui lòng thử lại.";
+                    }
+
+                    return Json(new { success = false, message = errorMessage });
                 }
             }
             catch (Exception ex)
@@ -222,6 +252,7 @@ namespace GymManagement.Web.Controllers
                 {
                     return Json(new {
                         success = false,
+                        isRecognitionFailure = true, // Flag để JavaScript biết đây là lỗi nhận diện
                         message = "Không nhận diện được khuôn mặt. Vui lòng thử lại hoặc liên hệ nhân viên."
                     });
                 }
@@ -268,7 +299,24 @@ namespace GymManagement.Web.Controllers
                     }
                     else
                     {
-                        return Json(new { success = false, message = "Không thể check-in. Có thể đã check-in hôm nay rồi." });
+                        // More specific error message for Face Recognition check-in
+                        string errorMessage = "Không thể check-in. ";
+
+                        if (request.ClassId.HasValue)
+                        {
+                            var className = await _diemDanhService.GetClassNameAsync(request.ClassId.Value);
+                            errorMessage += $"Bạn chưa đăng ký lớp học \"{className}\".";
+                        }
+                        else
+                        {
+                            errorMessage += "Có thể đã check-in hôm nay rồi.";
+                        }
+
+                        return Json(new {
+                            success = false,
+                            isValidationError = true, // Flag để JavaScript biết đây là lỗi validation, không phải lỗi nhận diện
+                            message = errorMessage
+                        });
                     }
                 }
                 else

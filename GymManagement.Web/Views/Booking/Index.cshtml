@@ -209,22 +209,40 @@
 
                                 <!-- Status -->
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        @switch (booking.TrangThai)
+                                    @{
+                                        var statusInfo = booking.TrangThai switch
                                         {
-                                            case "BOOKED": <text>bg-green-100 text-green-800</text>; break;
-                                            case "CANCELED": <text>bg-red-100 text-red-800</text>; break;
-                                            case "ATTENDED": <text>bg-blue-100 text-blue-800</text>; break;
-                                            default: <text>bg-gray-100 text-gray-800</text>; break;
-                                        }">
-                                        @switch (booking.TrangThai)
-                                        {
-                                            case "BOOKED": <text>Đã đặt</text>; break;
-                                            case "CANCELED": <text>Đã hủy</text>; break;
-                                            case "ATTENDED": <text>Đã tham gia</text>; break;
-                                            default: <text>@booking.TrangThai</text>; break;
-                                        }
+                                            "BOOKED" => ("bg-green-100 text-green-800", "Đã đặt", "✅"),
+                                            "CANCELED" => ("bg-red-100 text-red-800", "Đã hủy", "❌"),
+                                            "ATTENDED" => ("bg-blue-100 text-blue-800", "Đã tham gia", "🎯"),
+                                            _ => ("bg-gray-100 text-gray-800", booking.TrangThai, "❓")
+                                        };
+                                    }
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @statusInfo.Item1">
+                                        @statusInfo.Item3 @statusInfo.Item2
                                     </span>
+
+                                    @* Hiển thị thông tin thêm cho booking hôm nay *@
+                                    @if (booking.Ngay == DateOnly.FromDateTime(DateTime.Today) && booking.TrangThai == "BOOKED")
+                                    {
+                                        <div class="text-xs text-orange-600 mt-1">
+                                            📅 Hôm nay
+                                        </div>
+                                    }
+
+                                    @* Hiển thị cảnh báo cho booking quá hạn hủy *@
+                                    @if (booking.TrangThai == "BOOKED" && booking.LopHoc != null && booking.Ngay == DateOnly.FromDateTime(DateTime.Today))
+                                    {
+                                        var classDateTime = booking.Ngay.ToDateTime(booking.LopHoc.GioBatDau);
+                                        var hoursUntilClass = (classDateTime - DateTime.Now).TotalHours;
+
+                                        if (hoursUntilClass < 2 && hoursUntilClass > 0)
+                                        {
+                                            <div class="text-xs text-red-600 mt-1">
+                                                ⏰ Không thể hủy
+                                            </div>
+                                        }
+                                    }
                                 </td>
 
                                 <!-- Booking Date -->
@@ -235,29 +253,54 @@
                                 <!-- Actions -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                     <div class="flex space-x-2">
-                                        <button onclick="viewBookingDetails(@booking.BookingId)" 
-                                                class="text-blue-600 hover:text-blue-900">
+                                        <button onclick="viewBookingDetails(@booking.BookingId)"
+                                                class="text-blue-600 hover:text-blue-900" title="Xem chi tiết">
                                             👁️ Chi tiết
                                         </button>
+
+                                        @* Chỉ hiện nút Hủy cho booking BOOKED và chưa quá hạn *@
                                         @if (booking.TrangThai == "BOOKED" && booking.Ngay >= DateOnly.FromDateTime(DateTime.Today))
                                         {
-                                            <button onclick="cancelBooking(@booking.BookingId)" 
-                                                    class="text-red-600 hover:text-red-900">
-                                                ❌ Hủy
-                                            </button>
+                                            var canCancel = true;
+                                            if (booking.LopHoc != null && booking.Ngay == DateOnly.FromDateTime(DateTime.Today))
+                                            {
+                                                var classDateTime = booking.Ngay.ToDateTime(booking.LopHoc.GioBatDau);
+                                                var hoursUntilClass = (classDateTime - DateTime.Now).TotalHours;
+                                                canCancel = hoursUntilClass >= 2; // Phải hủy ít nhất 2 tiếng trước
+                                            }
+
+                                            @if (canCancel)
+                                            {
+                                                <button onclick="cancelBooking(@booking.BookingId)"
+                                                        class="text-red-600 hover:text-red-900" title="Hủy đặt lịch">
+                                                    ❌ Hủy
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-gray-400 text-xs" title="Không thể hủy (quá gần giờ học)">
+                                                    ❌ Không thể hủy
+                                                </span>
+                                            }
                                         }
+
+                                        @* Chỉ hiện nút Điểm danh cho booking hôm nay và trạng thái BOOKED *@
                                         @if (booking.TrangThai == "BOOKED" && booking.Ngay == DateOnly.FromDateTime(DateTime.Today))
                                         {
-                                            @* ✅ NEW: Nút thanh toán và check-in tại quầy *@
-                                            <button onclick="checkPaymentAndShowOptions(@booking.BookingId)"
-                                                    class="text-purple-600 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-2 py-1 rounded text-xs">
-                                                💰 Thanh toán & Check-in
-                                            </button>
-
                                             <button onclick="markAttended(@booking.BookingId)"
-                                                    class="text-green-600 hover:text-green-900">
+                                                    class="text-green-600 hover:text-green-900" title="Điểm danh">
                                                 ✅ Điểm danh
                                             </button>
+                                        }
+
+                                        @* Hiển thị trạng thái cho booking đã hủy hoặc đã tham gia *@
+                                        @if (booking.TrangThai == "CANCELED")
+                                        {
+                                            <span class="text-red-500 text-xs">Đã hủy</span>
+                                        }
+                                        @if (booking.TrangThai == "ATTENDED")
+                                        {
+                                            <span class="text-green-500 text-xs">Đã tham gia</span>
                                         }
                                     </div>
                                 </td>
@@ -441,6 +484,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                     },
                     body: JSON.stringify({ id: bookingId })
@@ -468,6 +512,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                     },
                     body: JSON.stringify({ id: bookingId })

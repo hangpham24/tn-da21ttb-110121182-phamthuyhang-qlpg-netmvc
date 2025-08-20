@@ -235,6 +235,10 @@
                                                 var bookingCount = bookingCounts?.ContainsKey(lopHoc.LopHocId) == true ? bookingCounts[lopHoc.LopHocId] : 0;
                                                 var capacityPercentage = lopHoc.SucChua > 0 ? (bookingCount * 100 / lopHoc.SucChua) : 0;
                                                 var capacityColor = capacityPercentage >= 90 ? "bg-red-500" : capacityPercentage >= 70 ? "bg-yellow-500" : "bg-green-500";
+
+                                                // ✅ FIX: Calculate dynamic status variables here to reuse
+                                                var isFull = bookingCount >= lopHoc.SucChua;
+                                                var isNearlyFull = bookingCount >= (lopHoc.SucChua * 0.9); // 90% capacity
                                             }
                                             <span class="font-medium">@bookingCount/@lopHoc.SucChua</span>
                                         </div>
@@ -251,11 +255,14 @@
                                 <!-- Status -->
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @{
+                                        // ✅ FIX: Determine status based on capacity and database status
                                         var (statusClass, statusText) = lopHoc.TrangThai switch
                                         {
-                                            "OPEN" => ("bg-green-100 text-green-800", "Hoạt động"),
-                                            "CLOSED" => ("bg-yellow-100 text-yellow-800", "Tạm dừng"),
                                             "CANCELLED" => ("bg-red-100 text-red-800", "Đã hủy"),
+                                            "CLOSED" => ("bg-yellow-100 text-yellow-800", "Tạm dừng"),
+                                            "OPEN" when isFull => ("bg-blue-100 text-blue-800", "Đã đầy"),
+                                            "OPEN" when isNearlyFull => ("bg-orange-100 text-orange-800", "Sắp đầy"),
+                                            "OPEN" => ("bg-green-100 text-green-800", "Hoạt động"),
                                             "FULL" => ("bg-blue-100 text-blue-800", "Đã đầy"),
                                             _ => ("bg-gray-100 text-gray-800", lopHoc.TrangThai)
                                         };

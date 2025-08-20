@@ -348,7 +348,37 @@ namespace GymManagement.Web.Services
             var dangKy = await _dangKyRepository.GetByIdAsync(dangKyId);
             if (dangKy == null) return false;
 
-            dangKy.TrangThai = "CANCELED";
+            // ✅ FIX: Use consistent status value
+            dangKy.TrangThai = "CANCELLED";
+
+            // 🔧 FIX: Cancel all future bookings for this class registration
+            if (dangKy.LopHocId.HasValue)
+            {
+                var futureBookings = await _unitOfWork.Context.Bookings
+                    .Where(b => b.ThanhVienId == dangKy.NguoiDungId
+                             && b.LopHocId == dangKy.LopHocId
+                             && b.TrangThai == "BOOKED"
+                             && b.Ngay >= DateOnly.FromDateTime(DateTime.Today))
+                    .ToListAsync();
+
+                foreach (var booking in futureBookings)
+                {
+                    booking.TrangThai = "CANCELED";
+                    booking.GhiChu = $"Tự động hủy do hủy đăng ký lớp học. Lý do: {reason}";
+                }
+
+                // Send notification about cancelled bookings if any
+                if (futureBookings.Any())
+                {
+                    await _thongBaoService.CreateNotificationAsync(
+                        dangKy.NguoiDungId,
+                        "Hủy đặt lịch tự động",
+                        $"Đã tự động hủy {futureBookings.Count} lịch đặt trong tương lai do hủy đăng ký lớp học.",
+                        "APP"
+                    );
+                }
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
             // Send notification
@@ -766,6 +796,34 @@ namespace GymManagement.Web.Services
             dangKy.TrangThai = "CANCELLED";
             dangKy.TrangThaiChiTiet = "CANCELLED";
             dangKy.LyDoHuy = lyDoHuy ?? "Hủy bởi thành viên";
+
+            // 🔧 FIX: Cancel all future bookings for this class registration
+            if (dangKy.LopHocId.HasValue)
+            {
+                var futureBookings = await _unitOfWork.Context.Bookings
+                    .Where(b => b.ThanhVienId == nguoiDungId
+                             && b.LopHocId == dangKy.LopHocId
+                             && b.TrangThai == "BOOKED"
+                             && b.Ngay >= DateOnly.FromDateTime(DateTime.Today))
+                    .ToListAsync();
+
+                foreach (var booking in futureBookings)
+                {
+                    booking.TrangThai = "CANCELED";
+                    booking.GhiChu = $"Tự động hủy do hủy đăng ký lớp học. Lý do: {lyDoHuy ?? "Hủy bởi thành viên"}";
+                }
+
+                // Send notification about cancelled bookings if any
+                if (futureBookings.Any())
+                {
+                    await _thongBaoService.CreateNotificationAsync(
+                        nguoiDungId,
+                        "Hủy đặt lịch tự động",
+                        $"Đã tự động hủy {futureBookings.Count} lịch đặt trong tương lai do hủy đăng ký lớp học.",
+                        "APP"
+                    );
+                }
+            }
 
             await _dangKyRepository.UpdateAsync(dangKy);
             await _unitOfWork.SaveChangesAsync();

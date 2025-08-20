@@ -14,7 +14,7 @@ namespace GymManagement.Web.Services
         private readonly ILogger<MemberBenefitService> _logger;
 
         // Giá cố định cho gym đơn giản
-        private const decimal CLASS_FEE_FOR_NON_MEMBER = 50000m; // 50k VNĐ/buổi lớp học
+        private const decimal CLASS_FEE_FOR_NON_MEMBER = 300000m; // 300k VNĐ/tháng lớp học
         private const decimal WALKIN_FEE = 15000m; // 15k VNĐ/ngày cho khách vãng lai
 
         public MemberBenefitService(IUnitOfWork unitOfWork, ILogger<MemberBenefitService> logger)
@@ -72,7 +72,7 @@ namespace GymManagement.Web.Services
 
         /// <summary>
         /// Kiểm tra member có thể booking lớp học miễn phí không
-        /// LOGIC ĐƠN GIẢN: Có gói tập = Miễn phí, Không có = Phải trả 50k
+        /// LOGIC ĐƠN GIẢN: Có gói tập = Miễn phí, Không có = Phải trả 300k/tháng
         /// </summary>
         public async Task<(bool CanBook, bool IsFree, decimal Fee, string Reason)> CanBookClassAsync(int memberId, int lopHocId)
         {
@@ -213,6 +213,6 @@ namespace GymManagement.Web.Services
 
         public string StatusText => HasActivePackage ? "Thành viên có gói tập" : "Thành viên chưa có gói tập";
         public string GymAccessText => CanAccessGym ? "✅ Được vào gym miễn phí" : "❌ Cần mua gói tập";
-        public string ClassAccessText => CanBookClassesFree ? "✅ Booking lớp học miễn phí" : $"💰 Phí lớp học: {ClassFeeIfNotMember:N0} VNĐ/buổi";
+        public string ClassAccessText => CanBookClassesFree ? "✅ Booking lớp học miễn phí" : $"💰 Phí lớp học: {ClassFeeIfNotMember:N0} VNĐ/tháng";
     }
 }

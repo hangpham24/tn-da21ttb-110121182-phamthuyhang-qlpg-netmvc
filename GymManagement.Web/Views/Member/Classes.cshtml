@@ -244,6 +244,36 @@
                                     </div>
                                 </div>
 
+                                <!-- Price -->
+                                @if (lopHoc.GiaTuyChinh.HasValue)
+                                {
+                                    <div class="flex items-center p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                                        <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">Giá lớp học</div>
+                                            <div class="text-xs text-gray-600">@lopHoc.GiaTuyChinh.Value.ToString("N0") VNĐ/tháng</div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                        <div class="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center mr-3">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900">Giá lớp học</div>
+                                            <div class="text-xs text-gray-600">200.000 VNĐ/buổi (mặc định)</div>
+                                        </div>
+                                    </div>
+                                }
+
                                 <!-- Trainer -->
                                 @if (lopHoc.Hlv != null)
                                 {

@@ -1,8 +1,8 @@
 @model IEnumerable<GymManagement.Web.Data.Models.Booking>
 
 @{
-    ViewData["Title"] = "Lịch đã đặt - Thành viên";
-    Layout = "_MemberLayout";
+    ViewData["Title"] = User.IsInRole("Admin") ? "Quản lý đặt lịch" : "Lịch đã đặt - Thành viên";
+    Layout = User.IsInRole("Admin") ? "_Layout" : "_MemberLayout";
 }
 
 @Html.AntiForgeryToken()
@@ -13,8 +13,16 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Lịch đã đặt</h1>
-                    <p class="text-gray-600">Quản lý tất cả lịch tập của bạn</p>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">📋 Quản lý đặt lịch</h1>
+                        <p class="text-gray-600">Xem và quản lý tất cả lịch đặt trong hệ thống</p>
+                    }
+                    else
+                    {
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Lịch đã đặt</h1>
+                        <p class="text-gray-600">Quản lý tất cả lịch tập của bạn</p>
+                    }
                 </div>
                 <div class="mt-4 sm:mt-0 flex space-x-3">
                     <a asp-action="Calendar" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
@@ -23,12 +31,21 @@
                         </svg>
                         Xem lịch
                     </a>
-                    @* <a asp-action="Create" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        Đặt lịch mới
-                    </a> *@
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Create" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Đặt lịch mới
+                        </a>
+                        <a asp-action="Index" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            Tất cả đặt lịch
+                        </a>
+                    }
                 </div>
             </div>
 

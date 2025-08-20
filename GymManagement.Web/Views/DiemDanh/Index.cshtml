@@ -1099,23 +1099,41 @@
 
         function loadAttendanceData() {
             console.log('📋 Loading attendance data...');
+
+            // Set default date to today
+            const dateFilter = document.getElementById('dateFilter');
+            if (dateFilter && !dateFilter.value) {
+                const today = new Date().toISOString().split('T')[0];
+                dateFilter.value = today;
+                console.log('📅 Set default date to today:', today);
+            }
+
+            // Apply filter to show today's records
+            filterAttendance();
+
             // Refresh attendance statistics
             updateRealtimeStats();
         }
 
         async function updateRealtimeStats() {
             try {
-                // Reload the page to get fresh data
-                // In a real implementation, you would use AJAX to update specific sections
                 console.log('🔄 Updating real-time stats...');
 
-                // For now, we'll just refresh the attendance tab content
-                if (document.getElementById('attendanceTab').classList.contains('active')) {
-                    // Only refresh if attendance tab is active
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
+                // Update today's attendance count
+                const todayAttendanceElement = document.getElementById('todayAttendance');
+                if (todayAttendanceElement) {
+                    const todayRows = document.querySelectorAll('.attendance-row[data-date="' + new Date().toISOString().split('T')[0] + '"]');
+                    todayAttendanceElement.textContent = todayRows.length;
                 }
+
+                // Update total attendance count
+                const totalRows = document.querySelectorAll('.attendance-row');
+                const totalAttendanceElement = document.querySelector('#totalAttendance');
+                if (totalAttendanceElement) {
+                    totalAttendanceElement.textContent = totalRows.length;
+                }
+
+                console.log('✅ Real-time stats updated');
             } catch (error) {
                 console.error('❌ Error updating real-time stats:', error);
             }
@@ -1723,7 +1741,11 @@
 
         // Face Recognition Test (CHÍNH XÁC như Reception/Station)
         async function testRecognizeFace() {
+            console.log('🚀 testRecognizeFace called');
+            console.log('🔍 currentRecognizeDescriptor:', currentRecognizeDescriptor);
+
             if (!currentRecognizeDescriptor) {
+                console.log('❌ No face descriptor found');
                 alert('Không phát hiện khuôn mặt. Vui lòng đảm bảo có khuôn mặt trong camera.');
                 return;
             }
@@ -1736,8 +1758,10 @@
                 // Get selected class
                 const classSelect = document.getElementById('classSelect');
                 const selectedClassId = classSelect.value ? parseInt(classSelect.value) : null;
+                console.log('🎓 Selected class ID:', selectedClassId);
 
                 // Call DiemDanh FaceRecognitionCheckInWithClass API
+                console.log('📡 Sending request to server...');
                 const response = await fetch('@Url.Action("FaceRecognitionCheckInWithClass")', {
                     method: 'POST',
                     headers: {
@@ -1750,7 +1774,11 @@
                     })
                 });
 
+                console.log('📡 Response status:', response.status);
                 const result = await response.json();
+
+                // Debug logging
+                console.log('🔍 Face recognition response:', result);
 
                 if (result.success) {
                     recognizeConfidenceStatus.textContent = `🎯 Confidence: ${result.confidence}%`;
@@ -1815,13 +1843,33 @@
                             </div>
                         `;
                     } else {
-                        // Recognition successful but cannot check-in/checkout (e.g., already checked in)
-                        // Check if this is a walk-in case that should redirect
+                        // Recognition successful but cannot check-in/checkout
+                        // Check if this is a validation error
+                        if (result.isValidationError) {
+                            // This is a validation error, show error message
+                            recognizeResultContent.innerHTML = `
+                                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-red-800">❌ KHÔNG THỂ CHECK-IN</h3>
+                                            <div class="mt-2 text-sm text-red-700">
+                                                <p>${result.message}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            return; // Don't proceed to walk-in registration
+                        }
+
+                        // Check if this is a walk-in case that should redirect (only for actual recognition issues)
                         const isWalkInCase = result.message && (
                             result.message.includes('khách vãng lai') ||
-                            result.message.includes('không tìm thấy') ||
-                            result.message.includes('không khớp') ||
-                            result.message.includes('không nhận diện') ||
                             result.message.includes('không có trong hệ thống')
                         );
 
@@ -1906,17 +1954,53 @@
                     updateRealtimeStats();
 
                 } else {
+                    // Debug logging
+                    console.log('🔍 Recognition failed or validation error:', result);
+                    console.log('🔍 isValidationError:', result.isValidationError);
+                    console.log('🔍 isRecognitionFailure:', result.isRecognitionFailure);
+
+                    // Check if this is a validation error (member recognized but validation failed)
+                    if (result.isValidationError) {
+                        console.log('🚫 Showing validation error message');
+                        console.log('🔍 recognizeResultContent element:', recognizeResultContent);
+                        console.log('🔍 recognizeResults element:', recognizeResults);
+
+                        // This is a validation error, not a recognition failure
+                        // Show error message without redirecting to walk-in registration
+                        recognizeResultContent.innerHTML = `
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">❌ KHÔNG THỂ CHECK-IN</h3>
+                                        <div class="mt-2 text-sm text-red-700">
+                                            <p>${result.message}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        console.log('✅ HTML set for validation error');
+                        console.log('🔍 recognizeResults.classList:', recognizeResults.classList);
+
+                        // Make sure results are visible
+                        recognizeResults.classList.remove('hidden');
+                        console.log('✅ Removed hidden class from recognizeResults');
+
+                        return; // Don't proceed to walk-in registration
+                    }
+
                     // Recognition failed or no match found - Redirect to Walk-in Registration
                     recognizeConfidenceStatus.textContent = '🎯 Confidence: Low';
 
-                    // Check if this should trigger walk-in registration
-                    const shouldRedirectToWalkIn = !result.success ||
-                        (result.message && (
-                            result.message.includes('không tìm thấy') ||
-                            result.message.includes('không khớp') ||
-                            result.message.includes('không nhận diện') ||
-                            result.message.includes('không có trong hệ thống')
-                        ));
+                    // Check if this should trigger walk-in registration (only for recognition failures)
+                    const shouldRedirectToWalkIn = result.isRecognitionFailure ||
+                        (!result.success && !result.isValidationError);
 
                     if (shouldRedirectToWalkIn) {
                         // Store face descriptor for walk-in registration

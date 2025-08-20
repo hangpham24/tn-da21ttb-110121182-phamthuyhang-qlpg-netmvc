@@ -961,7 +961,7 @@ namespace GymManagement.Web.Controllers
                 var taiKhoan = new TaiKhoan
                 {
                     TenDangNhap = username,
-                    Email = nguoiDung.Email ?? $"{username}@gym.local",
+                    Email = !string.IsNullOrEmpty(nguoiDung.Email) ? nguoiDung.Email : $"{username}@gym.local",
                     NguoiDungId = nguoiDung.NguoiDungId,
                     KichHoat = nguoiDung.TrangThai == "ACTIVE",
                     EmailXacNhan = true
@@ -970,7 +970,26 @@ namespace GymManagement.Web.Controllers
                 var accountCreated = await _authService.CreateAccountForExistingUserAsync(taiKhoan, password);
                 if (accountCreated)
                 {
-                    // Assign role based on user type
+                    // If user was VANGLAI (guest), upgrade to THANHVIEN (member) after creating account
+                    if (nguoiDung.LoaiNguoiDung == "VANGLAI")
+                    {
+                        nguoiDung.LoaiNguoiDung = "THANHVIEN";
+                        await _nguoiDungService.UpdateAsync(new UpdateNguoiDungDto
+                        {
+                            NguoiDungId = nguoiDung.NguoiDungId,
+                            Ho = nguoiDung.Ho,
+                            Ten = nguoiDung.Ten,
+                            Email = nguoiDung.Email,
+                            SoDienThoai = nguoiDung.SoDienThoai,
+                            NgaySinh = nguoiDung.NgaySinh,
+                            GioiTinh = nguoiDung.GioiTinh,
+                            LoaiNguoiDung = "THANHVIEN", // Upgrade from VANGLAI to THANHVIEN
+                            TrangThai = nguoiDung.TrangThai
+                        });
+                        _logger.LogInformation("Upgraded user {UserId} from VANGLAI to THANHVIEN after account creation", nguoiDung.NguoiDungId);
+                    }
+
+                    // Assign role based on user type (use updated type)
                     string roleName = nguoiDung.LoaiNguoiDung switch
                     {
                         "ADMIN" => "Admin",
@@ -985,7 +1004,9 @@ namespace GymManagement.Web.Controllers
 
                     return Json(new {
                         success = true,
-                        message = $"Tạo tài khoản thành công!\nTên đăng nhập: {username}\nMật khẩu: {password}\n\nVui lòng thông báo cho người dùng thông tin đăng nhập này.",
+                        message = $"Tạo tài khoản thành công!\nTên đăng nhập: {username}\nMật khẩu: {password}\n" +
+                                 (nguoiDung.LoaiNguoiDung == "THANHVIEN" ? "Người dùng đã được nâng cấp thành Thành viên.\n" : "") +
+                                 "\nVui lòng thông báo cho người dùng thông tin đăng nhập này.",
                         username = username,
                         password = password
                     });
@@ -1096,7 +1117,7 @@ namespace GymManagement.Web.Controllers
                 var taiKhoan = new TaiKhoan
                 {
                     TenDangNhap = username.Trim(),
-                    Email = nguoiDung.Email ?? $"{username.Trim()}@gym.local",
+                    Email = !string.IsNullOrEmpty(nguoiDung.Email) ? nguoiDung.Email : $"{username.Trim()}@gym.local",
                     NguoiDungId = nguoiDung.NguoiDungId,
                     KichHoat = nguoiDung.TrangThai == "ACTIVE",
                     EmailXacNhan = true
@@ -1105,7 +1126,26 @@ namespace GymManagement.Web.Controllers
                 var accountCreated = await _authService.CreateAccountForExistingUserAsync(taiKhoan, password);
                 if (accountCreated)
                 {
-                    // Assign role based on user type
+                    // If user was VANGLAI (guest), upgrade to THANHVIEN (member) after creating account
+                    if (nguoiDung.LoaiNguoiDung == "VANGLAI")
+                    {
+                        nguoiDung.LoaiNguoiDung = "THANHVIEN";
+                        await _nguoiDungService.UpdateAsync(new UpdateNguoiDungDto
+                        {
+                            NguoiDungId = nguoiDung.NguoiDungId,
+                            Ho = nguoiDung.Ho,
+                            Ten = nguoiDung.Ten,
+                            Email = nguoiDung.Email,
+                            SoDienThoai = nguoiDung.SoDienThoai,
+                            NgaySinh = nguoiDung.NgaySinh,
+                            GioiTinh = nguoiDung.GioiTinh,
+                            LoaiNguoiDung = "THANHVIEN", // Upgrade from VANGLAI to THANHVIEN
+                            TrangThai = nguoiDung.TrangThai
+                        });
+                        _logger.LogInformation("Upgraded user {UserId} from VANGLAI to THANHVIEN after account creation", nguoiDung.NguoiDungId);
+                    }
+
+                    // Assign role based on user type (use updated type)
                     string roleName = nguoiDung.LoaiNguoiDung switch
                     {
                         "ADMIN" => "Admin",
@@ -1120,7 +1160,9 @@ namespace GymManagement.Web.Controllers
 
                     return Json(new {
                         success = true,
-                        message = $"Tạo tài khoản thành công!\nTên đăng nhập: {username}\nNgười dùng có thể đăng nhập ngay bây giờ."
+                        message = $"Tạo tài khoản thành công!\nTên đăng nhập: {username}\n" +
+                                 (nguoiDung.LoaiNguoiDung == "THANHVIEN" ? "Người dùng đã được nâng cấp thành Thành viên.\n" : "") +
+                                 "Người dùng có thể đăng nhập ngay bây giờ."
                     });
                 }
                 else
@@ -1201,7 +1243,7 @@ namespace GymManagement.Web.Controllers
                         var taiKhoan = new TaiKhoan
                         {
                             TenDangNhap = username,
-                            Email = user.Email ?? $"{username}@gym.local",
+                            Email = !string.IsNullOrEmpty(user.Email) ? user.Email : $"{username}@gym.local",
                             NguoiDungId = user.NguoiDungId,
                             KichHoat = user.TrangThai == "ACTIVE",
                             EmailXacNhan = true
@@ -1210,8 +1252,28 @@ namespace GymManagement.Web.Controllers
                         var accountCreated = await _authService.CreateAccountForExistingUserAsync(taiKhoan, password);
                         if (accountCreated)
                         {
-                            // Assign role based on user type
-                            string roleName = user.LoaiNguoiDung switch
+                            // If user was VANGLAI (guest), upgrade to THANHVIEN (member) after creating account
+                            var updatedUserType = user.LoaiNguoiDung;
+                            if (user.LoaiNguoiDung == "VANGLAI")
+                            {
+                                updatedUserType = "THANHVIEN";
+                                await _nguoiDungService.UpdateAsync(new UpdateNguoiDungDto
+                                {
+                                    NguoiDungId = user.NguoiDungId,
+                                    Ho = user.Ho,
+                                    Ten = user.Ten,
+                                    Email = user.Email,
+                                    SoDienThoai = user.SoDienThoai,
+                                    NgaySinh = user.NgaySinh,
+                                    GioiTinh = user.GioiTinh,
+                                    LoaiNguoiDung = "THANHVIEN", // Upgrade from VANGLAI to THANHVIEN
+                                    TrangThai = user.TrangThai
+                                });
+                                _logger.LogInformation("Upgraded user {UserId} from VANGLAI to THANHVIEN after account creation", user.NguoiDungId);
+                            }
+
+                            // Assign role based on user type (use updated type)
+                            string roleName = updatedUserType switch
                             {
                                 "ADMIN" => "Admin",
                                 "HLV" => "Trainer",
@@ -1227,7 +1289,8 @@ namespace GymManagement.Web.Controllers
                                 fullName = user.HoTen,
                                 username = username,
                                 password = password,
-                                role = roleName
+                                role = roleName,
+                                upgraded = user.LoaiNguoiDung == "VANGLAI" ? "Đã nâng cấp thành Thành viên" : null
                             });
 
                             _logger.LogInformation("Successfully created account for user {Username} with role {Role}", username, roleName);

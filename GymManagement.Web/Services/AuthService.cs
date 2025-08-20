@@ -89,12 +89,22 @@ namespace GymManagement.Web.Services
         {
             try
             {
-                // Check if username or email already exists
-                var existingUser = await _context.TaiKhoans
-                    .FirstOrDefaultAsync(u => u.TenDangNhap == user.TenDangNhap || u.Email == user.Email);
+                // Check if username already exists
+                var existingUserByUsername = await _context.TaiKhoans
+                    .FirstOrDefaultAsync(u => u.TenDangNhap == user.TenDangNhap);
 
-                if (existingUser != null)
+                if (existingUserByUsername != null)
                     return false;
+
+                // Check if email already exists (only if email is not empty)
+                if (!string.IsNullOrEmpty(user.Email) && user.Email.Trim() != "")
+                {
+                    var existingUserByEmail = await _context.TaiKhoans
+                        .FirstOrDefaultAsync(u => u.Email == user.Email);
+
+                    if (existingUserByEmail != null)
+                        return false;
+                }
 
                 // Hash password
                 user.Salt = _passwordService.GenerateSalt();
@@ -137,19 +147,29 @@ namespace GymManagement.Web.Services
         {
             try
             {
-                // Check if username or email already exists
-                var existingUser = await _context.TaiKhoans
-                    .FirstOrDefaultAsync(u => u.TenDangNhap == user.TenDangNhap || u.Email == user.Email);
+                // Check if username already exists
+                var existingUserByUsername = await _context.TaiKhoans
+                    .FirstOrDefaultAsync(u => u.TenDangNhap == user.TenDangNhap);
 
-                if (existingUser != null)
+                if (existingUserByUsername != null)
                 {
-                    Console.WriteLine($"ERROR: Username '{user.TenDangNhap}' or email '{user.Email}' already exists");
-                    Console.WriteLine($"Existing user ID: {existingUser.Id}, Username: {existingUser.TenDangNhap}, Email: {existingUser.Email}");
-                    Console.WriteLine($"CONFLICT DETAILS:");
-                    Console.WriteLine($"  - Requested Username: '{user.TenDangNhap}' vs Existing: '{existingUser.TenDangNhap}'");
-                    Console.WriteLine($"  - Requested Email: '{user.Email}' vs Existing: '{existingUser.Email}'");
-                    Console.WriteLine($"  - Existing Account Status: Active={existingUser.KichHoat}, EmailConfirmed={existingUser.EmailXacNhan}");
+                    Console.WriteLine($"ERROR: Username '{user.TenDangNhap}' already exists");
+                    Console.WriteLine($"Existing user ID: {existingUserByUsername.Id}, Username: {existingUserByUsername.TenDangNhap}");
                     return false;
+                }
+
+                // Check if email already exists (only if email is not empty)
+                if (!string.IsNullOrEmpty(user.Email) && user.Email.Trim() != "")
+                {
+                    var existingUserByEmail = await _context.TaiKhoans
+                        .FirstOrDefaultAsync(u => u.Email == user.Email);
+
+                    if (existingUserByEmail != null)
+                    {
+                        Console.WriteLine($"ERROR: Email '{user.Email}' already exists");
+                        Console.WriteLine($"Existing user ID: {existingUserByEmail.Id}, Email: {existingUserByEmail.Email}");
+                        return false;
+                    }
                 }
 
                 // Verify NguoiDung exists

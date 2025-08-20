@@ -398,16 +398,16 @@ namespace GymManagement.Web.Controllers
 
                 foreach (var c in classes)
                 {
-                    // Get active booking count instead of DangKy count
-                    var bookingCount = await _bookingService.GetActiveBookingCountAsync(c.LopHocId);
+                    // Use total active count (booking + registration) for consistency with LopHoc page
+                    var totalActiveCount = await _bookingService.GetTotalActiveCountAsync(c.LopHocId);
 
                     result.Add(new {
                         id = c.LopHocId,
                         text = $"{c.TenLop} - {c.GioBatDau:HH:mm}-{c.GioKetThuc:HH:mm}",
                         trainer = c.Hlv != null ? $"{c.Hlv.Ho} {c.Hlv.Ten}" : "Chưa phân công",
                         capacity = c.SucChua,
-                        registered = bookingCount, // Now shows active booking count
-                        available = c.SucChua - bookingCount,
+                        registered = totalActiveCount, // Now shows total active count (booking + registration)
+                        available = Math.Max(0, c.SucChua - totalActiveCount),
                         price = c.GiaTuyChinh,
                         schedule = c.ThuTrongTuan,
                         status = c.TrangThai
