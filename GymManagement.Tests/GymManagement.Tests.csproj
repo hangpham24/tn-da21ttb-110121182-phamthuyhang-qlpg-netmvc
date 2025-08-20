@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GymManagement.Web\GymManagement.Web.csproj" />
+    <ProjectReference Include="..\src\GymManagement.Web.csproj" />
   </ItemGroup>
 
   <!-- Temporarily exclude files with compilation errors -->

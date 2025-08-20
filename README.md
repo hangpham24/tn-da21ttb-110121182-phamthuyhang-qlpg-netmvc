@@ -110,7 +110,7 @@ Sau khi khởi tạo database, hệ thống sẽ tạo các tài khoản mặc �
 ## 📁 Cấu trúc dự án
 
 ```
-GymManagement.Web/
+src/
 ├── Controllers/          # MVC Controllers
 ├── Data/
 │   ├── Models/          # Entity Models

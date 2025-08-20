@@ -73,7 +73,7 @@ WHERE TABLE_NAME IN ('LichLops', 'KhuyenMaiUsages')
 ### Step 3.1: Delete Model Files
 ```powershell
 # Navigate to project directory
-cd "GymManagement.Web"
+cd "src"
 
 # Delete model files
 Remove-Item "Data\Models\LichLop.cs" -Force
@@ -253,7 +253,7 @@ Write-Host "✅ Migration applied successfully" -ForegroundColor Green
 ### Step 6.4: Run Application
 ```powershell
 # Start the application
-dotnet run --project GymManagement.Web
+dotnet run --project src
 
 # Test key functionality:
 # 1. Navigate to https://localhost:7000

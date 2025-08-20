@@ -10,7 +10,8 @@ packages/
 *.tmp
 *.bak
 *.log
-
+GymManagement.IntegrationTests/
+GymManagement.Tests/
 # User-specific files
 *.user
 *.suo

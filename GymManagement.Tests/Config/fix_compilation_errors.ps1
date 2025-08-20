@@ -1,7 +1,7 @@
 # PowerShell script to fix compilation errors after LichLop removal
 Write-Host "🔧 Fixing compilation errors after LichLop removal..." -ForegroundColor Yellow
 
-$projectPath = "tn-da21ttb-110121182-phamthuyhang-qlpg-netmvc\GymManagement.Web"
+$projectPath = "tn-da21ttb-110121182-phamthuyhang-qlpg-netmvc\src"
 
 # Function to replace text in file
 function Replace-InFile {

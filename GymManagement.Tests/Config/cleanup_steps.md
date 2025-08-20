@@ -5,13 +5,13 @@
 ### Files to Remove:
 ```bash
 # Delete these model files
-rm "GymManagement.Web/Data/Models/LichLop.cs"
-rm "GymManagement.Web/Data/Models/KhuyenMaiUsage.cs"
+rm "src/Data/Models/LichLop.cs"
+rm "src/Data/Models/KhuyenMaiUsage.cs"
 ```
 
 ## B. DbContext Changes
 
-### File: `GymManagement.Web/Data/GymDbContext.cs`
+### File: `src/Data/GymDbContext.cs`
 
 **Lines to Remove:**
 - Line 24: `public DbSet<LichLop> LichLops { get; set; }`
