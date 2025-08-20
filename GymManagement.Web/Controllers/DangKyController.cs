@@ -178,15 +178,30 @@ namespace GymManagement.Web.Controllers
                     return RedirectToAction("Login", "Auth");
                 }
 
-                var result = await _dangKyService.RegisterClassAsync(user.NguoiDungId.Value, classId, startDate, endDate);
-                if (result)
+                // ✅ FIX: Create payment first instead of direct registration
+                // This ensures payment is created and user goes through payment flow
+                var thanhToanService = HttpContext.RequestServices.GetRequiredService<IThanhToanService>();
+                var payment = await thanhToanService.CreatePaymentForClassRegistrationAsync(
+                    user.NguoiDungId.Value,
+                    classId,
+                    startDate,
+                    endDate,
+                    "VNPAY");
+
+                if (payment != null)
                 {
-                    TempData["SuccessMessage"] = "Đăng ký lớp học thành công!";
-                    return RedirectToAction("MyRegistrations", "Member");
+                    TempData["SuccessMessage"] = "Đã tạo thanh toán thành công! Đang chuyển hướng đến cổng thanh toán...";
+
+                    // Redirect to VNPay payment
+                    return RedirectToAction("CreatePayment", "Home", new {
+                        area = "VNPayAPI",
+                        thanhToanId = payment.ThanhToanId,
+                        returnUrl = Url.Action("PaymentReturn", "ThanhToan", null, Request.Scheme)
+                    });
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = "Không thể đăng ký lớp học. Bạn có thể đã đăng ký lớp này rồi.";
+                    TempData["ErrorMessage"] = "Không thể đăng ký lớp học. Bạn có thể đã đăng ký lớp này rồi hoặc lớp đã đầy.";
                 }
             }
             catch (Exception ex)
@@ -416,9 +431,57 @@ namespace GymManagement.Web.Controllers
                     dangKy.LopHoc = null;
                     dangKy.NguoiDung = null;
 
+                    // ✅ FIX: Create registration and payment for admin counter registration
                     await _dangKyService.CreateAsync(dangKy);
-                    TempData["SuccessMessage"] = "Tạo đăng ký thành công!";
-                    _logger.LogInformation("✅ DangKy created successfully with ID: {DangKyId}", dangKy.DangKyId);
+
+                    // ✅ Create payment record for counter registration (cash payment)
+                    var thanhToanService = HttpContext.RequestServices.GetRequiredService<IThanhToanService>();
+
+                    // Calculate fee based on registration type
+                    decimal fee = 0;
+                    string ghiChu = "";
+
+                    if (dangKy.GoiTapId.HasValue)
+                    {
+                        var goiTap = await _goiTapService.GetByIdAsync(dangKy.GoiTapId.Value);
+                        if (goiTap != null)
+                        {
+                            // Calculate fee based on duration
+                            var months = (dangKy.NgayKetThuc.ToDateTime(TimeOnly.MinValue) - dangKy.NgayBatDau.ToDateTime(TimeOnly.MinValue)).Days / 30;
+                            if (months == goiTap.ThoiHanThang)
+                            {
+                                fee = goiTap.Gia; // Standard package price
+                            }
+                            else
+                            {
+                                fee = (goiTap.Gia / goiTap.ThoiHanThang) * Math.Max(1, months); // Pro-rated
+                            }
+                            ghiChu = $"Thanh toán tiền mặt tại quầy - Gói tập: {goiTap.TenGoi}";
+                        }
+                    }
+                    else if (dangKy.LopHocId.HasValue)
+                    {
+                        var lopHoc = await _lopHocService.GetByIdAsync(dangKy.LopHocId.Value);
+                        if (lopHoc != null)
+                        {
+                            fee = lopHoc.GiaTuyChinh ?? 200000m; // Default class fee
+                            ghiChu = $"Thanh toán tiền mặt tại quầy - Lớp học: {lopHoc.TenLop}";
+                        }
+                    }
+
+                    // Create successful payment record
+                    var thanhToan = await thanhToanService.CreatePaymentAsync(
+                        dangKy.DangKyId,
+                        fee,
+                        "CASH",
+                        ghiChu);
+
+                    // Mark payment as successful immediately (cash payment at counter)
+                    await thanhToanService.ProcessCashPaymentAsync(thanhToan.ThanhToanId);
+
+                    TempData["SuccessMessage"] = $"Tạo đăng ký thành công! Đã thu {fee:C0} tiền mặt.";
+                    _logger.LogInformation("✅ DangKy created successfully with ID: {DangKyId}, Payment: {PaymentId}, Fee: {Fee}",
+                        dangKy.DangKyId, thanhToan.ThanhToanId, fee);
                     return RedirectToAction(nameof(Index));
                 }
                 await LoadSelectLists();

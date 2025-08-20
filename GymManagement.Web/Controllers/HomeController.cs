@@ -194,37 +194,60 @@ public class HomeController : BaseController
         }
     }
 
-    // [Authorize(Roles = "Admin")] // Tạm thời bỏ để test
+    // API endpoint để lấy dữ liệu biểu đồ thật từ database
+    [AllowAnonymous] // Tạm thời bỏ auth để test
     public async Task<IActionResult> GetChartData()
     {
         try
         {
-            // Tạo dữ liệu mẫu cho biểu đồ 7 ngày gần đây
-            var last7Days = new List<string>();
+            var endDate = DateTime.Today;
+            var startDate = endDate.AddDays(-6); // 7 ngày gần đây
+
+            // Lấy dữ liệu doanh thu theo ngày
+            var revenueByDate = await _baoCaoService.GetRevenueByDateRangeAsync(startDate, endDate);
+
+            // Lấy dữ liệu điểm danh theo ngày
+            var attendanceByDate = await _baoCaoService.GetAttendanceTrendAsync(startDate, endDate);
+
+            var labels = new List<string>();
             var revenueData = new List<decimal>();
             var attendanceData = new List<int>();
 
+            // Tạo dữ liệu cho 7 ngày gần đây
             for (int i = 6; i >= 0; i--)
             {
                 var date = DateTime.Today.AddDays(-i);
-                last7Days.Add(date.ToString("dd/MM"));
+                var dateKey = date.ToString("yyyy-MM-dd");
 
-                // Lấy dữ liệu thật từ database (có thể implement sau)
-                revenueData.Add(0); // Tạm thời để 0
-                attendanceData.Add(0); // Tạm thời để 0
+                labels.Add(date.ToString("dd/MM"));
+
+                // Lấy doanh thu của ngày (tổng tất cả payments thành công)
+                var dayRevenue = revenueByDate.ContainsKey(dateKey) ? revenueByDate[dateKey] : 0;
+                revenueData.Add(dayRevenue);
+
+                // Lấy số lượt điểm danh của ngày
+                var dayAttendance = attendanceByDate.ContainsKey(dateKey) ? attendanceByDate[dateKey] : 0;
+                attendanceData.Add(dayAttendance);
             }
+
+            _logger.LogInformation($"✅ Chart data loaded - Revenue: {revenueData.Sum():C}, Attendance: {attendanceData.Sum()}");
 
             return Json(new
             {
-                labels = last7Days,
+                labels = labels,
                 revenueData = revenueData,
-                attendanceData = attendanceData
+                attendanceData = attendanceData,
+                success = true
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting chart data");
-            return Json(new { error = "Unable to load chart data" });
+            _logger.LogError(ex, "❌ Error getting chart data");
+            return Json(new {
+                error = "Unable to load chart data",
+                message = ex.Message,
+                success = false
+            });
         }
     }
 

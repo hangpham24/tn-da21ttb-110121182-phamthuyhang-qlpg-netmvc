@@ -402,11 +402,26 @@ namespace GymManagement.Web.Controllers
                     return Json(new { success = false, message = "Không tìm thấy thông tin người dùng hợp lệ." });
                 }
 
-                var result = await _dangKyService.RegisterClassAsync(memberId, classId, startDate, endDate);
+                // ✅ FIX: Create payment first instead of direct registration
+                var thanhToanService = HttpContext.RequestServices.GetRequiredService<IThanhToanService>();
+                var payment = await thanhToanService.CreatePaymentForClassRegistrationAsync(
+                    memberId,
+                    classId,
+                    startDate,
+                    endDate,
+                    "VNPAY");
 
-                if (result)
+                if (payment != null)
                 {
-                    return Json(new { success = true, message = "Đăng ký lớp học thành công!" });
+                    return Json(new {
+                        success = true,
+                        message = "Đã tạo thanh toán thành công! Đang chuyển hướng đến cổng thanh toán...",
+                        redirectUrl = Url.Action("CreatePayment", "Home", new {
+                            area = "VNPayAPI",
+                            thanhToanId = payment.ThanhToanId,
+                            returnUrl = Url.Action("PaymentReturn", "ThanhToan", null, Request.Scheme)
+                        })
+                    });
                 }
                 else
                 {

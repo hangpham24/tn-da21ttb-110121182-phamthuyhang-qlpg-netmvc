@@ -239,46 +239,33 @@
             }
         }
 
-        // Load charts với dữ liệu mẫu
-        function loadCharts() {
-            // Dữ liệu mẫu cho 7 ngày gần đây
-            const today = new Date();
-            const last7Days = [];
-            const revenueData = [];
+        // Load charts với dữ liệu thật từ API
+        async function loadCharts() {
+            try {
+                console.log('📊 Loading chart data from API...');
 
-            // Tạo labels cho 7 ngày gần đây
-            for (let i = 6; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                last7Days.push(date.toLocaleDateString('vi-VN', {
-                    month: 'short',
-                    day: 'numeric'
-                }));
-            }
+                // Gọi API để lấy dữ liệu thật
+                const response = await fetch('/Home/GetChartData');
+                const chartData = await response.json();
 
-            // Dữ liệu doanh thu mẫu (VNĐ)
-            revenueData.push(
-                2500000,  // 6 ngày trước
-                3200000,  // 5 ngày trước
-                1800000,  // 4 ngày trước
-                4100000,  // 3 ngày trước
-                2900000,  // 2 ngày trước
-                3800000,  // Hôm qua
-                4500000   // Hôm nay
-            );
+                if (!chartData.success) {
+                    throw new Error(chartData.error || 'Failed to load chart data');
+                }
 
-            console.log('📊 Loading revenue chart with sample data:', { last7Days, revenueData });
+                console.log('✅ Chart data loaded from API:', chartData);
 
-            // Revenue Chart
-            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-            if (revenueChart) revenueChart.destroy();
-            revenueChart = new Chart(revenueCtx, {
-                type: 'line',
-                data: {
-                    labels: last7Days,
-                    datasets: [{
-                        label: 'Doanh thu (VNĐ)',
-                        data: revenueData,
+                const { labels, revenueData, attendanceData } = chartData;
+
+                // Revenue Chart
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                if (revenueChart) revenueChart.destroy();
+                revenueChart = new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Doanh thu (VNĐ)',
+                            data: revenueData,
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.4,
@@ -329,9 +316,85 @@
                 }
             });
 
-            console.log('✅ Revenue chart loaded successfully!');
+                console.log('✅ Revenue chart loaded successfully with real data!');
 
+            } catch (error) {
+                console.error('❌ Error loading chart data:', error);
 
+                // Fallback to sample data if API fails
+                console.log('🔄 Loading fallback sample data...');
+                const today = new Date();
+                const fallbackLabels = [];
+                const fallbackData = [];
+
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    fallbackLabels.push(date.toLocaleDateString('vi-VN', {
+                        month: 'short',
+                        day: 'numeric'
+                    }));
+                }
+
+                fallbackData.push(2500000, 3200000, 1800000, 4100000, 2900000, 3800000, 4500000);
+
+                // Create chart with fallback data
+                const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                if (revenueChart) revenueChart.destroy();
+                revenueChart = new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: fallbackLabels,
+                        datasets: [{
+                            label: 'Doanh thu (VNĐ) - Dữ liệu mẫu',
+                            data: fallbackData,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ef4444',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return 'Doanh thu: ' + new Intl.NumberFormat('vi-VN', {
+                                            style: 'currency',
+                                            currency: 'VND'
+                                        }).format(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return new Intl.NumberFormat('vi-VN', {
+                                            style: 'currency',
+                                            currency: 'VND',
+                                            notation: 'compact'
+                                        }).format(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                console.log('⚠️ Fallback chart loaded due to API error');
+            }
         }
 
         // Initialize dashboard
