@@ -65,7 +65,7 @@ Hệ thống quản lý phòng gym hiện đại và chuyên nghiệp được x
 
 ### 1. Clone repository
 ```bash
-git clone https://github.com/daihoangphuc/qlpg.git
+git clone https://github.com/hangpham24/tn-da21ttb-110121182-phamthuyhang-qlpg-netmvc.git
 cd qlpg
 ```
 
@@ -438,32 +438,3 @@ GymManagement.Tests/
 │   └── API/
 └── TestUtilities/
 ```
-
-## 🤝 Đóng góp
-
-1. Fork repository
-2. Tạo feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Tạo Pull Request
-
-## 📄 License
-
-Dự án này được phân phối dưới giấy phép MIT. Xem file `LICENSE` để biết thêm chi tiết.
-
-## 📞 Liên hệ
-
-- **Email**: 90683814+daihoangphuc@users.noreply.github.com
-- **GitHub**: [@daihoangphuc](https://github.com/daihoangphuc)
-
-## 🙏 Acknowledgments
-
-- [ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/)
-- [Entity Framework Core](https://docs.microsoft.com/en-us/ef/core/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Flowbite](https://flowbite.com/)
-- [Chart.js](https://www.chartjs.org/)
-
----
-
-⭐ Nếu dự án này hữu ích, hãy cho một star nhé!
