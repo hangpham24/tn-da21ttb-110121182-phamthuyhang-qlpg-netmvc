@@ -140,22 +140,28 @@ namespace GymManagement.Web.Controllers
         {
             try
             {
+                _logger.LogInformation("🔍 Create POST - User Role: {Role}, ThanhVienId: {ThanhVienId}, LopHocId: {LopHocId}",
+                    User.IsInRole("Admin") ? "Admin" : "Member", booking.ThanhVienId, booking.LopHocId);
+
                 if (ModelState.IsValid)
                 {
                     var user = await GetCurrentUserAsync();
+                    _logger.LogInformation("🔍 Current User: {UserId}, Role: {Role}", user?.NguoiDungId, User.IsInRole("Admin") ? "Admin" : "Member");
 
-                    // If no member is selected, use current user
-                    if (booking.ThanhVienId == null)
+                    // If no member is selected, use current user (only for non-admin)
+                    if (booking.ThanhVienId == null && !User.IsInRole("Admin"))
                     {
                         if (user?.NguoiDungId != null)
                         {
                             booking.ThanhVienId = user.NguoiDungId.Value;
+                            _logger.LogInformation("🔍 Auto-assigned ThanhVienId: {ThanhVienId}", booking.ThanhVienId);
                         }
                     }
 
                     // 🔒 IMPROVED: Authorization check - Members can only create bookings for themselves
                     if (User.IsInRole("Member") && user?.NguoiDungId != booking.ThanhVienId)
                     {
+                        _logger.LogWarning("❌ Member {UserId} tried to book for {ThanhVienId}", user?.NguoiDungId, booking.ThanhVienId);
                         ModelState.AddModelError("", "Bạn chỉ có thể đặt lịch cho chính mình.");
                         await LoadSelectLists();
                         return View(booking);
@@ -164,6 +170,7 @@ namespace GymManagement.Web.Controllers
                     // Validate required fields
                     if (booking.ThanhVienId == null || booking.LopHocId == null)
                     {
+                        _logger.LogWarning("❌ Missing required fields - ThanhVienId: {ThanhVienId}, LopHocId: {LopHocId}", booking.ThanhVienId, booking.LopHocId);
                         ModelState.AddModelError("", "Thông tin thành viên và lớp học là bắt buộc.");
                         await LoadSelectLists();
                         return View(booking);
@@ -193,6 +200,15 @@ namespace GymManagement.Web.Controllers
                         ModelState.AddModelError("", errorMessage);
                         await LoadSelectLists();
                         return View(booking);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("❌ ModelState is invalid");
+                    foreach (var error in ModelState)
+                    {
+                        _logger.LogWarning("❌ ModelState Error - Key: {Key}, Errors: {Errors}",
+                            error.Key, string.Join(", ", error.Value.Errors.Select(e => e.ErrorMessage)));
                     }
                 }
                 await LoadSelectLists();

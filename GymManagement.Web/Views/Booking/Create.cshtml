@@ -146,7 +146,8 @@
                                     }
                                 </div>
                             </div>
-                            <input type="hidden" asp-for="LopHocId" id="selectedClassId">
+                            <input type="hidden" asp-for="LopHocId" id="LopHocId">
+                            <input type="hidden" id="selectedClassId">
                         </div>
                         <span asp-validation-for="LopHocId" class="text-red-500 text-sm"></span>
                     </div>
@@ -206,13 +207,13 @@
                         </div>
                     </div>
 
-                    <!-- Availability Check -->
+                    @* <!-- Availability Check -->
                     <div id="availabilityCheck" class="bg-blue-50 rounded-lg p-6 hidden">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Kiểm tra tình trạng</h3>
                         <div id="availabilityContent">
                             <!-- Availability info will be loaded here -->
                         </div>
-                    </div>
+                    </div> *@
 
                     @* <!-- Booking Rules -->
                     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
@@ -478,15 +479,21 @@
 
         function updateSubmitButton() {
             const submitBtn = document.getElementById('submitBtn');
-            const classId = document.getElementById('selectedClassId').value;
+            const classId = document.getElementById('LopHocId').value;
             const date = document.getElementById('Ngay').value;
+
+            console.log('🔍 UpdateSubmitButton - ClassId:', classId, 'Date:', date);
 
             if (classId && date) {
                 submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                console.log('✅ Submit button ENABLED');
             } else {
                 submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                console.log('❌ Submit button DISABLED - Missing:', !classId ? 'ClassId' : '', !date ? 'Date' : '');
             }
         }
 
@@ -554,6 +561,9 @@
                     selectedClassId.value = option.dataset.value;
                     classDropdown.classList.add('hidden');
 
+                    // Set both hidden fields
+                    document.getElementById('LopHocId').value = option.dataset.value;
+
                     // Load class info when class is selected
                     loadClassInfo(option.dataset.value);
                     updateSubmitButton();
@@ -610,6 +620,10 @@
                             document.getElementById('classSearch').value = this.dataset.text || this.textContent.trim();
                             document.getElementById('selectedClassId').value = this.dataset.value;
                             document.getElementById('classDropdown').classList.add('hidden');
+
+                            // Set both hidden fields
+                            document.getElementById('LopHocId').value = this.dataset.value;
+
                             loadClassInfo(this.dataset.value);
                             updateSubmitButton();
                         };
@@ -620,6 +634,7 @@
 
         document.getElementById('Ngay').addEventListener('change', function() {
             checkAvailability();
+            updateSubmitButton();
         });
     </script>
 }
