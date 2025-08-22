@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 
 namespace GymManagement.Web.Controllers
 {
@@ -43,6 +45,8 @@ namespace GymManagement.Web.Controllers
             _memberBenefitService = memberBenefitService;
             _unitOfWork = unitOfWork;
             _logger = logger;
+
+
         }
 
         // Helper method to get current user
@@ -1220,10 +1224,23 @@ namespace GymManagement.Web.Controllers
             {
                 var bookings = await _bookingService.GetAllAsync();
 
-                // Create simple CSV content (can be enhanced to proper Excel later)
-                var csv = new System.Text.StringBuilder();
-                csv.AppendLine("Thành viên,Lớp học,Ngày,Thời gian,Trạng thái,Ngày đặt,Ghi chú");
+                using var package = new OfficeOpenXml.ExcelPackage();
+                var worksheet = package.Workbook.Worksheets.Add("Đặt lịch");
+                
+                // Thiết lập tiêu đề
+                string[] headers = new string[] { 
+                    "Thành viên", "Lớp học", "Ngày", "Thời gian", 
+                    "Trạng thái", "Ngày đặt", "Ghi chú" 
+                };
+                
+                // Ghi tiêu đề
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    worksheet.Cells[1, i + 1].Value = headers[i];
+                    worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                }
 
+                int row = 2;
                 foreach (var booking in bookings.OrderByDescending(b => b.NgayTao))
                 {
                     var memberName = booking.ThanhVien != null ? $"{booking.ThanhVien.Ho} {booking.ThanhVien.Ten}".Trim() : "N/A";
@@ -1238,13 +1255,31 @@ namespace GymManagement.Web.Controllers
                         _ => booking.TrangThai
                     };
 
-                    csv.AppendLine($"\"{memberName}\",\"{className}\",\"{booking.Ngay:dd/MM/yyyy}\",\"{timeRange}\",\"{statusText}\",\"{booking.NgayTao:dd/MM/yyyy HH:mm}\",\"{booking.GhiChu ?? ""}\"");
+                    worksheet.Cells[row, 1].Value = memberName;
+                    worksheet.Cells[row, 2].Value = className;
+                    worksheet.Cells[row, 3].Value = booking.Ngay.ToString("dd/MM/yyyy");
+                    worksheet.Cells[row, 4].Value = timeRange;
+                    worksheet.Cells[row, 5].Value = statusText;
+                    worksheet.Cells[row, 6].Value = booking.NgayTao.ToString("dd/MM/yyyy HH:mm");
+                    worksheet.Cells[row, 7].Value = booking.GhiChu;
+
+                    row++;
                 }
 
-                var bytes = System.Text.Encoding.UTF8.GetBytes(csv.ToString());
-                var fileName = $"DanhSachDatLich_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+                // Tự động điều chỉnh độ rộng cột
+                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
 
-                return File(bytes, "text/csv", fileName);
+                // Tạo border cho bảng
+                using (var range = worksheet.Cells[1, 1, row - 1, headers.Length])
+                {
+                    range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    range.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    range.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    range.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                }
+
+                var fileName = $"DanhSachDatLich_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(package.GetAsByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
             }
             catch (Exception ex)
             {

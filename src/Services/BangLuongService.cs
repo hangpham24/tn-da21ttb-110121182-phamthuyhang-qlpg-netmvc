@@ -49,6 +49,22 @@ namespace GymManagement.Web.Services
             _logger = logger;
         }
 
+        public async Task<IEnumerable<BangLuong>> GetSalariesByMonthYearAsync(int month, int year)
+        {
+            try
+            {
+                string monthYear = $"{month}/{year}";
+                // Lấy danh sách bảng lương theo tháng/năm
+                var salaries = await _bangLuongRepository.GetAllAsync();
+                return salaries.Where(s => s.Thang == monthYear).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting salaries for {Month}/{Year}", month, year);
+                return Enumerable.Empty<BangLuong>();
+            }
+        }
+
         public async Task<IEnumerable<BangLuong>> GetAllAsync()
         {
             return await _bangLuongRepository.GetAllAsync();
@@ -115,10 +131,26 @@ namespace GymManagement.Web.Services
             return await _bangLuongRepository.GetUnpaidSalariesAsync();
         }
 
-        // 🚀 IMPROVED & SIMPLIFIED METHOD WITH TRANSACTION SCOPE AND CONCURRENCY CONTROL
-        public async Task<bool> GenerateMonthlySalariesAsync(string thang)
+        // Check for existing salaries
+        public async Task<bool> HasExistingSalariesAsync(string thang)
         {
-            _logger.LogInformation("=== GenerateMonthlySalariesAsync START for month: {Month} ===", thang);
+            try
+            {
+                var existingSalariesCount = await _bangLuongRepository.GetSalaryCountByMonthAsync(thang);
+                _logger.LogInformation("Checking for existing salaries in month {Month}: {Count} found", thang, existingSalariesCount);
+                return existingSalariesCount > 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking existing salaries for month {Month}", thang);
+                throw;
+            }
+        }
+
+        // 🚀 IMPROVED & SIMPLIFIED METHOD WITH TRANSACTION SCOPE AND CONCURRENCY CONTROL
+        public async Task<bool> GenerateMonthlySalariesAsync(string thang, bool forceRegenerate = false)
+        {
+            _logger.LogInformation("=== GenerateMonthlySalariesAsync START for month: {Month} (ForceRegenerate: {Force}) ===", thang, forceRegenerate);
 
             // Get or create a semaphore for this month to prevent concurrent salary generation
             var lockKey = $"salary_generation_{thang}";
@@ -129,14 +161,24 @@ namespace GymManagement.Web.Services
 
             try
             {
-                // Double-check if salaries already exist after acquiring lock
+                // Check if salaries already exist after acquiring lock
                 var existingSalariesCount = await _bangLuongRepository.GetSalaryCountByMonthAsync(thang);
                 _logger.LogInformation("Existing salaries count for month {Month}: {Count}", thang, existingSalariesCount);
 
                 if (existingSalariesCount > 0)
                 {
-                    _logger.LogWarning("Salaries already exist for month {Month}, count: {Count}", thang, existingSalariesCount);
-                    throw new InvalidOperationException($"Bảng lương cho tháng {thang} đã được tạo trước đó. Không thể tạo lại.");
+                    if (!forceRegenerate)
+                    {
+                        _logger.LogWarning("Salaries already exist for month {Month}, count: {Count}", thang, existingSalariesCount);
+                        throw new InvalidOperationException($"Bảng lương cho tháng {thang} đã được tạo trước đó. Sử dụng tùy chọn tạo lại để tạo mới.");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Force regenerating {Count} salaries for month {Month}", existingSalariesCount, thang);
+                        // Delete existing salaries
+                        await _bangLuongRepository.DeleteByMonthAsync(thang);
+                        _logger.LogInformation("Successfully deleted existing salaries for month {Month}", thang);
+                    }
                 }
 
                 // Use database transaction to ensure atomicity
@@ -193,7 +235,9 @@ namespace GymManagement.Web.Services
                         };
 
                         salariesToCreate.Add(bangLuong);
-                        notificationsToSend.Add((trainer, bangLuong, null)); // No commission breakdown
+                        // Create empty commission breakdown for notification
+                        var emptyBreakdown = new CommissionBreakdown();
+                        notificationsToSend.Add((trainer, bangLuong, emptyBreakdown));
                         successCount++;
                         _logger.LogInformation("Successfully prepared salary for trainer {TrainerId}", trainer.NguoiDungId);
                     }
@@ -259,6 +303,7 @@ namespace GymManagement.Web.Services
                     {
                         // Log notification/email errors but don't fail the whole operation
                         // Salary creation has already been committed successfully
+                        _logger.LogError(ex, "Error sending notification/email for salary generation for trainer {TrainerId}", trainer.NguoiDungId);
                         continue;
                     }
                 }
@@ -453,10 +498,11 @@ namespace GymManagement.Web.Services
             var personalClassRevenue = await _unitOfWork.Context.DangKys
                 .Where(d => d.NgayTao >= monthStart && d.NgayTao <= monthEnd)
                 .Where(d => d.LopHocId.HasValue && d.LopHoc != null && d.LopHoc.HlvId == hlvId)
-                .Where(d => d.LopHoc.SucChua <= 2 ||
-                           d.LopHoc.TenLop.ToLower().Contains("personal") ||
-                           d.LopHoc.TenLop.ToLower().Contains("pt") ||
-                           d.LopHoc.TenLop.ToLower().Contains("riêng"))
+                .Where(d => d.LopHoc != null && (
+                            d.LopHoc.SucChua <= 2 ||
+                            d.LopHoc.TenLop.ToLower().Contains("personal") ||
+                            d.LopHoc.TenLop.ToLower().Contains("pt") ||
+                            d.LopHoc.TenLop.ToLower().Contains("riêng")))
                 .Where(d => d.ThanhToans.Any(t => t.TrangThai == "SUCCESS"))
                 .Where(d => d.TrangThai == "ACTIVE")
                 .SumAsync(d => d.LopHoc!.GiaTuyChinh ?? 0);
@@ -469,10 +515,11 @@ namespace GymManagement.Web.Services
             var personalBookingRevenue = await _unitOfWork.Context.Bookings
                 .Where(b => b.NgayDat >= monthStartDateOnly && b.NgayDat <= monthEndDateOnly)
                 .Where(b => b.LopHoc != null && b.LopHoc.HlvId == hlvId)
-                .Where(b => b.LopHoc.SucChua <= 2 ||
-                           b.LopHoc.TenLop.ToLower().Contains("personal") ||
-                           b.LopHoc.TenLop.ToLower().Contains("pt") ||
-                           b.LopHoc.TenLop.ToLower().Contains("riêng"))
+                .Where(b => b.LopHoc != null && (
+                            b.LopHoc.SucChua <= 2 ||
+                            b.LopHoc.TenLop.ToLower().Contains("personal") ||
+                            b.LopHoc.TenLop.ToLower().Contains("pt") ||
+                            b.LopHoc.TenLop.ToLower().Contains("riêng")))
                 .Where(b => b.TrangThai == "CONFIRMED")
                 .SumAsync(b => b.LopHoc!.GiaTuyChinh ?? 0);
 
@@ -770,14 +817,14 @@ namespace GymManagement.Web.Services
 
 
         // Commission calculation methods removed - no longer needed
-        public async Task<decimal> CalculateCommissionAsync(int hlvId, string thang)
+        public Task<decimal> CalculateCommissionAsync(int hlvId, string thang)
         {
-            return 0; // Commission functionality removed
+            return Task.FromResult(0m); // Commission functionality removed
         }
 
-        public async Task<CommissionBreakdown> CalculateDetailedCommissionAsync(int hlvId, string thang)
+        public Task<CommissionBreakdown> CalculateDetailedCommissionAsync(int hlvId, string thang)
         {
-            return new CommissionBreakdown(); // Commission functionality removed
+            return Task.FromResult(new CommissionBreakdown()); // Commission functionality removed
         }
 
         public async Task<decimal> GetTotalSalaryExpenseAsync(string thang)

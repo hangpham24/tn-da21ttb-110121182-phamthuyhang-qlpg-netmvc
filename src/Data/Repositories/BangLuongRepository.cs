@@ -111,5 +111,22 @@ namespace GymManagement.Web.Data.Repositories
                 .Where(bl => bl.Thang == thang)
                 .CountAsync();
         }
+
+        public async Task<int> DeleteByMonthAsync(string thang)
+        {
+            var salariesToDelete = await _context.BangLuongs
+                .Where(bl => bl.Thang == thang)
+                .ToListAsync();
+
+            if (!salariesToDelete.Any())
+            {
+                return 0;
+            }
+
+            _context.BangLuongs.RemoveRange(salariesToDelete);
+            await _context.SaveChangesAsync();
+
+            return salariesToDelete.Count;
+        }
     }
 }

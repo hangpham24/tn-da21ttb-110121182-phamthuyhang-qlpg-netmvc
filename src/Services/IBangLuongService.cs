@@ -14,7 +14,8 @@ namespace GymManagement.Web.Services
         Task<IEnumerable<BangLuong>> GetByMonthAsync(string thang);
         Task<BangLuong?> GetByTrainerAndMonthAsync(int hlvId, string thang);
         Task<IEnumerable<BangLuong>> GetUnpaidSalariesAsync();
-        Task<bool> GenerateMonthlySalariesAsync(string thang);
+        Task<bool> GenerateMonthlySalariesAsync(string thang, bool forceRegenerate = false);
+        Task<bool> HasExistingSalariesAsync(string thang);
         Task<bool> PaySalaryAsync(int bangLuongId);
         Task<bool> PayAllSalariesForMonthAsync(string thang);
 

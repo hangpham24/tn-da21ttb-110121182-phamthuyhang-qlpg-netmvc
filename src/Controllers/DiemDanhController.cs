@@ -3,6 +3,7 @@ using GymManagement.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using OfficeOpenXml;
 
 namespace GymManagement.Web.Controllers
 {
@@ -10,6 +11,12 @@ namespace GymManagement.Web.Controllers
     [Route("[controller]")]
     public class DiemDanhController : BaseController
     {
+        static DiemDanhController()
+        {
+            // Set EPPlus license context
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+        }
+
         private readonly IDiemDanhService _diemDanhService;
         private readonly INguoiDungService _nguoiDungService;
         private readonly IAuthService _authService;
@@ -507,34 +514,86 @@ namespace GymManagement.Web.Controllers
             }
         }
 
-        [HttpGet("ExportAttendance")]
-        public async Task<IActionResult> ExportAttendance(DateTime startDate, DateTime endDate, string format = "csv")
+/// <summary>
+/// Xuất danh sách điểm danh ra file Excel
+/// </summary>
+[HttpGet("ExportAttendance")]
+[Authorize(Roles = "Admin,Trainer")]
+public async Task<IActionResult> ExportAttendance(DateTime startDate, DateTime endDate)
+{
+    try
+    {
+        var attendance = await _diemDanhService.GetAttendanceReportAsync(startDate, endDate);
+
+        // Nếu là Trainer, chỉ xuất danh sách lớp của mình
+        if (IsInRoleSafe("Trainer") && !IsInRoleSafe("Admin"))
         {
-            try
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser?.NguoiDungId != null)
             {
-                var attendance = await _diemDanhService.GetAttendanceReportAsync(startDate, endDate);
-                
-                if (format.ToLower() == "csv")
-                {
-                    var csv = "Thời gian,Thành viên,Kết quả nhận dạng,Ghi chú\n";
-                    foreach (var record in attendance)
-                    {
-                        csv += $"{record.ThoiGian:dd/MM/yyyy HH:mm},{record.ThanhVien?.Ho} {record.ThanhVien?.Ten},{(record.KetQuaNhanDang == true ? "Thành công" : "Thất bại")},{record.AnhMinhChung}\n";
-                    }
-
-                    var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
-                    return File(bytes, "text/csv", $"DiemDanh_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.csv");
-                }
-
-                return BadRequest("Định dạng không được hỗ trợ.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while exporting attendance");
-                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xuất báo cáo điểm danh.";
-                return RedirectToAction(nameof(AttendanceReport));
+                attendance = attendance.Where(a => a.LopHoc?.HlvId == currentUser.NguoiDungId).ToList();
             }
         }
+
+        using var package = new ExcelPackage();
+        var worksheet = package.Workbook.Worksheets.Add("Điểm danh");
+
+        // Thiết lập tiêu đề
+        string[] headers = new string[] {
+            "Thời gian",
+            "Thành viên",
+            "Kết quả nhận dạng",
+            "Ghi chú"
+        };
+
+        // Ghi tiêu đề
+        for (int i = 0; i < headers.Length; i++)
+        {
+            worksheet.Cells[1, i + 1].Value = headers[i];
+            worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+        }
+
+        int row = 2;
+        foreach (var record in attendance)
+        {
+            var memberName = $"{record.ThanhVien?.Ho} {record.ThanhVien?.Ten}".Trim();
+            if (string.IsNullOrWhiteSpace(memberName))
+            {
+                memberName = "Khách vãng lai";
+            }
+
+            worksheet.Cells[row, 1].Value = record.ThoiGian.ToString("dd/MM/yyyy HH:mm");
+            worksheet.Cells[row, 2].Value = memberName;
+            worksheet.Cells[row, 3].Value = record.KetQuaNhanDang == true ? "Thành công" : "Thất bại";
+            worksheet.Cells[row, 4].Value = record.GhiChu ?? "";
+
+            row++;
+        }
+
+        // Tự động điều chỉnh độ rộng cột
+        worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+        // Tạo border cho bảng
+        using (var range = worksheet.Cells[1, 1, row - 1, headers.Length])
+        {
+            range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            range.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            range.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+            range.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+        }
+
+        var fileName = $"DiemDanh_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
+        return File(package.GetAsByteArray(), 
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+            fileName);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error occurred while exporting attendance report: {Message}", ex.Message);
+        TempData["ErrorMessage"] = "Có lỗi xảy ra khi xuất báo cáo điểm danh.";
+        return RedirectToAction(nameof(Index));
+    }
+}
 
         [HttpGet("GetRealtimeStats")]
         public async Task<IActionResult> GetRealtimeStats()

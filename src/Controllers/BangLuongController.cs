@@ -3,6 +3,7 @@ using GymManagement.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using OfficeOpenXml;
 
 namespace GymManagement.Web.Controllers
 {
@@ -174,6 +175,9 @@ namespace GymManagement.Web.Controllers
         {
             try
             {
+                _logger.LogInformation("Starting salary generation for month {Month}, ForceRegenerate: {Force}", 
+                    request.Month, request.ForceRegenerate);
+
                 // Server-side validation
                 if (request == null || string.IsNullOrWhiteSpace(request.Month))
                 {
@@ -197,19 +201,48 @@ namespace GymManagement.Web.Controllers
                     }
                 }
 
-                var result = await _bangLuongService.GenerateMonthlySalariesAsync(request.Month);
+                // Check for existing salaries
+                var hasExisting = await _bangLuongService.HasExistingSalariesAsync(request.Month);
+                
+                if (hasExisting && !request.ForceRegenerate)
+                {
+                    _logger.LogWarning("Existing salaries found for month {Month}, asking for confirmation", request.Month);
+                    return Json(new { 
+                        success = false, 
+                        message = $"Bảng lương tháng {request.Month} đã tồn tại.",
+                        askForConfirmation = true 
+                    });
+                }
+
+                // Proceed with generation
+                _logger.LogInformation("Proceeding with salary generation for month {Month}, Force: {Force}", 
+                    request.Month, request.ForceRegenerate);
+
+                var result = await _bangLuongService.GenerateMonthlySalariesAsync(request.Month, request.ForceRegenerate);
                 if (result)
                 {
                     // Audit log
                     var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                    _auditLog.LogMonthlySalaryGenerated(request.Month, 0, userId ?? "Unknown"); // Count would need to be returned from service
+                    _auditLog.LogMonthlySalaryGenerated(request.Month, 0, userId ?? "Unknown", request.ForceRegenerate); 
 
-                    return Json(new { success = true, message = $"Tạo bảng lương tháng {request.Month} thành công!" });
+                    var successMsg = request.ForceRegenerate
+                        ? $"Tạo lại bảng lương tháng {request.Month} thành công!"
+                        : $"Tạo bảng lương tháng {request.Month} thành công!";
+
+                    _logger.LogInformation("Successfully generated salaries for month {Month}", request.Month);
+                    return Json(new { success = true, message = successMsg });
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Không thể tạo bảng lương. Có thể lương tháng này đã tồn tại." });
+                    _logger.LogWarning("Failed to generate salaries for month {Month}", request.Month);
+                    return Json(new { success = false, message = "Không thể tạo bảng lương. Vui lòng thử lại sau." });
                 }
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Handle specific validation errors
+                _logger.LogWarning(ex, "Invalid operation for generating monthly salaries: {Message}", ex.Message);
+                return Json(new { success = false, message = ex.Message });
             }
             catch (ArgumentException ex)
             {
@@ -219,7 +252,10 @@ namespace GymManagement.Web.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while generating monthly salaries");
-                return Json(new { success = false, message = "Có lỗi xảy ra khi tạo bảng lương." });
+                return Json(new { 
+                    success = false, 
+                    message = "Có lỗi xảy ra khi tạo bảng lương. Chi tiết: " + ex.Message.Replace("\r\n", " ").Replace("\n", " ") 
+                });
             }
         }
 
@@ -343,14 +379,63 @@ namespace GymManagement.Web.Controllers
                 
                 if (format.ToLower() == "csv")
                 {
-                    var csv = "Huấn luyện viên,Tháng,Lương cơ bản,Tổng thanh toán,Ngày thanh toán\n";
-                    foreach (var salary in salaries)
+                    using var package = new OfficeOpenXml.ExcelPackage();
+                    var worksheet = package.Workbook.Worksheets.Add("Bảng Lương");
+
+                    // Set the column headers
+                    worksheet.Cells[1, 1].Value = "Huấn Luyện Viên";
+                    worksheet.Cells[1, 2].Value = "Tháng";
+                    worksheet.Cells[1, 3].Value = "Lương Cơ Bản";
+                    worksheet.Cells[1, 4].Value = "Tổng Thanh Toán";
+                    worksheet.Cells[1, 5].Value = "Ngày Thanh Toán";
+
+                    // Style the headers
+                    using (var range = worksheet.Cells[1, 1, 1, 5])
                     {
-                        csv += $"{salary.Hlv?.Ho} {salary.Hlv?.Ten},{salary.Thang},{salary.LuongCoBan},{salary.TongThanhToan},{salary.NgayThanhToan?.ToString("dd/MM/yyyy") ?? "Chưa thanh toán"}\n";
+                        range.Style.Font.Bold = true;
+                        range.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        range.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightBlue);
                     }
 
-                    var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
-                    return File(bytes, "text/csv", $"BangLuong_{month}.csv");
+                    // Add the data
+                    int row = 2;
+                    foreach (var salary in salaries)
+                    {
+                        string trainerName = $"{salary.Hlv?.Ho} {salary.Hlv?.Ten}".Trim();
+                        if (string.IsNullOrWhiteSpace(trainerName))
+                        {
+                            trainerName = "Chưa phân công";
+                        }
+
+                        worksheet.Cells[row, 1].Value = trainerName;
+                        worksheet.Cells[row, 2].Value = salary.Thang;
+                        worksheet.Cells[row, 3].Value = salary.LuongCoBan;
+                        worksheet.Cells[row, 4].Value = salary.TongThanhToan;
+                        worksheet.Cells[row, 5].Value = salary.NgayThanhToan?.ToString("dd/MM/yyyy") ?? "Chưa thanh toán";
+
+                        // Format currency columns
+                        worksheet.Cells[row, 3].Style.Numberformat.Format = "#,##0";
+                        worksheet.Cells[row, 4].Style.Numberformat.Format = "#,##0";
+
+                        row++;
+                    }
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    // Add borders
+                    using (var range = worksheet.Cells[1, 1, row - 1, 5])
+                    {
+                        range.Style.Border.Top.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                        range.Style.Border.Left.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                        range.Style.Border.Right.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                        range.Style.Border.Bottom.Style = OfficeOpenXml.Style.ExcelBorderStyle.Thin;
+                    }
+
+                    var fileName = $"BangLuong_{month}.xlsx";
+                    return File(package.GetAsByteArray(), 
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                        fileName);
                 }
 
                 return BadRequest("Định dạng không được hỗ trợ.");
@@ -554,6 +639,7 @@ namespace GymManagement.Web.Controllers
 
     public class GenerateSalaryRequest
     {
-        public string Month { get; set; }
+        public required string Month { get; set; }
+        public bool ForceRegenerate { get; set; } = false;
     }
 }

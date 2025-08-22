@@ -49,9 +49,13 @@ namespace GymManagement.Web.Services
             auditLog.LogSalaryAction("DELETE", salaryId, month, "Salary record deleted", userId);
         }
 
-        public static void LogMonthlySalaryGenerated(this IAuditLogService auditLog, string month, int count, string userId)
+        public static void LogMonthlySalaryGenerated(this IAuditLogService auditLog, string month, int count, string userId, bool forceRegenerate = false)
         {
-            auditLog.LogSalaryAction("GENERATE_MONTHLY", null, month, $"Generated {count} salary records", userId);
+            var action = forceRegenerate ? "REGENERATE_MONTHLY" : "GENERATE_MONTHLY";
+            var details = forceRegenerate 
+                ? $"Re-generated {count} salary records (forced)" 
+                : $"Generated {count} salary records";
+            auditLog.LogSalaryAction(action, null, month, details, userId);
         }
 
         public static void LogSalaryViewed(this IAuditLogService auditLog, int? salaryId, string month, string userId)

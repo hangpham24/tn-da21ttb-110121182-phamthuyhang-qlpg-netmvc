@@ -312,12 +312,22 @@
                 </div>
 
                 <!-- Export Button -->
-                <div class="bg-green-600 flex items-end">
-                    <button onclick="exportAttendance()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 flex items-center justify-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                <div class="flex items-end">
+                    <button onclick="exportAttendance()" class="group w-full bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg font-medium transition-all duration-200 transform hover:scale-102 flex items-center justify-center space-x-2 shadow-lg hover:shadow-emerald-500/30">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 4v16a2 2 0 002 2h12a2 2 0 002-2V8.342a2 2 0 00-.602-1.43l-4.44-4.342A2 2 0 0013.56 2H6a2 2 0 00-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 2v4a2 2 0 002 2h4M8 13h8m-8 3h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path class="text-white transition-transform duration-200 transform group-hover:translate-y-0.5" d="M8.5 17.5l2 2 2-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Xuất Excel
+                        <span class="relative">
+                            <span class="flex items-center">
+                                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAALZJREFUOE+lk9ENgjAQQB+JH+6AK7CCbqAj4ASO0BHqBrICjuAGsAKO4Aa4Qe8gNYFCWmyTpvR6d++u1xAf6gthFhc5nlWnXUWszrqBqwcwA3ZAejH7CKwkqaJPwTECpbGxdUFmjqmxdUEXeAC9UBE8LYLcDI7A0m+r6QZG5mHS0RLIX9UPgA3wu0CAGTzF7wyWwBroNwF8xS8XlyaAr3i0yL0KhWOxeNzh0gvEYnE7vjHwBmZwFqtpBYg5AAAAAElFTkSuQmCC" alt="Excel" class="w-4 h-4 mr-1.5" />
+                                Xuất Excel
+                            </span>
+                            <span class="absolute left-0 -bottom-3.5 w-full text-[10px] text-white/80 opacity-0 group-hover:opacity-100 transition-opacity text-center">
+                                .xlsx
+                            </span>
+                        </span>
                     </button>
                 </div>
             </div>
