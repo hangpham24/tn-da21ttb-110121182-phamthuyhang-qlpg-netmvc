@@ -65,10 +65,10 @@
                             class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Tất cả trạng thái</option>
                         <option value="active" selected="@(ViewBag.CurrentStatus == "active")">Đang hoạt động</option>
-                        <option value="expiring" selected="@(ViewBag.CurrentStatus == "expiring")">Sắp hết hạn</option>
+                        @* <option value="expiring" selected="@(ViewBag.CurrentStatus == "expiring")">Sắp hết hạn</option> *@
                         <option value="expired" selected="@(ViewBag.CurrentStatus == "expired")">Đã hết hạn</option>
                         <option value="upcoming" selected="@(ViewBag.CurrentStatus == "upcoming")">Sắp diễn ra</option>
-                        <option value="disabled" selected="@(ViewBag.CurrentStatus == "disabled")">Đã tắt</option>
+                        @* <option value="disabled" selected="@(ViewBag.CurrentStatus == "disabled")">Đã tắt</option> *@
                     </select>
                 </div>
 

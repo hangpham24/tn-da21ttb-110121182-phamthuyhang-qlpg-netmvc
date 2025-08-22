@@ -91,7 +91,7 @@ namespace GymManagement.Web.Controllers
         {
             try
             {
-                _logger.LogInformation("User {UserId} accessing class details for ID: {ClassId}", 
+                _logger.LogInformation("User {UserId} accessing class details for ID: {ClassId}",
                     User.Identity?.Name, id);
 
                 var lopHoc = await _lopHocService.GetByIdAsync(id);
@@ -108,11 +108,18 @@ namespace GymManagement.Web.Controllers
                     var currentUser = await GetCurrentUserSafeAsync();
                     if (currentUser?.NguoiDungId != lopHoc.HlvId)
                     {
-                        _logger.LogWarning("Trainer {TrainerId} attempted to access class {ClassId} without permission", 
+                        _logger.LogWarning("Trainer {TrainerId} attempted to access class {ClassId} without permission",
                             currentUser?.NguoiDungId, id);
                         return Forbid();
                     }
                 }
+
+                // Get total active count (registrations + bookings) for consistency with Index page
+                var totalActiveCount = await _bookingService.GetTotalActiveCountAsync(lopHoc.LopHocId);
+                ViewBag.TotalActiveCount = totalActiveCount;
+
+                _logger.LogInformation("Class {ClassId} has {TotalCount} total active members (registrations + bookings)",
+                    id, totalActiveCount);
 
                 return View(lopHoc);
             }
