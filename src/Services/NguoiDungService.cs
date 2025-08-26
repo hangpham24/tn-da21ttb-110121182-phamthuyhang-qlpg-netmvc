@@ -484,5 +484,96 @@ namespace GymManagement.Web.Services
                 return false;
             }
         }
+
+        public async Task<IEnumerable<StudentDto>> GetAllStudentsByTrainerAsync(int trainerId)
+        {
+            try
+            {
+                // Get all classes for the trainer
+                var trainerClasses = await _unitOfWork.LopHocs
+                    .GetQuery()
+                    .Where(l => l.HlvId == trainerId)
+                    .Select(l => l.LopHocId)
+                    .ToListAsync();
+
+                if (!trainerClasses.Any())
+                    return Enumerable.Empty<StudentDto>();
+
+                // Get all registrations for these classes
+                var registrations = await _unitOfWork.DangKys
+                    .GetQuery()
+                    .Include(dk => dk.NguoiDung)
+                    .Include(dk => dk.LopHoc)
+                    .Where(dk => dk.LopHocId.HasValue && trainerClasses.Contains(dk.LopHocId.Value))
+                    .ToListAsync();
+
+                // Group by student and transform to DTOs
+                return registrations
+                    .GroupBy(r => r.NguoiDungId)
+                    .Select(g => new StudentDto
+                    {
+                        Id = g.First().NguoiDung.NguoiDungId.ToString(),
+                        Name = $"{g.First().NguoiDung.Ho} {g.First().NguoiDung.Ten ?? ""}",
+                        Email = g.First().NguoiDung.Email ?? "",
+                        Phone = g.First().NguoiDung.SoDienThoai ?? "",
+                        Status = g.First().NguoiDung.TrangThai,
+                        RegistrationDate = g.Min(r => r.NgayTao),
+                        ExpiryDate = g.Max(r => r.NgayKetThuc.ToDateTime(TimeOnly.MinValue)),
+                        Avatar = g.First().NguoiDung.AnhDaiDien,
+                        Gender = g.First().NguoiDung.GioiTinh,
+                        DateOfBirth = g.First().NguoiDung.NgaySinh?.ToDateTime(TimeOnly.MinValue),
+                        JoinDate = g.First().NguoiDung.NgayThamGia.ToDateTime(TimeOnly.MinValue),
+                        Registrations = g.Select(r => new ClassRegistrationDto
+                        {
+                            ClassName = r.LopHoc?.TenLop ?? "",
+                            RegistrationDate = r.NgayTao,
+                            ExpiryDate = r.NgayKetThuc.ToDateTime(TimeOnly.MinValue),
+                            Status = r.TrangThai
+                        }).ToList()
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách học viên cho HLV {TrainerId}", trainerId);
+                return Enumerable.Empty<StudentDto>();
+            }
+        }
+
+        public async Task<IEnumerable<StudentDto>> GetStudentsByClassAsync(int classId)
+        {
+            try
+            {
+                var registrations = await _unitOfWork.DangKys
+                    .GetQuery()
+                    .Include(dk => dk.ThanhVien)
+                    .Include(dk => dk.LopHoc)
+                    .Where(dk => dk.LopHocId == classId)
+                    .ToListAsync();
+
+                return registrations
+                    .Select(r => new StudentDto
+                    {
+                        Id = r.ThanhVien?.NguoiDungId.ToString(),
+                        Name = $"{r.ThanhVien?.Ho} {r.ThanhVien?.Ten}",
+                        Email = r.ThanhVien?.Email,
+                        Phone = r.ThanhVien?.SoDienThoai,
+                        Status = r.ThanhVien?.TrangThai,
+                        RegistrationDate = r.NgayDangKy,
+                        ExpiryDate = r.NgayKetThuc.ToDateTime(TimeOnly.MinValue),
+                        Avatar = r.ThanhVien?.AnhDaiDien,
+                        Gender = r.ThanhVien?.GioiTinh,
+                        DateOfBirth = r.ThanhVien?.NgaySinh?.ToDateTime(TimeOnly.MinValue),
+                        JoinDate = r.ThanhVien?.NgayThamGia.ToDateTime(TimeOnly.MinValue),
+                        ClassName = r.LopHoc?.TenLop
+                    })
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi lấy danh sách học viên cho lớp {ClassId}", classId);
+                return Enumerable.Empty<StudentDto>();
+            }
+        }
     }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GymManagement.Web.Data;
+using OfficeOpenXml;
+using Microsoft.Extensions.Logging;
 
 namespace GymManagement.Web.Controllers
 {
@@ -342,53 +344,134 @@ namespace GymManagement.Web.Controllers
         {
             try
             {
-                string csv = "";
-                string filename = "";
+                _logger.LogInformation("Starting report export: {Type}, {Start} to {End}, Format: {Format}", 
+                    reportType, startDate, endDate, format);
 
                 switch (reportType.ToLower())
                 {
                     case "revenue":
                         var revenueData = await _baoCaoService.GetRevenueByDateRangeAsync(startDate, endDate);
-                        csv = "Ngày,Doanh thu\n";
-                        foreach (var item in revenueData)
+                        if (format.ToLower() == "excel")
                         {
-                            csv += $"{item.Key},{item.Value}\n";
+                            using (var package = new ExcelPackage())
+                            {
+                                var worksheet = package.Workbook.Worksheets.Add("Doanh Thu");
+                                worksheet.Cells[1, 1].Value = "Ngày";
+                                worksheet.Cells[1, 2].Value = "Doanh Thu";
+
+                                int row = 2;
+                                foreach (var item in revenueData)
+                                {
+                                    worksheet.Cells[row, 1].Value = item.Key;
+                                    worksheet.Cells[row, 2].Value = item.Value;
+                                    worksheet.Cells[row, 2].Style.Numberformat.Format = "#,##0";
+                                    row++;
+                                }
+
+                                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                                var fileBytes = package.GetAsByteArray();
+                                string fileName = $"DoanhThu_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
+                                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                            }
                         }
-                        filename = $"DoanhThu_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.csv";
-                        break;
+                        else
+                        {
+                            var csvBuilder = new System.Text.StringBuilder("Ngày,Doanh thu (VNĐ)\n");
+                            foreach (var item in revenueData)
+                            {
+                                csvBuilder.AppendFormat("{0},{1}\n", item.Key, item.Value.ToString("#,##0"));
+                            }
+                            var bytes = System.Text.Encoding.UTF8.GetBytes(csvBuilder.ToString());
+                            string fileName = $"DoanhThu_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.csv";
+                            return File(bytes, "text/csv", fileName);
+                        }
 
                     case "attendance":
                         var attendanceData = await _baoCaoService.GetAttendanceTrendAsync(startDate, endDate);
-                        csv = "Ngày,Số lượng điểm danh\n";
-                        foreach (var item in attendanceData)
+                        if (format.ToLower() == "excel")
                         {
-                            csv += $"{item.Key},{item.Value}\n";
+                            using (var package = new ExcelPackage())
+                            {
+                                var worksheet = package.Workbook.Worksheets.Add("Điểm Danh");
+                                worksheet.Cells[1, 1].Value = "Ngày";
+                                worksheet.Cells[1, 2].Value = "Số lượng điểm danh";
+
+                                int row = 2;
+                                foreach (var item in attendanceData)
+                                {
+                                    worksheet.Cells[row, 1].Value = item.Key;
+                                    worksheet.Cells[row, 2].Value = item.Value;
+                                    row++;
+                                }
+
+                                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                                var fileBytes = package.GetAsByteArray();
+                                string fileName = $"DiemDanh_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
+                                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                            }
                         }
-                        filename = $"DiemDanh_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.csv";
-                        break;
+                        else
+                        {
+                            var csvBuilder = new System.Text.StringBuilder("Ngày,Số lượng điểm danh\n");
+                            foreach (var item in attendanceData)
+                            {
+                                csvBuilder.AppendFormat("{0},{1}\n", item.Key, item.Value);
+                            }
+                            var bytes = System.Text.Encoding.UTF8.GetBytes(csvBuilder.ToString());
+                            string fileName = $"DiemDanh_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.csv";
+                            return File(bytes, "text/csv", fileName);
+                        }
 
                     case "membership":
-                        var membershipData = await _baoCaoService.GetMembersByPackageAsync();
-                        csv = "Gói tập,Số thành viên\n";
-                        foreach (var item in membershipData)
+                        if (format.ToLower() == "excel")
                         {
-                            csv += $"{item.Key},{item.Value}\n";
+                            var membershipData = await _baoCaoService.GetMembersByPackageAsync();
+                            using (var package = new ExcelPackage())
+                            {
+                                var worksheet = package.Workbook.Worksheets.Add("Thành Viên");
+                                worksheet.Cells[1, 1].Value = "Gói tập";
+                                worksheet.Cells[1, 2].Value = "Số thành viên";
+
+                                int row = 2;
+                                foreach (var item in membershipData)
+                                {
+                                    worksheet.Cells[row, 1].Value = item.Key;
+                                    worksheet.Cells[row, 2].Value = item.Value;
+                                    row++;
+                                }
+
+                                worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                                var fileBytes = package.GetAsByteArray();
+                                string fileName = $"ThanhVien_{DateTime.Now:yyyyMMdd}.xlsx";
+                                return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                            }
                         }
-                        filename = $"ThanhVien_{DateTime.Now:yyyyMMdd}.csv";
-                        break;
+                        else
+                        {
+                            var membershipData = await _baoCaoService.GetMembersByPackageAsync();
+                            var csvBuilder = new System.Text.StringBuilder("Gói tập,Số thành viên\n");
+                            foreach (var item in membershipData)
+                            {
+                                csvBuilder.AppendFormat("{0},{1}\n", item.Key, item.Value);
+                            }
+                            var bytes = System.Text.Encoding.UTF8.GetBytes(csvBuilder.ToString());
+                            string fileName = $"ThanhVien_{DateTime.Now:yyyyMMdd}.csv";
+                            return File(bytes, "text/csv", fileName);
+                        }
 
                     default:
+                        _logger.LogWarning("Unsupported report type requested: {Type}", reportType);
                         return BadRequest("Loại báo cáo không được hỗ trợ.");
                 }
-
-                var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
-                return File(bytes, "text/csv", filename);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while exporting report");
-                TempData["ErrorMessage"] = "Có lỗi xảy ra khi xuất báo cáo.";
-                return RedirectToAction(nameof(Index));
+                _logger.LogError(ex, "Error exporting report: {Type}, {Start} to {End}", reportType, startDate, endDate);
+                TempData["ErrorMessage"] = "Đã xảy ra lỗi khi xuất báo cáo. Vui lòng thử lại sau.";
+                return StatusCode(500, "Đã xảy ra lỗi khi xuất báo cáo. Vui lòng thử lại sau.");
             }
         }
 

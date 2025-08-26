@@ -30,5 +30,8 @@ namespace GymManagement.Web.Data.Repositories
         // Count
         Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
+
+        // Direct query access
+        IQueryable<T> GetQuery();
     }
 }

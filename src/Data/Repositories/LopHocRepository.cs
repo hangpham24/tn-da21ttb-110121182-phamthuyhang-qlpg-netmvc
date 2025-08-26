@@ -47,7 +47,6 @@ namespace GymManagement.Web.Data.Repositories
                 .Include(x => x.Hlv)
                 .Include(x => x.DangKys.Where(d => d.TrangThai == "ACTIVE"))
                     .ThenInclude(d => d.NguoiDung)
-
                 .Include(x => x.Bookings.Where(b => b.Ngay >= DateOnly.FromDateTime(DateTime.Today)))
                 .Include(x => x.BuoiTaps)
                 .AsSplitQuery()
@@ -62,7 +61,8 @@ namespace GymManagement.Web.Data.Repositories
             return await _dbSet
                 .Where(x => x.HlvId == hlvId)
                 .Include(x => x.Hlv)
-                .Include(x => x.DangKys.Where(d => d.TrangThai == "ACTIVE"))
+                .Include(x => x.DangKys)
+                    .ThenInclude(dk => dk.NguoiDung)
                 .OrderBy(x => x.TenLop)
                 .ToListAsync();
         }
@@ -163,7 +163,12 @@ namespace GymManagement.Web.Data.Repositories
         {
             return await _dbSet
                 .Where(x => x.HlvId == trainerId)
+                .Include(x => x.Hlv)
                 .Include(x => x.DangKys.Where(d => d.TrangThai == "ACTIVE"))
+                    .ThenInclude(d => d.NguoiDung)
+                .Include(x => x.Bookings.Where(b => b.Ngay >= DateOnly.FromDateTime(DateTime.Today)))
+                .Include(x => x.BuoiTaps)
+                .AsSplitQuery()
                 .OrderBy(x => x.TenLop)
                 .ToListAsync();
         }

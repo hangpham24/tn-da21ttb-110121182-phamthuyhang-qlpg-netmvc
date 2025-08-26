@@ -15,6 +15,98 @@ namespace GymManagement.Web.Controllers
         private readonly IDiemDanhService _diemDanhService;
         private readonly IBaoCaoService _baoCaoService;
         private readonly IAuthService _authService;
+        private readonly IUnitOfWork _unitOfWork;
+        
+        [HttpGet]
+        public async Task<IActionResult> ExportStudentsToExcel(int? classId)
+        {
+            try
+            {
+                var user = await GetCurrentUserAsync();
+                if (user?.NguoiDungId == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy thông tin trainer." });
+                }
+
+                var trainerId = user.NguoiDungId.Value;
+
+                OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+                
+                // Tạo file Excel với EPPlus
+                using (var package = new OfficeOpenXml.ExcelPackage())
+                {
+                    var worksheet = package.Workbook.Worksheets.Add("Danh sách học viên");
+                    
+                    // Header
+                    worksheet.Cells[1, 1].Value = "STT";
+                    worksheet.Cells[1, 2].Value = "Họ và tên";
+                    worksheet.Cells[1, 3].Value = "Email";
+                    worksheet.Cells[1, 4].Value = "Số điện thoại";
+                    worksheet.Cells[1, 5].Value = "Lớp học";
+                    worksheet.Cells[1, 6].Value = "Trạng thái";
+                    worksheet.Cells[1, 7].Value = "Ngày đăng ký";
+
+                    // Style header
+                    var headerRange = worksheet.Cells[1, 1, 1, 7];
+                    headerRange.Style.Font.Bold = true;
+                    headerRange.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
+
+                    var row = 2;
+                    var myClasses = await _lopHocService.GetClassesByTrainerAsync(trainerId);
+
+                    // Nếu có classId, chỉ lấy học viên của lớp đó
+                    if (classId.HasValue)
+                    {
+                        var lopHoc = myClasses.FirstOrDefault(c => c.LopHocId == classId.Value);
+                        if (lopHoc == null || lopHoc.HlvId != trainerId)
+                        {
+                            return Json(new { success = false, message = "Không tìm thấy thông tin lớp học." });
+                        }
+                        myClasses = new[] { lopHoc };
+                    }
+
+                    // Lấy danh sách học viên từ tất cả các lớp hoặc lớp được chọn
+                    foreach (var lopHoc in myClasses)
+                    {
+                        var lopHocDetail = await _lopHocService.GetByIdAsync(lopHoc.LopHocId);
+                        if (lopHocDetail?.DangKys != null)
+                        {
+                            foreach (var dangKy in lopHocDetail.DangKys.Where(d => d.NguoiDung != null))
+                            {
+                                var hocVien = dangKy.NguoiDung!;
+                                worksheet.Cells[row, 1].Value = row - 1;
+                                worksheet.Cells[row, 2].Value = $"{hocVien.Ho} {hocVien.Ten}";
+                                worksheet.Cells[row, 3].Value = hocVien.Email;
+                                worksheet.Cells[row, 4].Value = hocVien.SoDienThoai;
+                                worksheet.Cells[row, 5].Value = lopHoc.TenLop;
+                                worksheet.Cells[row, 6].Value = dangKy.TrangThai;
+                                worksheet.Cells[row, 7].Value = dangKy.NgayDangKy.ToString("dd/MM/yyyy");
+                                row++;
+                            }
+                        }
+                    }
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+
+                    // Set content type and filename
+                    var contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                    var fileName = classId.HasValue 
+                        ? $"DanhSachHocVien_{myClasses.First().TenLop}_{DateTime.Now:yyyyMMdd}.xlsx"
+                        : $"DanhSachTatCaHocVien_{DateTime.Now:yyyyMMdd}.xlsx";
+
+                    // Convert to bytes and return
+                    var fileBytes = package.GetAsByteArray();
+                    return File(fileBytes, contentType, fileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting students to Excel");
+                return Json(new { success = false, message = "Có lỗi xảy ra khi xuất Excel." });
+            }
+        }
 
         public TrainerController(
             ILopHocService lopHocService,
@@ -23,6 +115,7 @@ namespace GymManagement.Web.Controllers
             IDiemDanhService diemDanhService,
             IBaoCaoService baoCaoService,
             IAuthService authService,
+            IUnitOfWork unitOfWork,
             IUserSessionService userSessionService,
             ILogger<TrainerController> logger)
             : base(userSessionService, logger)
@@ -33,6 +126,7 @@ namespace GymManagement.Web.Controllers
             _diemDanhService = diemDanhService;
             _baoCaoService = baoCaoService;
             _authService = authService;
+            _unitOfWork = unitOfWork;
         }
 
         // Helper method to get current user with enhanced security
@@ -83,14 +177,14 @@ namespace GymManagement.Web.Controllers
                 {
                     TrainerId = trainerId,
                     ClassCount = myClasses.Count(),
-                    Classes = myClasses.Select(c => new {
+                    Classes = await Task.WhenAll(myClasses.Select(async c => new {
                         Id = c.LopHocId,
                         Name = c.TenLop,
                         ThuTrongTuan = c.ThuTrongTuan,
                         GioBatDau = c.GioBatDau.ToString("HH:mm"),
                         GioKetThuc = c.GioKetThuc.ToString("HH:mm"),
-                        GeneratedSchedules = GenerateDynamicSchedule(c, start, end).Count
-                    }),
+                        GeneratedSchedules = (await GenerateDynamicSchedule(c, start, end)).Count
+                    })),
                     DateRange = new { Start = start, End = end }
                 };
 
@@ -354,7 +448,7 @@ namespace GymManagement.Web.Controllers
                     LogUserAction("GetScheduleEvents_ProcessClass", new { ClassName = lopHoc.TenLop, ClassId = lopHoc.LopHocId });
 
                     // Generate schedule dynamically from class info
-                    var schedules = GenerateDynamicSchedule(lopHoc, start, end);
+                    var schedules = await GenerateDynamicSchedule(lopHoc, start, end);
 
                     if (schedules.Any())
                     {
@@ -1042,7 +1136,7 @@ namespace GymManagement.Web.Controllers
         /// <summary>
         /// Generate dynamic schedule from class information
         /// </summary>
-        private List<dynamic> GenerateDynamicSchedule(LopHoc lopHoc, DateTime start, DateTime end)
+        private async Task<List<dynamic>> GenerateDynamicSchedule(LopHoc lopHoc, DateTime start, DateTime end)
         {
             var schedules = new List<dynamic>();
             var thuTrongTuan = lopHoc.ThuTrongTuan.Split(',').Select(t => t.Trim()).ToList();
@@ -1074,13 +1168,17 @@ namespace GymManagement.Web.Controllers
                         ThuTrongTuan = thuTrongTuan
                     });
 
+                    // Lấy số lượng đăng ký thực tế cho lớp học
+                    var soLuongDaDat = await _unitOfWork.DangKys
+                        .CountAsync(dk => dk.LopHocId == lopHoc.LopHocId && dk.TrangThai == "ACTIVE");
+
                     schedules.Add(new {
-                        LopHocId = lopHoc.LopHocId, // Use actual LopHocId
+                        LopHocId = lopHoc.LopHocId,
                         Ngay = DateOnly.FromDateTime(currentDate),
                         GioBatDau = lopHoc.GioBatDau,
                         GioKetThuc = lopHoc.GioKetThuc,
                         TrangThai = "SCHEDULED",
-                        SoLuongDaDat = 0, // Add missing property
+                        SoLuongDaDat = soLuongDaDat,
                         LopHoc = lopHoc
                     });
                 }

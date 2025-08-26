@@ -48,6 +48,27 @@ namespace GymManagement.Web.Services
             // Note: In production, consider using cache tags for better management
         }
 
+        public async Task<IEnumerable<TaiKhoan>> GetStudentsInClassAsync(int lopHocId)
+        {
+            var cacheKey = $"class_students_{lopHocId}";
+            return await _cache.GetOrCreateAsync(cacheKey, async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10);
+                entry.Priority = CacheItemPriority.High;
+                entry.SetSlidingExpiration(TimeSpan.FromMinutes(5));
+
+                // Get all bookings for this class
+                var bookings = await _bookingRepository.GetByLopHocIdAsync(lopHocId);
+                
+                // Extract unique student accounts and their information
+                var studentIds = bookings.Select(b => b.ThanhVienId).Where(id => id.HasValue).Select(id => id.Value).ToList();
+                var allAccounts = await _unitOfWork.TaiKhoans.GetAllAsync();
+                return allAccounts.Where(t => t.NguoiDungId != null && studentIds.Contains(t.NguoiDungId.Value));
+
+
+            }) ?? new List<TaiKhoan>();
+        }
+
         public async Task<LopHoc?> GetByIdAsync(int id)
         {
             string cacheKey = $"class_{id}";

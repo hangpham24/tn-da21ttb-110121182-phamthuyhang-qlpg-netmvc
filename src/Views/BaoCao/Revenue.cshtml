@@ -37,17 +37,18 @@
                     <p class="text-gray-600 text-lg">Phân tích chi tiết doanh thu và xu hướng tài chính</p>
                 </div>
                 
-                <!-- Export Button with Dropdown -->
-                <div class="relative">
+                <!-- Export Button with Format Selection -->
+                <div class="flex items-center space-x-2">
+                    @* <select id="exportFormat" class="bg-white border border-gray-300 text-gray-700 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <option value="csv">CSV</option>
+                        <option value="excel">Excel (XLSX)</option>
+                    </select> *@
                     <button id="exportBtn" onclick="handleExportClick()" class="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center">
                         <svg class="w-4 sm:w-5 h-4 sm:h-5 mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         <span class="hidden sm:inline">Xuất báo cáo</span>
                         <span class="sm:hidden">Xuất</span>
-                        <svg class="w-4 h-4 ml-1 sm:ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                        </svg>
                     </button>
 
                     <!-- Dropdown Menu -->
@@ -294,11 +295,58 @@
         };
 
         window.handleExportClick = function() {
-            console.log('🎯 Export handler called');
-            const dropdown = document.getElementById('exportDropdown');
-            if (dropdown) {
-                dropdown.classList.toggle('hidden');
+            // Get the current date range and format
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const format = document.getElementById('exportFormat').value;
+
+            if (!startDate || !endDate) {
+                showNotification('Vui lòng chọn khoảng thời gian', 'error');
+                return;
             }
+
+            // Build URL with parameters
+            const url = `@Url.Action("ExportReport")?reportType=revenue&startDate=${startDate}&endDate=${endDate}&format=${format}`;
+            
+            // Show loading state
+            const exportBtn = document.getElementById('exportBtn');
+            const originalText = exportBtn.innerHTML;
+            exportBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Đang xuất...</span>`;
+            exportBtn.disabled = true;
+
+            // Start download
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = format === 'csv' 
+                        ? `DoanhThu_${startDate}_${endDate}.csv`
+                        : `DoanhThu_${startDate}_${endDate}.xlsx`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    showNotification('Xuất báo cáo thành công', 'success');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Có lỗi xảy ra khi xuất báo cáo', 'error');
+                })
+                .finally(() => {
+                    // Restore button state
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
+                });
         };
 
         // ✅ DEBUGGING: Test function

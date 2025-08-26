@@ -18,6 +18,7 @@ namespace GymManagement.Web.Services
         
         // New methods
         Task<(bool CanDelete, string Message)> CanDeleteClassAsync(int lopHocId);
+        Task<IEnumerable<TaiKhoan>> GetStudentsInClassAsync(int lopHocId);
         void ClearCache();
     }
 }

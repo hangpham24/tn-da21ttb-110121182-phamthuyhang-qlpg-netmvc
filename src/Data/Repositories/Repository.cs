@@ -14,6 +14,11 @@ namespace GymManagement.Web.Data.Repositories
             _dbSet = context.Set<T>();
         }
 
+        public virtual IQueryable<T> GetQuery()
+        {
+            return _dbSet;
+        }
+
         public virtual async Task<T?> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);

@@ -37,5 +37,9 @@ namespace GymManagement.Web.Services
         // Additional methods
         Task<(bool CanDelete, string Message)> CanDeleteUserAsync(int userId);
         Task<bool> UpdateAvatarAsync(int userId, string avatarPath);
+
+        // Student-related methods
+        Task<IEnumerable<StudentDto>> GetAllStudentsByTrainerAsync(int trainerId);
+        Task<IEnumerable<StudentDto>> GetStudentsByClassAsync(int classId);
     }
 }

@@ -84,10 +84,10 @@
                 <span id="resultsCount" class="text-sm text-gray-500"></span>
             </div>
             <div class="flex items-center space-x-2">
-                <button id="exportStudents" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors" disabled>
+                <button id="exportStudents" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors cursor-pointer">
                     📊 Xuất Excel
                 </button>
-                <button id="refreshData" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors">
+                <button id="refreshData" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors cursor-pointer">
                     🔄 Làm mới
                 </button>
             </div>
@@ -157,7 +157,14 @@
             document.getElementById('dateFilter').addEventListener('change', filterStudents);
             document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
             document.getElementById('refreshData').addEventListener('click', refreshAllData);
-            document.getElementById('exportStudents').addEventListener('click', exportToExcel);
+            document.getElementById('exportStudents').addEventListener('click', function() {
+                const classId = document.getElementById('classSelect').value;
+                let url = '/Trainer/ExportStudentsToExcel';
+                if (classId && classId !== '') {
+                    url += `?classId=${classId}`;
+                }
+                window.location.href = url;
+            });
             
             // Check if classId is provided in URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -631,5 +638,7 @@
                 closeStudentModal();
             }
         });
+
+        // Đã được xử lý ở trên, không cần đoạn code này nữa
     </script>
 }
