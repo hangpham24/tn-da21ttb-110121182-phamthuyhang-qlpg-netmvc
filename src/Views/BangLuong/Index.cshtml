@@ -447,42 +447,68 @@
         }
 
         // Search and filter functionality
-        document.getElementById('searchInput').addEventListener('input', filterSalaries);
+        const searchInputEl = document.getElementById('searchInput');
+        if (searchInputEl) {
+            searchInputEl.addEventListener('input', filterSalaries);
+            // Press Enter to trigger search immediately
+            searchInputEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    filterSalaries();
+                }
+            });
+        }
         document.getElementById('monthFilter').addEventListener('change', filterSalaries);
         document.getElementById('statusFilter').addEventListener('change', filterSalaries);
         document.getElementById('amountFilter').addEventListener('change', filterSalaries);
 
+        // Normalize text: remove diacritics, collapse whitespace, lowercase
+        function normalizeText(str) {
+            if (!str) return '';
+            try {
+                return str.normalize('NFD').replace(/\p{Diacritic}+/gu, '').toLowerCase().trim().replace(/\s+/g, ' ');
+            } catch (e) {
+                // Fallback if Unicode property escapes unsupported
+                return str.toLowerCase().trim().replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ');
+            }
+        }
+
         function filterSalaries() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rawSearch = document.getElementById('searchInput').value || '';
+            const search = normalizeText(rawSearch);
             const month = document.getElementById('monthFilter').value;
             const status = document.getElementById('statusFilter').value;
             const amount = document.getElementById('amountFilter').value;
-            
+
             const salaryRows = document.querySelectorAll('.salary-row');
 
+            const tokens = search.split(' ').filter(t => t.length > 0);
+
             salaryRows.forEach(row => {
-                const trainer = row.getAttribute('data-trainer') || '';
+                const trainerRaw = row.getAttribute('data-trainer') || '';
+                const trainer = normalizeText(trainerRaw);
                 const rowMonth = row.getAttribute('data-month');
                 const rowStatus = row.getAttribute('data-status');
-                const rowAmount = parseFloat(row.getAttribute('data-amount'));
-                
+                const rowAmount = parseFloat(row.getAttribute('data-amount')) || 0;
+
                 let show = true;
-                
-                // Search filter
-                if (searchTerm && !trainer.includes(searchTerm)) {
-                    show = false;
+
+                // Search filter: require all tokens to match either name parts
+                if (tokens.length > 0) {
+                    const matches = tokens.every(token => trainer.includes(token));
+                    if (!matches) show = false;
                 }
-                
+
                 // Month filter
                 if (month && show && rowMonth !== month) {
                     show = false;
                 }
-                
+
                 // Status filter
                 if (status && show && rowStatus !== status) {
                     show = false;
                 }
-                
+
                 // Amount filter
                 if (amount && show) {
                     switch (amount) {
@@ -497,7 +523,7 @@
                             break;
                     }
                 }
-                
+
                 row.style.display = show ? '' : 'none';
             });
         }

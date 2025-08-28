@@ -178,13 +178,13 @@
                     </div>
                 </div>
             </div>
-            <div class="flex space-x-3">
+                <div class="flex space-x-3">
                 @* <select id="filterSelect" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="all">Tất cả</option>
                     <option value="recent">Đăng ký gần đây</option>
                     <option value="old">Đăng ký cũ</option>
                 </select> *@
-                <button onclick="loadAllFaces()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <button onclick="filterFaces()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                     🔍 Tìm kiếm
                 </button>
             </div>
@@ -262,9 +262,20 @@
             if (registerButton) registerButton.addEventListener('click', testRegisterFace);
 
             // Search functionality
-            document.getElementById('searchInput').addEventListener('input', function() {
-                filterFaces();
-            });
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    filterFaces();
+                });
+
+                // Press Enter to search
+                searchInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        filterFaces();
+                    }
+                });
+            }
         }
 
         // Load Face-API models (học theo FaceTest)
@@ -606,14 +617,36 @@
             }
         }
 
+        function normalizeText(str) {
+            if (!str) return '';
+            // Remove accents/diacritics
+            try {
+                return str.normalize('NFD').replace(/\p{Diacritic}+/gu, '').toLowerCase().trim().replace(/\s+/g, ' ');
+            } catch (e) {
+                // Fallback if normalize with Unicode property escapes is not supported
+                return str.toLowerCase().trim().replace(/\s+/g, ' ');
+            }
+        }
+
         function filterFaces() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const raw = document.getElementById('searchInput').value || '';
+            const search = normalizeText(raw);
+
+            if (search.length === 0) {
+                filteredFaces = [...allFaces];
+                currentPage = 1;
+                displayFaces();
+                return;
+            }
+
+            const tokens = search.split(' ').filter(t => t.length > 0);
 
             filteredFaces = allFaces.filter(face => {
-                const matchesSearch = face.memberName.toLowerCase().includes(searchTerm) ||
-                                    face.memberEmail.toLowerCase().includes(searchTerm);
+                const name = normalizeText(face.memberName || '');
+                const email = normalizeText(face.memberEmail || '');
 
-                return matchesSearch;
+                // Require every token to appear in either name or email (AND)
+                return tokens.every(token => name.includes(token) || email.includes(token));
             });
 
             currentPage = 1;
