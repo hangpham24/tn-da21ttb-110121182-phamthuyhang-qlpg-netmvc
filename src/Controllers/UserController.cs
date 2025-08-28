@@ -1026,24 +1026,28 @@ namespace GymManagement.Web.Controllers
         /// <summary>
         /// Vô hiệu hóa người dùng (xóa tạm thời)
         /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deactivate(int id)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Deactivate(int id, [FromQuery(Name = "action")] string action = "Deactivate")
         {
             try
             {
-                _logger.LogInformation("Admin attempting to deactivate user ID: {Id}", id);
+                var isActivating = action == "Activate";
+                _logger.LogInformation("Admin attempting to {Action} user ID: {Id}", isActivating ? "activate" : "deactivate", id);
 
-                var result = await _nguoiDungService.DeactivateUserAsync(id);
+                var result = isActivating ? 
+                    await _nguoiDungService.ActivateUserAsync(id) :
+                    await _nguoiDungService.DeactivateUserAsync(id);
+
                 if (result)
                 {
-                    _logger.LogInformation("Successfully deactivated user ID: {Id}", id);
-                    return Json(new { success = true, message = "Vô hiệu hóa người dùng thành công!" });
+                    _logger.LogInformation("Successfully {Action} user ID: {Id}", isActivating ? "activated" : "deactivated", id);
+                    return Json(new { success = true, message = $"{(isActivating ? "Kích hoạt" : "Vô hiệu hóa")} người dùng thành công!" });
                 }
                 else
                 {
-                    _logger.LogWarning("Failed to deactivate user ID: {Id}", id);
-                    return Json(new { success = false, message = "Không thể vô hiệu hóa người dùng. Người dùng không tồn tại." });
+                    _logger.LogWarning("Failed to {Action} user ID: {Id}", isActivating ? "activate" : "deactivate", id);
+                    return Json(new { success = false, message = $"Không thể {(isActivating ? "kích hoạt" : "vô hiệu hóa")} người dùng. Người dùng không tồn tại." });
                 }
             }
             catch (Exception ex)

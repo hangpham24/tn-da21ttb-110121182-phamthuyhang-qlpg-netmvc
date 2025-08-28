@@ -13,7 +13,9 @@ namespace GymManagement.Web.Services
         private readonly ILogger<FaceRecognitionService> _logger;
         private readonly IConfiguration _configuration;
         
-        private const double DEFAULT_THRESHOLD = 0.6;
+    // Raised default threshold to reduce false positives from unknown faces.
+    // If you need stricter matching, increase this value (0.0 - 1.0).
+    private const double DEFAULT_THRESHOLD = 0.78;
         private const string CACHE_KEY_PREFIX = "face_recognition_";
 
         public FaceRecognitionService(
@@ -134,7 +136,8 @@ namespace GymManagement.Web.Services
                     }
                 }
 
-                // Log recognition attempt
+                // Log recognition attempt with more diagnostic information
+                _logger.LogInformation("Face recognition: bestMatchUserId={UserId}, bestSimilarity={Similarity}", bestMatch?.NguoiDungId, bestSimilarity);
                 await LogRecognitionAttemptAsync(bestMatch?.NguoiDungId, bestSimilarity >= DEFAULT_THRESHOLD, bestSimilarity);
 
                 if (bestMatch != null && bestSimilarity >= DEFAULT_THRESHOLD)

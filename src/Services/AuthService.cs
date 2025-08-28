@@ -37,25 +37,44 @@ namespace GymManagement.Web.Services
 
         public async Task<TaiKhoan?> AuthenticateAsync(string usernameOrEmail, string password)
         {
-            // Try to find user by username first, then by email
-            var user = await GetUserByUsernameAsync(usernameOrEmail);
-
-            // If not found by username, try by email
-            if (user == null && IsValidEmail(usernameOrEmail))
+            try
             {
-                user = await GetUserByEmailAsync(usernameOrEmail);
-            }
+                // Try to find user by username first, then by email
+                var user = await GetUserByUsernameAsync(usernameOrEmail);
 
-            if (user == null || !user.KichHoat)
+                // If not found by username, try by email
+                if (user == null && IsValidEmail(usernameOrEmail))
+                {
+                    user = await GetUserByEmailAsync(usernameOrEmail);
+                }
+
+                if (user == null || !user.KichHoat)
+                    return null;
+
+                // Kiểm tra trạng thái người dùng
+                if (user.NguoiDung != null && user.NguoiDung.TrangThai != "ACTIVE")
+                {
+                    throw new InvalidOperationException("Tài khoản đã bị vô hiệu hóa.");
+                }
+
+                if (_passwordService.VerifyPassword(password, user.Salt, user.MatKhauHash))
+                {
+                    await UpdateLastLoginAsync(user.Id);
+                    return user;
+                }
+
                 return null;
-
-            if (_passwordService.VerifyPassword(password, user.Salt, user.MatKhauHash))
-            {
-                await UpdateLastLoginAsync(user.Id);
-                return user;
             }
-
-            return null;
+            catch (InvalidOperationException)
+            {
+                // Re-throw để AuthController có thể bắt và hiển thị lỗi
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in AuthenticateAsync: {ex.Message}");
+                return null;
+            }
         }
 
         public async Task<TaiKhoan?> GetUserByIdAsync(string id)

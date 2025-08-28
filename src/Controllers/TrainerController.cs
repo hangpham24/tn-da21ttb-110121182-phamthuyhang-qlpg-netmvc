@@ -30,8 +30,6 @@ namespace GymManagement.Web.Controllers
 
                 var trainerId = user.NguoiDungId.Value;
 
-                OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
-                
                 // Tạo file Excel với EPPlus
                 using (var package = new OfficeOpenXml.ExcelPackage())
                 {

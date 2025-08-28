@@ -221,42 +221,8 @@
             </div>
         </div>
 
-        <!-- Detailed Table -->
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-100">
-            <div class="p-4 sm:p-6 border-b border-gray-200">
-                <h3 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2h2a2 2 0 002-2z"></path>
-                    </svg>
-                    Chi tiết doanh thu theo ngày
-                </h3>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doanh thu</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Số GD</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">TB/GD</th>
-                            <th class="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Thay đổi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="revenueTableBody" class="bg-white divide-y divide-gray-200">
-                        <!-- Table rows will be populated by JavaScript -->
-                        <tr>
-                            <td colspan="5" class="px-3 sm:px-6 py-8 text-center text-gray-500">
-                                <div class="flex items-center justify-center">
-                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mr-2"></div>
-                                    Đang tải dữ liệu...
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- Detailed table removed per request: only charts displayed -->
+    <!-- Placeholder: detailed table intentionally omitted to keep UI focused on charts -->
     </div>
 </div>
 
@@ -853,7 +819,7 @@
             if (entries.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                        <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                             Không có dữ liệu trong khoảng thời gian đã chọn
                         </td>
                     </tr>
@@ -882,16 +848,16 @@
                         <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden sm:table-cell">
                             ${estimatedTransactions}
                         </td>
-                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
+                        @* <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 hidden lg:table-cell">
                             ${formatCurrency(avgPerTransaction, true)}
-                        </td>
-                        <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
+                        </td> *@
+                        @* <td class="px-3 sm:px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 change >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                             }">
                                 ${change >= 0 ? '↗' : '↘'} ${Math.abs(change).toFixed(1)}%
                             </span>
-                        </td>
+                        </td> *@
                     </tr>
                 `;
             }).join('');

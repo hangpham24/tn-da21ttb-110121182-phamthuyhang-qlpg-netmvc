@@ -66,11 +66,11 @@ namespace GymManagement.Web.Controllers
                 return View(model);
             }
 
-            var user = await _authService.AuthenticateAsync(model.Username, model.Password);
-
-            if (user != null)
+            try
             {
-                try
+                var user = await _authService.AuthenticateAsync(model.Username, model.Password);
+
+                if (user != null)
                 {
                     var principal = await _authService.CreateClaimsPrincipalAsync(user);
                     await HttpContext.SignInAsync("Cookies", principal);
@@ -87,7 +87,7 @@ namespace GymManagement.Web.Controllers
 
                     // Get user roles to determine redirect destination
                     var userRoles = await _authService.GetUserRolesAsync(user.Id);
-                    
+
                     // Redirect trainers to their dashboard
                     if (userRoles.Contains("Trainer"))
                     {
@@ -96,16 +96,27 @@ namespace GymManagement.Web.Controllers
 
                     return RedirectToAction("Index", "Home");
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogError(ex, "Error during login process for user {Username}", model.Username);
-                    ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại.");
+                    ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không đúng.");
                     return View(model);
                 }
             }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during login process for user {Username}", model.Username);
+                ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi trong quá trình đăng nhập. Vui lòng thử lại.");
+                return View(model);
+            }
 
-            ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không đúng.");
-            return View(model);
+
+            // ModelState.AddModelError(string.Empty, "Tên đăng nhập hoặc mật khẩu không đúng.");
+            // return View(model);
         }
 
         [HttpGet]
@@ -277,12 +288,12 @@ namespace GymManagement.Web.Controllers
 
                 // Kiểm tra xem user đã tồn tại chưa
                 var existingUser = await _authService.GetUserByEmailAsync(email);
-                
+
                 if (existingUser == null)
                 {
                     // Tạo user mới từ Google account
                     var username = email.Split('@')[0] + "_" + DateTime.Now.Ticks.ToString().Substring(10, 5);
-                    
+
                     var newUser = new TaiKhoan
                     {
                         TenDangNhap = username,
@@ -303,7 +314,7 @@ namespace GymManagement.Web.Controllers
                     }
 
                     existingUser = await _authService.GetUserByEmailAsync(email);
-                    
+
                     // Lưu thông tin Google login
                     await _authService.SaveExternalLoginAsync(existingUser!.Id, "Google", googleId, name);
 
