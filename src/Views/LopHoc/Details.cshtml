@@ -439,13 +439,12 @@
 
             const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-            fetch(`/LopHoc/DeleteConfirmed`, {
+            fetch(`/LopHoc/Delete?id=${classId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'RequestVerificationToken': token
-                },
-                body: `id=${classId}`
+                }
             })
             .then(response => response.json())
             .then(data => {

@@ -344,52 +344,7 @@ namespace GymManagement.Web.Controllers
             }
         }
 
-        /// <summary>
-        /// Xử lý xóa lớp học (AJAX)
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            try
-            {
-                _logger.LogInformation("Attempting to delete class ID: {ClassId}", id);
 
-                // Check if class exists
-                var lopHoc = await _lopHocService.GetByIdAsync(id);
-                if (lopHoc == null)
-                {
-                    _logger.LogWarning("Class not found for deletion with ID: {ClassId}", id);
-                    return Json(new { success = false, message = "Không tìm thấy lớp học cần xóa." });
-                }
-
-                // Check if class can be deleted
-                var canDelete = await _lopHocService.CanDeleteClassAsync(id);
-                if (!canDelete.CanDelete)
-                {
-                    _logger.LogWarning("Cannot delete class ID: {ClassId} - {Reason}", id, canDelete.Message);
-                    return Json(new { success = false, message = canDelete.Message });
-                }
-
-                var result = await _lopHocService.DeleteAsync(id);
-                if (result)
-                {
-                    _logger.LogInformation("Successfully deleted class ID: {ClassId}", id);
-                    return Json(new { success = true, message = $"Đã xóa lớp học '{lopHoc.TenLop}' thành công!" });
-                }
-                else
-                {
-                    _logger.LogError("Failed to delete class ID: {ClassId}", id);
-                    return Json(new { success = false, message = "Không thể xóa lớp học. Vui lòng thử lại sau." });
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while deleting class ID: {ClassId}", id);
-                return Json(new { success = false, message = "Có lỗi xảy ra khi xóa lớp học. Vui lòng thử lại sau." });
-            }
-        }
 
         /// <summary>
         /// API: Lấy danh sách lớp học đang hoạt động
@@ -576,7 +531,7 @@ namespace GymManagement.Web.Controllers
             try
             {
                 // Get enrolled members for this class
-                var enrolledMembers = await GetEnrolledMembersAsync(lopHoc.LopHocId);
+                var enrolledMembers = GetEnrolledMembersAsync(lopHoc.LopHocId);
                 
                 // Get trainer info
                 var trainer = lopHoc.HlvId != null ? await _nguoiDungService.GetByIdAsync(lopHoc.HlvId.Value) : null;
@@ -617,7 +572,7 @@ namespace GymManagement.Web.Controllers
             }
         }
 
-        private async Task<List<NguoiDung>> GetEnrolledMembersAsync(int classId)
+        private List<NguoiDung> GetEnrolledMembersAsync(int classId)
         {
             try
             {

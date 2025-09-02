@@ -689,7 +689,8 @@
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointRadius: window.innerWidth < 640 ? 3 : 5,
-                        pointHoverRadius: window.innerWidth < 640 ? 5 : 7
+                        pointHoverRadius: window.innerWidth < 640 ? 5 : 7,
+                        spanGaps: true
                     }]
                 },
                 options: {
@@ -823,10 +824,42 @@
         function updateRevenueChart(data) {
             console.log('📊 Updating revenue chart with data:', data);
 
-            // ✅ IMPROVED: Sort dates chronologically for proper trend display
-            const sortedEntries = Object.entries(data).sort((a, b) => new Date(a[0]) - new Date(b[0]));
-            const labels = sortedEntries.map(([date]) => formatDate(date));
-            const values = sortedEntries.map(([, value]) => value || 0);
+            // Get current date in YYYY-MM-DD format
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Convert data object to array
+            let entries = Object.entries(data);
+            
+            // Debug logging
+            console.log('Today:', today);
+            console.log('Current data for today:', data[today]);
+            
+            // Convert all dates to YYYY-MM-DD format for comparison
+            const hasToday = entries.some(([date]) => {
+                const dateOnly = new Date(date).toISOString().split('T')[0];
+                console.log('Comparing:', dateOnly, 'with today:', today);
+                return dateOnly === today;
+            });
+            
+            // Add today if missing
+            if (!hasToday) {
+                console.log('Adding today to data');
+                entries.push([today, 0]);
+            }
+
+            // Sort dates chronologically
+            const sortedEntries = entries.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+            
+            // Map to labels and values with debug logging
+            const labels = sortedEntries.map(([date]) => {
+                const formattedDate = formatDate(date);
+                console.log('Formatting date:', date, 'to:', formattedDate);
+                return formattedDate;
+            });
+            const values = sortedEntries.map(([date, value]) => {
+                console.log('Value for date', date, ':', value);
+                return value || 0;
+            });
 
             console.log('📊 Chart labels:', labels);
             console.log('📊 Chart values:', values);
@@ -1025,11 +1058,21 @@
 
         function formatDate(dateString) {
             const date = new Date(dateString);
-            return date.toLocaleDateString('vi-VN', {
+            const today = new Date();
+            
+            // Format the date
+            let formattedDate = date.toLocaleDateString('vi-VN', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric'
             });
+            
+            // Add " (Hôm nay)" if it's today's date
+            if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0]) {
+                formattedDate += ' (Hôm nay)';
+            }
+            
+            return formattedDate;
         }
 
         function showLoading(show) {

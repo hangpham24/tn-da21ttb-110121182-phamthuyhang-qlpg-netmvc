@@ -623,7 +623,10 @@ namespace GymManagement.Web.Controllers
                     (u.LoaiNguoiDung == "THANHVIEN" || u.LoaiNguoiDung == "VANGLAI") &&
                     u.TrangThai == "ACTIVE");
 
-                ViewBag.Packages = new SelectList(packages, "GoiTapId", "TenGoi");
+                ViewBag.Packages = new SelectList(packages.Select(p => new {
+                    GoiTapId = p.GoiTapId,
+                    DisplayText = $"{p.TenGoi} ({p.ThoiHanThang} tháng - {p.Gia:N0} VNĐ)"
+                }), "GoiTapId", "DisplayText");
                 ViewBag.Classes = new SelectList(classes, "LopHocId", "TenLop");
                 ViewBag.Members = new SelectList(membersAndWalkIns.Select(m => new {
                     NguoiDungId = m.NguoiDungId,
@@ -681,13 +684,16 @@ namespace GymManagement.Web.Controllers
                     return Json(new { success = false, message = "Gói tập không tồn tại." });
                 }
 
-                var totalPrice = package.Gia * duration;
+                // Use the package's fixed duration
+                duration = package.ThoiHanThang;
+                var totalPrice = package.Gia; // Use fixed price for the entire duration
                 return Json(new {
                     success = true,
                     price = totalPrice,
                     formattedPrice = totalPrice.ToString("N0") + " VNĐ",
                     packageName = package.TenGoi,
-                    monthlyPrice = package.Gia
+                    monthlyPrice = package.Gia,
+                    duration = package.ThoiHanThang
                 });
             }
             catch (Exception ex)

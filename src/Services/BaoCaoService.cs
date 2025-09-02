@@ -85,10 +85,14 @@ namespace GymManagement.Web.Services
             while (currentDate <= endDate.Date)
             {
                 var dayRevenue = successfulPayments
-                    .Where(p => p.NgayThanhToan.Date == currentDate)
+                    .Where(p => p.NgayThanhToan.Date == currentDate.Date 
+                           && p.TrangThai == "SUCCESS")
                     .Sum(p => p.SoTien);
 
-                result[currentDate.ToString("yyyy-MM-dd")] = dayRevenue;
+                var dateKey = currentDate.ToString("yyyy-MM-dd");
+                _logger.LogInformation($"Calculating revenue for {dateKey}: {dayRevenue:N0} VND");
+                
+                result[dateKey] = dayRevenue;
                 currentDate = currentDate.AddDays(1);
             }
 

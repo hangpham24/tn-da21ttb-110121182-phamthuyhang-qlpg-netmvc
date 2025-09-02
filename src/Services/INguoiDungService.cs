@@ -24,6 +24,10 @@ namespace GymManagement.Web.Services
         Task<IEnumerable<NguoiDungDto>> GetByLoaiNguoiDungAsync(string loaiNguoiDung);
         Task<NguoiDungDto?> GetByEmailAsync(string email);
         Task<NguoiDungDto?> GetBySoDienThoaiAsync(string soDienThoai);
+
+        // Guest to Member upgrade
+        Task<bool> UpgradeVangLaiToThanhVienAsync(int userId);
+        Task<bool> CheckAndUpgradeVangLaiWithAccountAsync();
         Task<IEnumerable<NguoiDungDto>> GetActiveUsersAsync();
         Task<IEnumerable<NguoiDungDto>> GetHuanLuyenViensAsync();
         Task<IEnumerable<NguoiDungDto>> GetThanhViensAsync();

@@ -67,7 +67,7 @@ namespace GymManagement.Web.Controllers
                 {
                     new SelectListItem { Text = "Tất cả kênh", Value = "" },
                     new SelectListItem { Text = "📧 Email", Value = "EMAIL" },
-                    new SelectListItem { Text = "📱 SMS", Value = "SMS" },
+                    // new SelectListItem { Text = "📱 SMS", Value = "SMS" },
                     new SelectListItem { Text = "📱 App", Value = "APP" }
                 };
 

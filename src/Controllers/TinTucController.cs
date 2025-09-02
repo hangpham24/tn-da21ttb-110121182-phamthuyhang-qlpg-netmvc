@@ -10,7 +10,7 @@ namespace GymManagement.Web.Controllers
     public class TinTucController : BaseController
     {
         private readonly ITinTucService _tinTucService;
-        private readonly ILogger<TinTucController> _logger;
+        private readonly new ILogger<TinTucController> _logger;
 
         public TinTucController(
             ITinTucService tinTucService,

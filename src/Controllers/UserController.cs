@@ -1217,6 +1217,38 @@ namespace GymManagement.Web.Controllers
         /// Tạo tài khoản hàng loạt cho tất cả người dùng chưa có tài khoản
         /// </summary>
         [HttpPost]
+        /// <summary>
+        /// Nâng cấp tất cả khách vãng lai có tài khoản thành thành viên
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpgradeVangLaiWithAccount()
+        {
+            try
+            {
+                _logger.LogInformation("Admin attempting to upgrade all VANGLAI users with accounts");
+                var result = await _nguoiDungService.CheckAndUpgradeVangLaiWithAccountAsync();
+
+                if (result)
+                {
+                    return Json(new { success = true, message = "Đã nâng cấp thành công các khách vãng lai có tài khoản thành thành viên." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi nâng cấp khách vãng lai." });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred during upgrading VANGLAI users with accounts");
+                return Json(new { success = false, message = "Có lỗi xảy ra khi nâng cấp khách vãng lai." });
+            }
+        }
+
+        /// <summary>
+        /// Tạo tài khoản hàng loạt cho tất cả người dùng chưa có tài khoản
+        /// </summary>
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BulkCreateAccount()
         {

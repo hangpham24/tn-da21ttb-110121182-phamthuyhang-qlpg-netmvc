@@ -50,6 +50,12 @@ namespace GymManagement.Web.Controllers
         {
             try
             {
+                // Ensure we're working with date-only values (no time component)
+                startDate = startDate.Date;
+                endDate = endDate.Date;
+                
+                _logger.LogInformation($"Getting revenue data from {startDate:yyyy-MM-dd} to {endDate:yyyy-MM-dd}");
+
                 // ✅ INPUT VALIDATION: Validate date parameters
                 var validationResult = ValidateDateRange(startDate, endDate);
                 if (!validationResult.IsValid)
@@ -68,6 +74,8 @@ namespace GymManagement.Web.Controllers
                 {
                     return Json(new { success = false, message = "Tham số nguồn dữ liệu không hợp lệ." });
                 }
+
+                _logger.LogInformation($"Parameters validated successfully. GroupBy: {groupBy}, Source: {source}");
 
                 var data = await _baoCaoService.GetRevenueByDateRangeAsync(startDate, endDate, source);
                 return Json(new { success = true, data = data });

@@ -126,6 +126,13 @@ namespace GymManagement.Web.Services
         {
             try
             {
+                // Delete TaiKhoan (account)
+                var taiKhoan = await _unitOfWork.Context.TaiKhoans.FirstOrDefaultAsync(tk => tk.NguoiDungId == nguoiDungId);
+                if (taiKhoan != null)
+                {
+                    _unitOfWork.Context.TaiKhoans.Remove(taiKhoan);
+                }
+
                 // Delete ThongBaos
                 var thongBaos = _unitOfWork.Context.ThongBaos.Where(tb => tb.NguoiDungId == nguoiDungId);
                 _unitOfWork.Context.ThongBaos.RemoveRange(thongBaos);
@@ -451,17 +458,12 @@ namespace GymManagement.Web.Services
                     }
                 }
 
-                // Check if user has linked account
-                if (nguoiDung.TaiKhoan != null)
-                {
-                    return (false, "Không thể xóa người dùng có tài khoản đăng nhập. Vui lòng vô hiệu hóa tài khoản thay vì xóa.");
-                }
-
+                // Always allow delete but handle account deletion in DeleteAsync
                 return (true, "Người dùng có thể xóa được.");
             }
-            catch (Exception ex)
+            catch
             {
-                return (false, $"Có lỗi xảy ra khi kiểm tra: {ex.Message}");
+                return (false, "Có lỗi xảy ra khi kiểm tra khả năng xóa người dùng.");
             }
         }
 
@@ -573,6 +575,72 @@ namespace GymManagement.Web.Services
             {
                 _logger.LogError(ex, "Lỗi khi lấy danh sách học viên cho lớp {ClassId}", classId);
                 return Enumerable.Empty<StudentDto>();
+            }
+        }
+
+        /// <summary>
+        /// Nâng cấp một người dùng từ Vãng lai thành Thành viên
+        /// </summary>
+        public async Task<bool> UpgradeVangLaiToThanhVienAsync(int userId)
+        {
+            try
+            {
+                var nguoiDung = await _unitOfWork.NguoiDungs.GetByIdAsync(userId);
+                if (nguoiDung == null) return false;
+
+                if (nguoiDung.LoaiNguoiDung != "VANGLAI")
+                {
+                    _logger.LogWarning("Cannot upgrade user {UserId} because they are not VANGLAI (current type: {Type})", 
+                        userId, nguoiDung.LoaiNguoiDung);
+                    return false;
+                }
+
+                nguoiDung.LoaiNguoiDung = "THANHVIEN";
+                await _unitOfWork.NguoiDungs.UpdateAsync(nguoiDung);
+                await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation("Successfully upgraded user {UserId} from VANGLAI to THANHVIEN", userId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error upgrading user {UserId} from VANGLAI to THANHVIEN", userId);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Kiểm tra và tự động nâng cấp tất cả khách vãng lai có tài khoản thành thành viên
+        /// </summary>
+        public async Task<bool> CheckAndUpgradeVangLaiWithAccountAsync()
+        {
+            try
+            {
+                // Get all VANGLAI users who have accounts
+                var allUsers = await _unitOfWork.NguoiDungs.GetAllWithTaiKhoanAsync();
+                var vangLaiUsers = allUsers
+                    .Where(u => u.LoaiNguoiDung == "VANGLAI" && u.TaiKhoan != null)
+                    .ToList();
+
+                if (!vangLaiUsers.Any())
+                {
+                    _logger.LogInformation("No VANGLAI users with accounts found that need upgrading");
+                    return true;
+                }
+
+                _logger.LogInformation("Found {Count} VANGLAI users with accounts that need upgrading", vangLaiUsers.Count);
+
+                foreach (var user in vangLaiUsers)
+                {
+                    await UpgradeVangLaiToThanhVienAsync(user.NguoiDungId);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during bulk upgrade of VANGLAI users to THANHVIEN");
+                return false;
             }
         }
     }
