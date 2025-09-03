@@ -174,7 +174,7 @@
                 handleFilterChange();
             } else {
                 // Load all students from all classes initially
-                loadStudents();
+                loadAllStudents();
             }
         });
 
@@ -545,7 +545,7 @@
         
         function handleFilterChange() {
             const classId = document.getElementById('classSelect').value;
-            if (classId) {
+            if (classId && classId !== '') {
                 loadStudents();
             } else {
                 loadAllStudents();
@@ -554,9 +554,22 @@
         
         function loadAllStudents() {
             showLoadingState();
-            // This would typically make multiple API calls to get students from all classes
-            // For now, we'll show a message to select a class
-            showDefaultState();
+            
+            // Load all students from all classes via API
+            fetch('@Url.Action("GetAllStudentsByTrainer", "Trainer")')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentStudents = data.data;
+                        displayStudents(currentStudents);
+                    } else {
+                        showError(data.message || 'Có lỗi xảy ra khi tải danh sách học viên.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading all students:', error);
+                    showError('Có lỗi xảy ra khi tải danh sách học viên.');
+                });
         }
         
         function clearAllFilters() {
@@ -571,7 +584,7 @@
         
         function refreshAllData() {
             const classId = document.getElementById('classSelect').value;
-            if (classId) {
+            if (classId && classId !== '') {
                 loadStudents();
             } else {
                 loadAllStudents();
