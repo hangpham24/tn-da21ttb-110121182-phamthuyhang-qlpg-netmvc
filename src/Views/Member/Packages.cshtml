@@ -298,7 +298,14 @@
                                         </div>
                                         <div class="flex-1">
                                             <span class="text-sm font-medium text-gray-900">Đánh giá thể trạng</span>
-                                            <p class="text-xs text-gray-600 mt-1">Miễn phí kiểm tra sức khỏe định kỳ</p>
+                                            @if (package.ThoiHanThang == 6)
+                                            {
+                                                <p class="text-xs text-gray-600 mt-1">Hỗ trợ 50% chi phí kiểm tra sức khỏe định kỳ</p>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-xs text-gray-600 mt-1">Miễn phí kiểm tra sức khỏe định kỳ</p>
+                                            }
                                         </div>
                                     </div>
                                 }

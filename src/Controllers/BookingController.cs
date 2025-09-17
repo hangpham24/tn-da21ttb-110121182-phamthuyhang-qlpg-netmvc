@@ -505,7 +505,13 @@ namespace GymManagement.Web.Controllers
                         while (currentDate <= end)
                         {
                             var dayOfWeek = GetVietnameseDayOfWeek(currentDate.DayOfWeek);
-                            if (thuTrongTuan.Contains(dayOfWeek))
+                            var dayOfWeekNumber = GetDayOfWeekNumber(currentDate.DayOfWeek);
+                            
+                            // Support both formats: "Thứ 5" and "4"
+                            var isValidDay = thuTrongTuan.Contains(dayOfWeek) || 
+                                           thuTrongTuan.Contains(dayOfWeekNumber.ToString());
+                            
+                            if (isValidDay)
                             {
                                 // Check capacity for this specific date (both Bookings and DangKys)
                                 var dateOnly = DateOnly.FromDateTime(currentDate);
@@ -967,6 +973,21 @@ namespace GymManagement.Web.Controllers
             };
         }
 
+        private int GetDayOfWeekNumber(DayOfWeek dayOfWeek)
+        {
+            return dayOfWeek switch
+            {
+                DayOfWeek.Monday => 1,    // 1 = Thứ 2
+                DayOfWeek.Tuesday => 2,   // 2 = Thứ 3
+                DayOfWeek.Wednesday => 3, // 3 = Thứ 4
+                DayOfWeek.Thursday => 4,  // 4 = Thứ 5
+                DayOfWeek.Friday => 5,    // 5 = Thứ 6
+                DayOfWeek.Saturday => 6,  // 6 = Thứ 7
+                DayOfWeek.Sunday => 7,    // 7 = Chủ nhật
+                _ => 0
+            };
+        }
+
         // ✅ NEW: API endpoints for booking management
 
         /// <summary>
@@ -1304,6 +1325,18 @@ namespace GymManagement.Web.Controllers
                     return Json(new { canBook = false, message = "Lớp học không tồn tại" });
                 }
 
+                // ✅ NEW: Check if class time has passed
+                var currentDateTime = DateTime.Now;
+                var classDateTime = dateOnly.ToDateTime(lopHoc.GioBatDau);
+                
+                if (classDateTime <= currentDateTime)
+                {
+                    return Json(new { 
+                        canBook = false, 
+                        message = $"Không thể đặt lịch cho lớp đã bắt đầu hoặc đã kết thúc. Thời gian lớp: {lopHoc.GioBatDau:HH:mm} ngày {dateOnly:dd/MM/yyyy}" 
+                    });
+                }
+
                 // Check capacity (both Bookings and DangKys)
                 var currentBookings = await _unitOfWork.Context.Bookings
                     .Where(b => b.LopHocId == classId &&
@@ -1338,6 +1371,8 @@ namespace GymManagement.Web.Controllers
                 return Json(new { canBook = false, message = "Lỗi hệ thống" });
             }
         }
+
+
     }
 
     // ✅ DTO classes for API requests

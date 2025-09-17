@@ -344,6 +344,54 @@ namespace GymManagement.Web.Controllers
             }
         }
 
+        /// <summary>
+        /// Xử lý xóa lớp học
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(int id, IFormCollection form)
+        {
+            try
+            {
+                _logger.LogInformation("Processing delete request for class ID: {ClassId}", id);
+
+                // Check if class exists
+                var lopHoc = await _lopHocService.GetByIdAsync(id);
+                if (lopHoc == null)
+                {
+                    _logger.LogWarning("Class not found for delete with ID: {ClassId}", id);
+                    return Json(new { success = false, message = "Không tìm thấy lớp học cần xóa." });
+                }
+
+                // Check if class can be deleted
+                var canDelete = await _lopHocService.CanDeleteClassAsync(id);
+                if (!canDelete.CanDelete)
+                {
+                    _logger.LogWarning("Cannot delete class ID {ClassId}: {Reason}", id, canDelete.Message);
+                    return Json(new { success = false, message = canDelete.Message });
+                }
+
+                // Perform deletion
+                var success = await _lopHocService.DeleteAsync(id);
+                if (success)
+                {
+                    _logger.LogInformation("Successfully deleted class ID: {ClassId}", id);
+                    return Json(new { success = true, message = $"Đã xóa lớp học '{lopHoc.TenLop}' thành công." });
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to delete class ID: {ClassId}", id);
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi xóa lớp học." });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while deleting class ID: {ClassId}", id);
+                return Json(new { success = false, message = "Có lỗi xảy ra khi xóa lớp học." });
+            }
+        }
+
 
 
         /// <summary>

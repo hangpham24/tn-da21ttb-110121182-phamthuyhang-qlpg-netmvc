@@ -78,8 +78,8 @@ namespace GymManagement.Web.Controllers
                                 worksheet.Cells[row, 3].Value = hocVien.Email;
                                 worksheet.Cells[row, 4].Value = hocVien.SoDienThoai;
                                 worksheet.Cells[row, 5].Value = lopHoc.TenLop;
-                                worksheet.Cells[row, 6].Value = dangKy.TrangThai;
-                                worksheet.Cells[row, 7].Value = dangKy.NgayDangKy.ToString("dd/MM/yyyy");
+                                worksheet.Cells[row, 6].Value = GetStudentStatus(dangKy);
+                                worksheet.Cells[row, 7].Value = dangKy.NgayBatDau.ToString("dd/MM/yyyy");
                                 row++;
                             }
                         }
@@ -516,9 +516,43 @@ namespace GymManagement.Web.Controllers
                 var myClasses = await _lopHocService.GetClassesByTrainerAsync(trainerId);
                 ViewBag.MyClasses = myClasses;
 
+                // Load tất cả học viên từ các lớp của trainer
+                var studentDict = new Dictionary<int, object>();
+                foreach (var lopHoc in myClasses)
+                {
+                    var lopHocDetail = await _lopHocService.GetByIdAsync(lopHoc.LopHocId);
+                    if (lopHocDetail?.DangKys != null)
+                    {
+                        foreach (var dangKy in lopHocDetail.DangKys.Where(d => d.NguoiDung != null))
+                        {
+                            var studentId = dangKy.NguoiDung!.NguoiDungId;
+                            if (!studentDict.ContainsKey(studentId))
+                            {
+                                studentDict[studentId] = new
+                                {
+                                    id = studentId,
+                                    name = $"{dangKy.NguoiDung.Ho} {dangKy.NguoiDung.Ten}".Trim(),
+                                    email = dangKy.NguoiDung.Email,
+                                    phone = dangKy.NguoiDung.SoDienThoai,
+                                    registrationDate = dangKy.NgayBatDau.ToString("dd/MM/yyyy"),
+                                    expiryDate = dangKy.NgayKetThuc.ToString("dd/MM/yyyy"),
+                                    status = GetStudentStatus(dangKy),
+                                    isActive = dangKy.TrangThai == "ACTIVE" && dangKy.NgayKetThuc >= DateOnly.FromDateTime(DateTime.Today),
+                                    className = lopHoc.TenLop,
+                                    classId = lopHoc.LopHocId
+                                };
+                            }
+                        }
+                    }
+                }
+
+                var allStudents = studentDict.Values.ToList();
+                ViewBag.AllStudents = allStudents;
+
                 LogUserAction("Students_Loaded", new {
                     TrainerId = trainerId,
-                    ClassCount = myClasses.Count()
+                    ClassCount = myClasses.Count(),
+                    StudentCount = allStudents.Count
                 });
 
                 return View();

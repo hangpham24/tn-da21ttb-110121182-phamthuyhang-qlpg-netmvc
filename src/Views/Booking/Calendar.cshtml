@@ -219,6 +219,28 @@
                 box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
             }
 
+            .quick-register-btn-disabled {
+                background: #9CA3AF !important;
+                color: white !important;
+                border: none !important;
+                border-radius: 50% !important;
+                width: 20px !important;
+                height: 20px !important;
+                font-size: 10px !important;
+                cursor: not-allowed !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                opacity: 0.6 !important;
+                box-shadow: none !important;
+            }
+
+            .quick-register-btn-disabled:hover {
+                background: #9CA3AF !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+
             /* Full class indicator */
             .full-class-indicator {
                 position: absolute !important;
@@ -602,6 +624,15 @@
                 eventClick: function(info) {
                     console.log('Event clicked:', info.event);
                     if (info.event.extendedProps.type !== 'booking') {
+                        // Check if class time has passed
+                        const now = new Date();
+                        const classTime = new Date(info.event.start);
+                        
+                        if (classTime <= now) {
+                            alert('Không thể đặt lịch cho lớp đã bắt đầu hoặc đã kết thúc.');
+                            return;
+                        }
+                        
                         // Check if class is full before allowing booking
                         if (info.event.extendedProps.isFull) {
                             showFullClassMessage(info.event);
@@ -635,15 +666,32 @@
                         const buttonContainer = document.createElement('div');
                         buttonContainer.className = 'quick-register-container';
 
-                        // Different button for nearly full vs available
+                        // Check if class time has passed
+                        const now = new Date();
+                        const classTime = new Date(info.event.start);
+                        const hasPassedTime = classTime <= now;
+                        
+                        // Different button for nearly full vs available vs past time
                         const isNearlyFull = info.event.extendedProps.status === 'NEARLY_FULL';
-                        const buttonClass = isNearlyFull ? 'quick-register-btn-warning' : 'quick-register-btn';
-                        const buttonIcon = isNearlyFull ? '⚠️' : '+';
-                        const buttonTitle = isNearlyFull ? 'Sắp đầy - Đăng ký nhanh' : 'Đăng ký nhanh';
+                        let buttonClass, buttonIcon, buttonTitle;
+                        
+                        if (hasPassedTime) {
+                            buttonClass = 'quick-register-btn-disabled';
+                            buttonIcon = '⏰';
+                            buttonTitle = 'Đã quá thời gian';
+                        } else if (isNearlyFull) {
+                            buttonClass = 'quick-register-btn-warning';
+                            buttonIcon = '⚠️';
+                            buttonTitle = 'Sắp đầy - Đăng ký nhanh';
+                        } else {
+                            buttonClass = 'quick-register-btn';
+                            buttonIcon = '+';
+                            buttonTitle = 'Đăng ký nhanh';
+                        }
 
                         buttonContainer.innerHTML = `
                             <button class="${buttonClass}"
-                                    onclick="quickRegisterClass(${info.event.extendedProps.lopHocId}, '${info.event.start.toISOString().split('T')[0]}')"
+                                    ${hasPassedTime ? 'disabled' : `onclick="quickRegisterClass(${info.event.extendedProps.lopHocId}, '${info.event.start.toISOString().split('T')[0]}')"` }
                                     title="${buttonTitle}">
                                 ${buttonIcon}
                             </button>
@@ -1006,6 +1054,13 @@
         console.log('🔧 Script version: 2025-08-14-10:00');
 
         function showQuickBooking(date, preSelectedClassId = null) {
+            // ✅ Check if the selected date/time has passed
+            const now = new Date();
+            if (date <= now) {
+                alert('Không thể đặt lịch cho thời gian đã qua.');
+                return;
+            }
+
             // ✅ Store the date object globally
             currentBookingDate = date;
             const dateStr = date.toISOString().split('T')[0];
@@ -1095,9 +1150,12 @@
             confirmBtn.disabled = true;
             confirmBtn.textContent = 'Đang kiểm tra...';
 
-            // ✅ IMPROVED: Format date properly to avoid timezone issues
-            const dateStr = currentBookingDate.toISOString().split('T')[0] + 'T00:00:00';
-            const dateOnly = currentBookingDate.toISOString().split('T')[0];
+            // ✅ FIXED: Format date in local timezone to avoid UTC shift issues
+            const year = currentBookingDate.getFullYear();
+            const month = String(currentBookingDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentBookingDate.getDate()).padStart(2, '0');
+            const dateOnly = `${year}-${month}-${day}`;
+            const dateStr = `${dateOnly}T00:00:00`;
 
             console.log('🕐 Booking date:', {
                 original: currentBookingDate,

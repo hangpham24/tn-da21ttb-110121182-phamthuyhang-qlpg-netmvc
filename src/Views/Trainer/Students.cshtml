@@ -2,6 +2,7 @@
     ViewData["Title"] = "Học viên - Huấn luyện viên";
     Layout = "_TrainerLayout";
     var myClasses = ViewBag.MyClasses as IEnumerable<GymManagement.Web.Data.Models.LopHoc>;
+    var allStudents = ViewBag.AllStudents as List<object>;
 }
 
 <div class="p-6">
@@ -13,7 +14,7 @@
 
     <!-- Class Selection and Filters -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <!-- Class Selection -->
             <div>
                 <label for="classSelect" class="block text-sm font-medium text-gray-700 mb-2">
@@ -59,51 +60,127 @@
                 </select>
             </div>
 
-            <!-- Registration Date Filter -->
-            @* <div>
-                <label for="dateFilter" class="block text-sm font-medium text-gray-700 mb-2">
+            <!-- Export Excel Button -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
                     <span class="flex items-center">
-                        📅 Thời gian đăng ký
+                        📊 Xuất dữ liệu
                     </span>
                 </label>
-                <select id="dateFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Tất cả thời gian</option>
-                    <option value="7">7 ngày gần đây</option>
-                    <option value="30">30 ngày gần đây</option>
-                    <option value="90">3 tháng gần đây</option>
-                </select>
-            </div>
-        </div> *@
-
-        <!-- Filter Actions -->
-        <div class="flex flex-wrap items-center justify-between mt-4 pt-4 border-t border-gray-200">
-            <div class="flex items-center space-x-2">
-                <button id="clearFilters" class="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors">
-                    Xóa bộ lọc
-                </button>
-                <span id="resultsCount" class="text-sm text-gray-500"></span>
-            </div>
-            <div class="flex items-center space-x-2">
-                <button id="exportStudents" class="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors cursor-pointer">
+                <button id="exportStudents" class="w-full px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors cursor-pointer">
                     📊 Xuất Excel
                 </button>
-                <button id="refreshData" class="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors cursor-pointer">
+            </div>
+
+            <!-- Refresh Button -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <span class="flex items-center">
+                        🔄 Cập nhật
+                    </span>
+                </label>
+                <button id="refreshData" class="w-full px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors cursor-pointer">
                     🔄 Làm mới
                 </button>
             </div>
+        </div>
+
+        <!-- Results Count -->
+        <div class="mt-4 pt-4 border-t border-gray-200">
+            <span id="resultsCount" class="text-sm text-gray-500"></span>
         </div>
     </div>
 
     <!-- Students List -->
     <div id="studentsContainer">
-        <!-- Default state -->
+        @if (allStudents != null && allStudents.Any())
+        {
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        Danh sách học viên (@allStudents.Count người)
+                    </h3>
+                </div>
+                <div class="divide-y divide-gray-200">
+                    @foreach (dynamic student in allStudents)
+                    {
+                        <div class="p-6 hover:bg-gray-50 transition-colors student-item border-l-4 border-l-transparent hover:border-l-purple-500" 
+                             data-name="@((string)student.name ?? "")?.ToLower()"
+                             data-email="@((string)student.email ?? "")?.ToLower()"
+                             data-phone="@((string)student.phone ?? "")?.ToLower()"
+                             data-status="@((string)student.status ?? "")?.ToUpper()"
+                             data-registration-date="@((string)student.registrationDate ?? "")">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                            <span class="text-lg font-semibold text-purple-600">
+                                                @(((string)student.name ?? "N").Substring(0, 1).ToUpper())
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-lg font-semibold text-gray-900">@(student.name ?? "N/A")</h4>
+                                        <div class="flex flex-wrap gap-2 text-sm text-gray-600 mt-1">
+                                            <span class="flex items-center">
+                                                📧 @(student.email ?? "Chưa có email")
+                                            </span>
+                                            @if (!string.IsNullOrEmpty((string)student.phone))
+                                            {
+                                                <span class="flex items-center">📱 @student.phone</span>
+                                            }
+                                        </div>
+                                        <p class="text-sm text-gray-500 mt-1">
+                                            📅 Đăng ký: @(student.registrationDate ?? "N/A")
+                                            @if (!string.IsNullOrEmpty((string)student.expiryDate))
+                                            {
+                                                <span> • Hết hạn: @student.expiryDate</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <span class="px-3 py-1 text-xs font-medium rounded-full 
+                                        @((string)student.status switch 
+                                        {
+                                            "ACTIVE" => "bg-green-100 text-green-800",
+                                            "INACTIVE" => "bg-gray-100 text-gray-800", 
+                                            "EXPIRED" => "bg-red-100 text-red-800",
+                                            _ => "bg-gray-100 text-gray-800"
+                                        })">
+                                        @((string)student.status switch 
+                                        {
+                                            "ACTIVE" => "Đang hoạt động",
+                                            "INACTIVE" => "Không hoạt động", 
+                                            "EXPIRED" => "Hết hạn",
+                                            _ => "Không xác định"
+                                        })
+                                    </span>
+                                    <div class="flex space-x-1">
+                                        <button onclick="viewStudentDetails('@student.id')" 
+                                                class="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                                title="Xem chi tiết">
+                                            👁️ Chi tiết
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Empty state -->
         <div class="bg-white rounded-lg shadow-md p-12 text-center">
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
             </svg>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Chọn lớp học để xem học viên</h3>
-            <p class="text-gray-600">Vui lòng chọn một lớp học từ danh sách trên để xem danh sách học viên.</p>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Chưa có học viên nào</h3>
+                <p class="text-gray-600">Bạn chưa có học viên nào trong các lớp học được phân công.</p>
         </div>
+        }
     </div>
 
     <!-- Loading State -->
@@ -147,15 +224,15 @@
 
 @section Scripts {
     <script>
-        let currentStudents = [];
+        let currentStudents = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(allStudents ?? new List<object>()));
         
         document.addEventListener('DOMContentLoaded', function() {
             // Event listeners
             document.getElementById('classSelect').addEventListener('change', handleFilterChange);
             document.getElementById('searchStudent').addEventListener('input', debounce(filterStudents, 300));
             document.getElementById('statusFilter').addEventListener('change', filterStudents);
-            document.getElementById('dateFilter').addEventListener('change', filterStudents);
-            document.getElementById('clearFilters').addEventListener('click', clearAllFilters);
+            // document.getElementById('dateFilter').addEventListener('change', filterStudents); // Commented out since dateFilter is not used
+            // document.getElementById('clearFilters').addEventListener('click', clearAllFilters); // Button removed
             document.getElementById('refreshData').addEventListener('click', refreshAllData);
             document.getElementById('exportStudents').addEventListener('click', function() {
                 const classId = document.getElementById('classSelect').value;
@@ -163,7 +240,27 @@
                 if (classId && classId !== '') {
                     url += `?classId=${classId}`;
                 }
-                window.location.href = url;
+                
+                // Show loading state
+                const btn = document.getElementById('exportStudents');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '⏳ Đang xuất...';
+                btn.disabled = true;
+                
+                // Create a temporary link to download file
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = '';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Reset button after short delay
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
             });
             
             // Check if classId is provided in URL
@@ -172,10 +269,8 @@
             if (classId) {
                 document.getElementById('classSelect').value = classId;
                 handleFilterChange();
-            } else {
-                // Load all students from all classes initially
-                loadAllStudents();
             }
+            // Students are already loaded from server, no need to load again
         });
 
         function loadStudents() {
@@ -202,6 +297,16 @@
                 .catch(error => {
                     console.error('Error loading students:', error);
                     showError('Có lỗi xảy ra khi tải danh sách học viên.');
+                })
+                .finally(() => {
+                    // Reset refresh button if it was clicked
+                    const refreshBtn = document.getElementById('refreshData');
+                    if (refreshBtn.disabled) {
+                        setTimeout(() => {
+                            refreshBtn.innerHTML = '🔄 Làm mới';
+                            refreshBtn.disabled = false;
+                        }, 500);
+                    }
                 });
         }
 
@@ -282,7 +387,7 @@
         function filterStudents() {
             const searchTerm = document.getElementById('searchStudent').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
+            // const dateFilter = document.getElementById('dateFilter').value; // Not used since dateFilter is commented out
             const studentItems = document.querySelectorAll('.student-item');
             
             let visibleCount = 0;
@@ -303,15 +408,15 @@
                 // Status filter
                 const matchesStatus = !statusFilter || status === statusFilter;
                 
-                // Date filter
+                // Date filter - currently not implemented
                 let matchesDate = true;
-                if (dateFilter && registrationDate) {
-                    const regDate = new Date(registrationDate);
-                    const now = new Date();
-                    const daysAgo = parseInt(dateFilter);
-                    const cutoffDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
-                    matchesDate = regDate >= cutoffDate;
-                }
+                // if (dateFilter && registrationDate) {
+                //     const regDate = new Date(registrationDate);
+                //     const now = new Date();
+                //     const daysAgo = parseInt(dateFilter);
+                //     const cutoffDate = new Date(now.getTime() - (daysAgo * 24 * 60 * 60 * 1000));
+                //     matchesDate = regDate >= cutoffDate;
+                // }
                 
                 if (matchesSearch && matchesStatus && matchesDate) {
                     item.style.display = 'block';
@@ -548,7 +653,8 @@
             if (classId && classId !== '') {
                 loadStudents();
             } else {
-                loadAllStudents();
+                // Reset to show all students
+                displayStudents(currentStudents);
             }
         }
         
@@ -576,18 +682,31 @@
             document.getElementById('classSelect').value = '';
             document.getElementById('searchStudent').value = '';
             document.getElementById('statusFilter').value = '';
-            document.getElementById('dateFilter').value = '';
-            showDefaultState();
-            updateResultsCount(0, 0);
-            updateExportButton(false);
+            // document.getElementById('dateFilter').value = ''; // Not used since dateFilter is commented out
+            displayStudents(currentStudents);
+            updateResultsCount(currentStudents.length, currentStudents.length);
+            updateExportButton(currentStudents.length > 0);
         }
         
         function refreshAllData() {
             const classId = document.getElementById('classSelect').value;
+            
+            // Show loading state
+            const btn = document.getElementById('refreshData');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Đang tải...';
+            btn.disabled = true;
+            
             if (classId && classId !== '') {
                 loadStudents();
+                // Reset button after loading
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 1000);
             } else {
-                loadAllStudents();
+                // Reload the page to get fresh data from server
+                window.location.reload();
             }
         }
         

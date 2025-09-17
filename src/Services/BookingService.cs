@@ -103,6 +103,15 @@ namespace GymManagement.Web.Services
                 if (lopHoc.TrangThai != "OPEN")
                     return (false, "Lớp học đã đóng hoặc không khả dụng");
 
+                // ✅ NEW: Check if class time has passed
+                var currentDateTime = DateTime.Now;
+                var classDateTime = DateOnly.FromDateTime(date).ToDateTime(lopHoc.GioBatDau);
+                
+                if (classDateTime <= currentDateTime)
+                {
+                    return (false, $"Không thể đặt lịch cho lớp đã bắt đầu hoặc đã kết thúc. Thời gian lớp: {lopHoc.GioBatDau:HH:mm} ngày {date:dd/MM/yyyy}");
+                }
+
                 // ✅ NEW: Check if the booking date matches the class schedule
                 if (!IsValidBookingDate(lopHoc, date))
                 {
@@ -305,7 +314,7 @@ namespace GymManagement.Web.Services
         }
 
         /// <summary>
-        /// Parse days of week string to list of integers (1=Monday, 7=Sunday)
+        /// Parse days of week string to list of integers using same logic as Calendar
         /// </summary>
         private List<int> ParseDaysOfWeek(string thuTrongTuan)
         {
@@ -317,23 +326,23 @@ namespace GymManagement.Web.Services
             {
                 var trimmed = dayStr.Trim();
 
-                // Try to parse as number first
+                // Try to parse as number first (1-7 system: 1=Mon, 7=Sun)
                 if (int.TryParse(trimmed, out int dayNum) && dayNum >= 1 && dayNum <= 7)
                 {
                     days.Add(dayNum);
                 }
                 else
                 {
-                    // Try to parse Vietnamese day names
+                    // Try to parse Vietnamese day names (1-7 system to match existing data)
                     var dayNumber = trimmed switch
                     {
-                        "Thứ 2" => 1,
-                        "Thứ 3" => 2,
-                        "Thứ 4" => 3,
-                        "Thứ 5" => 4,
-                        "Thứ 6" => 5,
-                        "Thứ 7" => 6,
-                        "Chủ nhật" => 7,
+                        "Thứ 2" => 1,  // Monday (1 in 1-7 system)
+                        "Thứ 3" => 2,  // Tuesday
+                        "Thứ 4" => 3,  // Wednesday 
+                        "Thứ 5" => 4,  // Thursday
+                        "Thứ 6" => 5,  // Friday
+                        "Thứ 7" => 6,  // Saturday
+                        "Chủ nhật" => 7,  // Sunday
                         _ => 0
                     };
                     if (dayNumber > 0) days.Add(dayNumber);
@@ -343,19 +352,19 @@ namespace GymManagement.Web.Services
         }
 
         /// <summary>
-        /// Convert .NET DayOfWeek to our numbering system (1=Monday, 7=Sunday)
+        /// Convert .NET DayOfWeek to 1-7 numbering system (1=Monday, 7=Sunday) to match database
         /// </summary>
         private int GetDayOfWeekNumber(DayOfWeek dayOfWeek)
         {
             return dayOfWeek switch
             {
-                DayOfWeek.Monday => 1,
-                DayOfWeek.Tuesday => 2,
-                DayOfWeek.Wednesday => 3,
-                DayOfWeek.Thursday => 4,
-                DayOfWeek.Friday => 5,
-                DayOfWeek.Saturday => 6,
-                DayOfWeek.Sunday => 7,
+                DayOfWeek.Monday => 1,    // 1 = Thứ 2
+                DayOfWeek.Tuesday => 2,   // 2 = Thứ 3
+                DayOfWeek.Wednesday => 3, // 3 = Thứ 4
+                DayOfWeek.Thursday => 4,  // 4 = Thứ 5
+                DayOfWeek.Friday => 5,    // 5 = Thứ 6
+                DayOfWeek.Saturday => 6,  // 6 = Thứ 7
+                DayOfWeek.Sunday => 7,    // 7 = Chủ nhật
                 _ => 0
             };
         }
@@ -368,17 +377,35 @@ namespace GymManagement.Web.Services
             var validDays = ParseDaysOfWeek(thuTrongTuan);
             var dayNames = validDays.Select(day => day switch
             {
-                1 => "Thứ 2",
-                2 => "Thứ 3",
-                3 => "Thứ 4",
-                4 => "Thứ 5",
-                5 => "Thứ 6",
-                6 => "Thứ 7",
-                7 => "Chủ nhật",
+                1 => "Thứ 2",   // Monday
+                2 => "Thứ 3",   // Tuesday
+                3 => "Thứ 4",   // Wednesday
+                4 => "Thứ 5",   // Thursday
+                5 => "Thứ 6",   // Friday
+                6 => "Thứ 7",   // Saturday
+                7 => "Chủ nhật", // Sunday
                 _ => ""
             }).Where(name => !string.IsNullOrEmpty(name));
 
             return string.Join(", ", dayNames);
+        }
+
+        /// <summary>
+        /// Convert DayOfWeek to Vietnamese day name
+        /// </summary>
+        private string GetVietnameseDayOfWeek(DayOfWeek dayOfWeek)
+        {
+            return dayOfWeek switch
+            {
+                DayOfWeek.Monday => "Thứ 2",
+                DayOfWeek.Tuesday => "Thứ 3",
+                DayOfWeek.Wednesday => "Thứ 4",
+                DayOfWeek.Thursday => "Thứ 5",
+                DayOfWeek.Friday => "Thứ 6",
+                DayOfWeek.Saturday => "Thứ 7",
+                DayOfWeek.Sunday => "Chủ nhật",
+                _ => ""
+            };
         }
     }
 }
